@@ -72,5 +72,5 @@ export const BASIC_DEDUCTION_PER_PERSON = 1_500_000
 // ── 사이트 정보 ───────────────────────────────────────────────
 export const SITE_URL      = 'https://연봉계산기.kr'
 export const SITE_NAME     = '연봉계산기.kr'
-export const OPERATOR_EMAIL = 'help@연봉계산기.kr'
+export const OPERATOR_EMAIL = 'support@연봉계산기.kr'
 export const OPERATOR_NAME  = 'Incomelab'
