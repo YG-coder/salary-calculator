@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://연봉계산기.kr/sitemap.xml
