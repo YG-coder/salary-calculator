@@ -1,3 +1,8 @@
+/**
+ * src/app/layout.tsx
+ * 애드센스 코드 스니펫 포함 최종 버전
+ */
+
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import { SITE_URL, SITE_NAME } from '@/lib/constants'
@@ -30,6 +35,7 @@ export default function RootLayout({
     return (
         <html lang="ko">
         <head>
+            {/* 폰트 */}
             <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
             <link
                 rel="stylesheet"
@@ -39,22 +45,26 @@ export default function RootLayout({
 
         <body className="min-h-screen bg-surface font-sans antialiased">
 
+        {/* 헤더 */}
         <Header />
 
-        {/* 🔥 main 제거 */}
+        {/* 페이지 */}
         {children}
 
+        {/* 푸터 */}
         <Footer />
 
+        {/* 🔥 애드센스 코드 스니펫 (여기가 핵심) */}
         {ADSENSE_CLIENT && (
             <Script
-                id="google-adsense"
+                id="adsense-script"
                 async
                 src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
                 crossOrigin="anonymous"
                 strategy="afterInteractive"
             />
         )}
+
         </body>
         </html>
     )
