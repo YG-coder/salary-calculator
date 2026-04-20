@@ -1,5 +1,19 @@
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
+/**
+ * 🔥 SEO용 정적 페이지 자동 생성
+ * 2000 ~ 15000 (500 단위)
+ */
+export async function generateStaticParams() {
+    const list: { amount: string }[] = [];
+
+    for (let i = 2000; i <= 15000; i += 500) {
+        list.push({ amount: String(i) });
+    }
+
+    return list;
+}
+
 export default async function SalaryDetailPage({
                                                    params,
                                                }: {
@@ -23,37 +37,61 @@ export default async function SalaryDetailPage({
 
     return (
         <div className="max-w-2xl mx-auto p-6">
+
+            {/* 제목 */}
             <h1 className="text-2xl font-bold mb-4">
                 연봉 {parsed}만원 실수령액
             </h1>
 
+            {/* 결과 */}
             <div className="bg-gray-100 p-6 rounded-xl mb-6">
                 <p>월 실수령액: {formatKRW(result.monthlyNet)}</p>
                 <p>연 실수령액: {formatKRW(result.annualNet)}</p>
             </div>
 
-            {/* 🔥 연봉 리스트 네비게이션 */}
+            {/* 🔥 SEO 설명 (애드센스 필수) */}
+            <section className="text-gray-700 leading-relaxed space-y-3">
+                <p>
+                    연봉 {parsed}만원 기준 실수령액은 국민연금, 건강보험,
+                    고용보험 및 소득세를 제외한 금액입니다.
+                </p>
+
+                <p>
+                    실제 수령액은 비과세 항목, 부양가족 수,
+                    개인 세율에 따라 달라질 수 있습니다.
+                </p>
+
+                <p>
+                    본 계산기는 일반적인 기준을 기반으로 산출된 참고용 결과이며,
+                    정확한 세금은 개인 상황에 따라 달라질 수 있습니다.
+                </p>
+            </section>
+
+            {/* 🔥 내부 링크 (SEO 핵심) */}
             <div className="mt-10 border-t pt-6">
                 <h2 className="text-lg font-bold mb-3">다른 연봉 보기</h2>
 
                 <ul className="grid grid-cols-2 gap-2 text-blue-600">
-                    <li><a href="/salary/3000">연봉 3000만원</a></li>
-                    <li><a href="/salary/4000">연봉 4000만원</a></li>
-                    <li><a href="/salary/5000">연봉 5000만원</a></li>
-                    <li><a href="/salary/6000">연봉 6000만원</a></li>
-                    <li><a href="/salary/7000">연봉 7000만원</a></li>
-                    <li><a href="/salary/8000">연봉 8000만원</a></li>
-                    <li><a href="/salary/9000">연봉 9000만원</a></li>
-                    <li><a href="/salary/10000">연봉 1억</a></li>
+                    {Array.from({ length: 20 }, (_, i) => {
+                        const val = 2000 + i * 500;
+                        return (
+                            <li key={val}>
+                                <a href={`/salary/${val}`}>
+                                    연봉 {val}만원
+                                </a>
+                            </li>
+                        );
+                    })}
                 </ul>
             </div>
 
-            {/* 🔁 돌아가기 */}
+            {/* 🔁 계산기로 돌아가기 */}
             <div className="mt-6">
                 <a href="/" className="text-blue-600">
                     ← 연봉 계산기로 돌아가기
                 </a>
             </div>
+
         </div>
     );
 }
