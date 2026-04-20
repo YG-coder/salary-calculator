@@ -1,26 +1,27 @@
 // src/app/sitemap.ts
-// 변경사항:
-//   1. 루트 "/" URL 추가 (priority 1.0)
-//   2. /salary-calculator 를 canonical 로 유지 (priority 0.95)
-//   3. SITE_URL constants 에서 import
-
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
+
+  // 🔥 연봉 페이지 자동 생성
+  const salaryPages = []
+  for (let i = 2000; i <= 15000; i += 500) {
+    salaryPages.push({
+      url: `${SITE_URL}/salary/${i}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })
+  }
+
   return [
     {
       url: SITE_URL,
       lastModified: now,
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 1.0,
-    },
-    {
-      url: `${SITE_URL}/salary-calculator`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.95,
     },
     {
       url: `${SITE_URL}/about`,
@@ -34,5 +35,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.4,
     },
+    {
+      url: `${SITE_URL}/contact`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.4,
+    },
+    ...salaryPages,
   ]
 }
