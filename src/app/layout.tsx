@@ -1,6 +1,6 @@
 /**
  * src/app/layout.tsx
- * 애드센스 + 서치콘솔 최종 완성 버전
+ * 애드센스 + 구글 + 네이버 인증 최종 완성
  */
 
 import type { Metadata, Viewport } from 'next'
@@ -35,10 +35,16 @@ export default function RootLayout({
     return (
         <html lang="ko">
         <head>
-            {/* 🔥 구글 서치콘솔 인증 (이거 추가) */}
+            {/* 🔥 구글 서치콘솔 인증 */}
             <meta
                 name="google-site-verification"
                 content="wRdD-XXVGdLkD1kbdoV_UaNa9Xz4VzYBsHAgwtEc1pU"
+            />
+
+            {/* 🔥 네이버 서치어드바이저 인증 (이거 추가) */}
+            <meta
+                name="naver-site-verification"
+                content="d95d98873ed547abe124200609268ab5c78f9ad8"
             />
 
             {/* 폰트 */}
