@@ -8,56 +8,54 @@ import './globals.css'
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: `연봉 실수령액 계산기 | ${SITE_NAME}`,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description:
-      '최신 기준 연봉 실수령액 계산기. 국민연금, 건강보험, 고용보험, 소득세까지 자동 계산.',
+    metadataBase: new URL(SITE_URL),
+    title: {
+        default: `연봉 실수령액 계산기 | ${SITE_NAME}`,
+        template: `%s | ${SITE_NAME}`,
+    },
+    description:
+        '연봉 실수령액 계산기. 국민연금, 건강보험, 고용보험, 소득세를 반영하여 월 실수령액을 자동 계산합니다. 최신 세법 기준 적용.',
 }
 
 export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
+    width: 'device-width',
+    initialScale: 1,
 }
 
 export default function RootLayout({
-                                     children,
+                                       children,
                                    }: {
-  children: React.ReactNode
+    children: React.ReactNode
 }) {
-  return (
-      <html lang="ko">
-      <head>
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
-        />
-      </head>
+    return (
+        <html lang="ko">
+        <head>
+            <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+            <link
+                rel="stylesheet"
+                href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+            />
+        </head>
 
-      <body className="min-h-screen bg-surface font-sans antialiased">
+        <body className="min-h-screen bg-surface font-sans antialiased">
 
-      {/* 🔥 여기 추가 */}
-      <Header />
+        <Header />
 
-      {/* 페이지 내용 */}
-      <main>{children}</main>
+        {/* 🔥 main 제거 */}
+        {children}
 
-      {/* 🔥 여기 추가 */}
-      <Footer />
+        <Footer />
 
-      {ADSENSE_CLIENT && (
-          <Script
-              id="google-adsense"
-              async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-              crossOrigin="anonymous"
-              strategy="afterInteractive"
-          />
-      )}
-      </body>
-      </html>
-  )
+        {ADSENSE_CLIENT && (
+            <Script
+                id="google-adsense"
+                async
+                src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+                crossOrigin="anonymous"
+                strategy="afterInteractive"
+            />
+        )}
+        </body>
+        </html>
+    )
 }
