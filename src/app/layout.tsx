@@ -1,6 +1,6 @@
 /**
  * src/app/layout.tsx
- * 애드센스 코드 스니펫 포함 최종 버전
+ * 애드센스 + 서치콘솔 최종 완성 버전
  */
 
 import type { Metadata, Viewport } from 'next'
@@ -35,6 +35,12 @@ export default function RootLayout({
     return (
         <html lang="ko">
         <head>
+            {/* 🔥 구글 서치콘솔 인증 (이거 추가) */}
+            <meta
+                name="google-site-verification"
+                content="wRdD-XXVGdLkD1kbdoV_UaNa9Xz4VzYBsHAgwtEc1pU"
+            />
+
             {/* 폰트 */}
             <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
             <link
@@ -54,7 +60,7 @@ export default function RootLayout({
         {/* 푸터 */}
         <Footer />
 
-        {/* 🔥 애드센스 코드 스니펫 (여기가 핵심) */}
+        {/* 🔥 애드센스 코드 */}
         {ADSENSE_CLIENT && (
             <Script
                 id="adsense-script"
