@@ -1,8 +1,13 @@
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
-export default function Page({ params }: any) {
+export default function Page({ params }: { params: { amount: string } }) {
     const amount = params.amount;
+
     const annual = Number(amount) * 10000;
+
+    if (!amount || isNaN(annual)) {
+        return <div>잘못된 접근입니다.</div>;
+    }
 
     const result = calculateSalary({
         annualSalary: annual,
@@ -24,15 +29,6 @@ export default function Page({ params }: any) {
             <p className="text-gray-700">
                 연봉 {amount}만원 기준 실수령액은 4대보험과 소득세를 제외한 금액입니다.
             </p>
-
-            <div className="mt-10">
-                <h2 className="font-bold mb-2">다른 연봉 보기</h2>
-                <ul className="text-blue-600 space-y-1">
-                    <li><a href="/salary/3000">연봉 3000</a></li>
-                    <li><a href="/salary/5000">연봉 5000</a></li>
-                    <li><a href="/salary/10000">연봉 1억</a></li>
-                </ul>
-            </div>
         </main>
     );
 }
