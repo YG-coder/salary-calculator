@@ -1,6 +1,6 @@
 /**
  * src/app/contact/page.tsx
- * 문의 페이지 (애드센스 승인 최적화 - 중복 제거 버전)
+ * 문의 페이지 (중복 제거 완료)
  */
 
 import type { Metadata } from "next";
@@ -28,7 +28,6 @@ export default function ContactPage() {
                 서비스 이용 중 문의사항이 있으시면 아래 이메일로 연락해 주세요.
             </p>
 
-            {/* 🔥 운영자 정보 */}
             <div className="bg-gray-100 p-4 rounded-lg mb-6">
                 <p className="font-medium">운영자</p>
                 <p>{OPERATOR_NAME}</p>
@@ -42,7 +41,6 @@ export default function ContactPage() {
                 </a>
             </div>
 
-            {/* 안내 */}
             <section className="mb-6">
                 <h2 className="font-bold mb-2">응답 안내</h2>
                 <p>
@@ -51,15 +49,14 @@ export default function ContactPage() {
                 </p>
             </section>
 
-            {/* 내부 링크 */}
             <div className="mt-8 flex gap-4">
-                <Link href="/" className="text-blue-600 hover:underline">
+                <Link href="/" className="text-blue-600">
                     연봉 계산기
                 </Link>
-                <Link href="/about" className="text-blue-600 hover:underline">
-                    사이트 소개
+                <Link href="/about" className="text-blue-600">
+                    서비스 소개
                 </Link>
-                <Link href="/privacy" className="text-blue-600 hover:underline">
+                <Link href="/privacy" className="text-blue-600">
                     개인정보처리방침
                 </Link>
             </div>
