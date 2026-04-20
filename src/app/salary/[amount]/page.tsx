@@ -1,13 +1,18 @@
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
-export default function Page({ params }: { params: { amount: string } }) {
-    const amount = params.amount;
+export default function SalaryDetailPage({
+                                             params,
+                                         }: {
+    params: { amount: string };
+}) {
+    const amount = parseInt(params.amount, 10);
 
-    const annual = Number(amount) * 10000;
-
-    if (!amount || isNaN(annual)) {
-        return <div>잘못된 접근입니다.</div>;
+    // 🚨 잘못된 접근 방어
+    if (isNaN(amount)) {
+        return <div className="p-10">잘못된 접근입니다.</div>;
     }
+
+    const annual = amount * 10000;
 
     const result = calculateSalary({
         annualSalary: annual,
@@ -16,7 +21,7 @@ export default function Page({ params }: { params: { amount: string } }) {
     });
 
     return (
-        <main className="max-w-3xl mx-auto p-8">
+        <div className="max-w-2xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">
                 연봉 {amount}만원 실수령액
             </h1>
@@ -26,22 +31,17 @@ export default function Page({ params }: { params: { amount: string } }) {
                 <p>연 실수령액: {formatKRW(result.annualNet)}</p>
             </div>
 
-            <p className="text-gray-700">
-                연봉 {amount}만원 기준 실수령액은 4대보험과 소득세를 제외한 금액입니다.
-            </p>
-        </main>
-    );
-}
+            <section className="text-gray-700 leading-relaxed">
+                <p>
+                    연봉 {amount}만원 기준 실수령액은 세금과 4대보험을 제외한 금액입니다.
+                </p>
+            </section>
 
-export async function generateStaticParams() {
-    return [
-        { amount: "3000" },
-        { amount: "4000" },
-        { amount: "5000" },
-        { amount: "6000" },
-        { amount: "7000" },
-        { amount: "8000" },
-        { amount: "9000" },
-        { amount: "10000" },
-    ];
+            <div className="mt-6">
+                <a href="/salary-calculator" className="text-blue-600">
+                    ← 계산기로 돌아가기
+                </a>
+            </div>
+        </div>
+    );
 }
