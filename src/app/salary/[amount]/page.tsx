@@ -1,8 +1,7 @@
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
-export default function SalaryDetailPage(props: any) {
-    const amount = props?.params?.amount ?? "0";
-    const annual = Number(amount) * 10000;
+export default function Page({ params }: { params: { amount: string } }) {
+    const annual = Number(params.amount) * 10000;
 
     const result = calculateSalary({
         annualSalary: annual,
@@ -13,7 +12,7 @@ export default function SalaryDetailPage(props: any) {
     return (
         <div className="max-w-2xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">
-                연봉 {amount}만원 실수령액
+                연봉 {params.amount}만원 실수령액
             </h1>
 
             <div className="bg-gray-100 p-6 rounded-xl mb-6">
@@ -24,7 +23,7 @@ export default function SalaryDetailPage(props: any) {
     );
 }
 
-// 정적 페이지 생성
+// SEO용
 export async function generateStaticParams() {
     return [
         { amount: "3000" },
