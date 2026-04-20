@@ -1,8 +1,3 @@
-/**
- * src/app/page.tsx
- * 역할: 메인 페이지 (계산기 직접 노출)
- */
-
 import type { Metadata } from "next";
 import AdSlot from "@/components/ui/AdSlot";
 import CalculatorForm from "@/components/calculator/CalculatorForm";
@@ -58,25 +53,42 @@ export default function Home() {
             <FaqSection />
           </div>
 
+          {/* 🔥 애드센스 승인용 콘텐츠 */}
+          <section className="mt-10 text-gray-700 leading-relaxed space-y-3">
+            <h2 className="text-lg font-bold">연봉 실수령액이란?</h2>
+
+            <p>
+              연봉 실수령액은 세전 연봉에서 국민연금, 건강보험, 고용보험 및 소득세를 제외한 실제 수령 금액을 의미합니다.
+            </p>
+
+            <p>
+              동일한 연봉이라도 개인의 부양가족 수, 비과세 항목 등에 따라 실제 수령액은 달라질 수 있습니다.
+            </p>
+
+            <p>
+              본 계산기는 {TAX_YEAR}년 기준 세율을 반영하여 대략적인 실수령액을 빠르게 확인할 수 있도록 설계되었습니다.
+            </p>
+          </section>
+
           <div className="mt-10">
             <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
           </div>
 
-          {/* SEO 내부 링크 */}
+          {/* 🔥 SEO 내부 링크 (자동 생성) */}
           <div className="mt-12">
             <h2 className="text-xl font-bold mb-3">
               연봉별 실수령액
             </h2>
 
-            <ul className="space-y-2 text-blue-600">
-              <li><a href="/salary/3000">연봉 3000만원</a></li>
-              <li><a href="/salary/4000">연봉 4000만원</a></li>
-              <li><a href="/salary/5000">연봉 5000만원</a></li>
-              <li><a href="/salary/6000">연봉 6000만원</a></li>
-              <li><a href="/salary/7000">연봉 7000만원</a></li>
-              <li><a href="/salary/8000">연봉 8000만원</a></li>
-              <li><a href="/salary/9000">연봉 9000만원</a></li>
-              <li><a href="/salary/10000">연봉 1억</a></li>
+            <ul className="grid grid-cols-2 gap-2 text-blue-600">
+              {Array.from({ length: 20 }, (_, i) => {
+                const val = 2000 + i * 500;
+                return (
+                    <li key={val}>
+                      <a href={`/salary/${val}`}>연봉 {val}만원</a>
+                    </li>
+                );
+              })}
             </ul>
           </div>
         </main>
