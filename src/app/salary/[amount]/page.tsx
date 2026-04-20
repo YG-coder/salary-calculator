@@ -1,13 +1,8 @@
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
-interface PageProps {
-    params: {
-        amount: string;
-    };
-}
-
-export default function SalaryDetailPage({ params }: PageProps) {
-    const annual = Number(params.amount) * 10000;
+export default function SalaryDetailPage(props: any) {
+    const amount = props?.params?.amount ?? "0";
+    const annual = Number(amount) * 10000;
 
     const result = calculateSalary({
         annualSalary: annual,
@@ -18,24 +13,18 @@ export default function SalaryDetailPage({ params }: PageProps) {
     return (
         <div className="max-w-2xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">
-                연봉 {params.amount}만원 실수령액
+                연봉 {amount}만원 실수령액
             </h1>
 
             <div className="bg-gray-100 p-6 rounded-xl mb-6">
                 <p>월 실수령액: {formatKRW(result.monthlyNet)}</p>
                 <p>연 실수령액: {formatKRW(result.annualNet)}</p>
             </div>
-
-            <section className="text-gray-700 leading-relaxed">
-                <p>
-                    연봉 {params.amount}만원 기준 실수령액은 세금과 4대보험을 제외한 금액으로 계산됩니다.
-                </p>
-            </section>
         </div>
     );
 }
 
-// ✅ 정적 페이지 생성
+// 정적 페이지 생성
 export async function generateStaticParams() {
     return [
         { amount: "3000" },
