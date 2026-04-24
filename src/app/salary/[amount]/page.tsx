@@ -68,6 +68,8 @@ export default async function SalaryDetailPage({
 
                 <a
                     href="https://세금계산기.kr"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
                 >
                     세금 계산기 바로가기 →
