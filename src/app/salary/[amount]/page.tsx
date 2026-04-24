@@ -66,14 +66,12 @@ export default async function SalaryDetailPage({
                     4대보험, 근로소득세, 원천징수 등 상세 세금을 따로 계산할 수 있습니다.
                 </p>
 
-                <a
-                    href="https://세금계산기.kr"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <Link
+                    href="https://taxsim.kr"
                     className="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
                 >
                     세금 계산기 바로가기 →
-                </a>
+                </Link>
             </div>
 
             <div className="mt-10 border-t pt-6">
