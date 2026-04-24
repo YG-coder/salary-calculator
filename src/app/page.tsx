@@ -26,7 +26,6 @@ export default function Home() {
 
   return (
       <>
-        {/* 🔥 구조화 데이터 (SEO 핵심) */}
         <Script
             id="webapp-jsonld"
             type="application/ld+json"
@@ -39,40 +38,49 @@ export default function Home() {
         />
 
         <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
-
-          {/* 타이틀 */}
-          <h1 className="text-3xl font-bold mb-4">
-            연봉 실수령액 계산기
-          </h1>
+          <h1 className="text-3xl font-bold mb-4">연봉 실수령액 계산기</h1>
 
           <p className="text-gray-500 mb-6">
             {TAX_YEAR}년 기준 · 4대보험 + 소득세 자동 계산
           </p>
 
-          {/* 광고 영역 */}
           <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
 
-          {/* 계산기 */}
           <div className="mt-6">
             <CalculatorForm />
           </div>
 
-          {/* 광고 */}
           <div className="mt-10">
             <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
           </div>
 
-          {/* 설명 콘텐츠 */}
+          {/* 세금계산기 연동 CTA */}
+          <section className="mt-10 rounded-2xl border bg-blue-50 p-6">
+            <h2 className="text-xl font-bold mb-2 text-slate-900">
+              세금 상세 계산이 필요하신가요?
+            </h2>
+
+            <p className="text-slate-600 mb-4">
+              연봉 실수령액은 4대보험, 근로소득세, 원천징수와 연결됩니다.
+              더 자세한 세금 계산은 세금계산기에서 확인하세요.
+            </p>
+
+            <Link
+                href="https://taxsim.kr"
+                className="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+            >
+              세금 계산기 바로가기 →
+            </Link>
+          </section>
+
           <div className="mt-10">
             <ContentSection />
           </div>
 
-          {/* FAQ */}
           <div className="mt-10">
             <FaqSection />
           </div>
 
-          {/* 🔥 애드센스 승인용 텍스트 (중요) */}
           <section className="mt-10 text-gray-700 leading-relaxed space-y-3">
             <h2 className="text-lg font-bold">연봉 실수령액이란?</h2>
 
@@ -101,31 +109,24 @@ export default function Home() {
             </p>
           </section>
 
-          {/* 광고 */}
           <div className="mt-10">
             <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
           </div>
 
-          {/* 🔥 내부 링크 (SEO 핵심) */}
           <div className="mt-12">
-            <h2 className="text-xl font-bold mb-3">
-              연봉별 실수령액
-            </h2>
+            <h2 className="text-xl font-bold mb-3">연봉별 실수령액</h2>
 
             <ul className="grid grid-cols-2 gap-2 text-blue-600">
               {Array.from({ length: 20 }, (_, i) => {
                 const val = 2000 + i * 500;
                 return (
                     <li key={val}>
-                      <Link href={`/salary/${val}`}>
-                        연봉 {val}만원
-                      </Link>
+                      <Link href={`/salary/${val}`}>연봉 {val}만원</Link>
                     </li>
                 );
               })}
             </ul>
           </div>
-
         </main>
       </>
   );
