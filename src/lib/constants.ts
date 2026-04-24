@@ -8,19 +8,39 @@ export const TAX_YEAR = 2026
 
 // ── 4대보험 근로자 부담 요율 ────────────────────────────────
 export const RATES = {
-  /** 국민연금 근로자 부담율 */
-  nationalPension: 0.045,
-  /** 건강보험 근로자 부담율 */
-  healthInsurance: 0.03545,
-  /** 장기요양보험율 (건강보험료 대비) */
-  longTermCare: 0.1281,
-  /** 고용보험 근로자 부담율 */
+  /**
+   * 국민연금 근로자 부담율
+   * 2026년 고시: 4.75% (사업주 4.75%, 합계 9.5%)
+   */
+  nationalPension: 0.0475,
+
+  /**
+   * 건강보험 근로자 부담율
+   * 2026년 고시: 3.595% (사업주 동일, 합계 7.19%)
+   */
+  healthInsurance: 0.03595,
+
+  /**
+   * 장기요양보험율 (건강보험료 대비)
+   * 2026년 고시: 건강보험료의 12.95%
+   * 실효 보험료 비율: 3.595% × 12.95% ≒ 0.4656%
+   */
+  longTermCare: 0.1295,
+
+  /**
+   * 고용보험 근로자 부담율
+   * 2026년: 0.9% (전년 동일)
+   */
   employment: 0.009,
+
   /** 지방소득세율 (소득세 대비) */
   localTax: 0.10,
 } as const
 
 // ── 국민연금 기준소득월액 상·하한 ────────────────────────────
+// 2026년 1~6월 기준: 상한 6,170,000원 / 하한 390,000원
+// 2026년 7월부터 변경 고시 예정 (상한 6,370,000원 / 하한 400,000원 예상)
+// 연간 평균 사용 목적으로 1~6월 기준 적용 (보수적 산정)
 export const PENSION_LIMITS = {
   /** 기준소득월액 하한 (원) */
   min: 390_000,
@@ -69,8 +89,12 @@ export const TAX_CREDIT = {
 // ── 기본공제 1인당 금액 ───────────────────────────────────────
 export const BASIC_DEDUCTION_PER_PERSON = 1_500_000
 
+// ── 2026년 최저임금 ───────────────────────────────────────────
+/** 2026년 시간당 최저임금 (원) */
+export const MIN_HOURLY_WAGE_2026 = 10_320
+
 // ── 사이트 정보 ───────────────────────────────────────────────
-export const SITE_URL      = 'https://연봉계산기.kr'
-export const SITE_NAME     = '연봉계산기.kr'
+export const SITE_URL       = 'https://연봉계산기.kr'
+export const SITE_NAME      = '연봉계산기.kr'
 export const OPERATOR_EMAIL = 'support@연봉계산기.kr'
 export const OPERATOR_NAME  = 'Incomelab'
