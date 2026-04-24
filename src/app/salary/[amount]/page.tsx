@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
 export async function generateStaticParams() {
