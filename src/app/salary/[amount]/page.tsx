@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { calculateSalary, formatKRW } from "@/lib/salary";
 
 export async function generateStaticParams() {
@@ -31,16 +32,18 @@ export default async function SalaryDetailPage({
     return (
         <div className="max-w-2xl mx-auto p-6">
 
+            {/* 제목 */}
             <h1 className="text-2xl font-bold mb-4">
                 연봉 {parsed}만원 실수령액
             </h1>
 
+            {/* 결과 */}
             <div className="bg-gray-100 p-6 rounded-xl mb-6">
                 <p>월 실수령액: {formatKRW(result.monthlyNet)}</p>
                 <p>연 실수령액: {formatKRW(result.annualNet)}</p>
             </div>
 
-            {/* 🔥 콘텐츠 강화 */}
+            {/* 🔥 콘텐츠 */}
             <section className="text-gray-700 leading-relaxed space-y-3">
                 <p>
                     연봉 {parsed}만원 기준 실수령액은 국민연금, 건강보험,
@@ -62,6 +65,24 @@ export default async function SalaryDetailPage({
                 </p>
             </section>
 
+            {/* 🔥 세금계산기 연동 CTA */}
+            <div className="mt-10 rounded-2xl border bg-blue-50 p-6">
+                <h2 className="text-xl font-bold mb-2">
+                    세금 상세 계산이 필요하신가요?
+                </h2>
+
+                <p className="text-slate-600 mb-4">
+                    4대보험, 근로소득세, 원천징수 등 상세 세금을 따로 계산할 수 있습니다.
+                </p>
+
+                <Link
+                    href="https://세금계산기.kr"
+                    className="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+                >
+                    세금 계산기 바로가기 →
+                </Link>
+            </div>
+
             {/* 내부 링크 */}
             <div className="mt-10 border-t pt-6">
                 <h2 className="text-lg font-bold mb-3">다른 연봉 보기</h2>
@@ -80,6 +101,7 @@ export default async function SalaryDetailPage({
                 </ul>
             </div>
 
+            {/* 뒤로가기 */}
             <div className="mt-6">
                 <a href="/" className="text-blue-600">
                     ← 연봉 계산기로 돌아가기
