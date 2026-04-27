@@ -4,6 +4,10 @@
 // 매년 고시되는 요율이 변경되면 이 파일만 수정하세요.
 // ────────────────────────────────────────────────────────────
 
+import { SITE } from '@/lib/site'
+
+export { SITE }
+
 export const TAX_YEAR = 2026
 
 // ── 4대보험 근로자 부담 요율 ────────────────────────────────
@@ -34,7 +38,7 @@ export const RATES = {
   employment: 0.009,
 
   /** 지방소득세율 (소득세 대비) */
-  localTax: 0.10,
+  localTax: 0.1,
 } as const
 
 // ── 국민연금 기준소득월액 상·하한 ────────────────────────────
@@ -50,14 +54,14 @@ export const PENSION_LIMITS = {
 
 // ── 소득세 누진세율 구간 [과세표준 상한, 세율, 누진공제액] ─────
 export const INCOME_TAX_BRACKETS: readonly [number, number, number][] = [
-  [14_000_000,    0.06,          0],
-  [50_000_000,    0.15,  1_260_000],
-  [88_000_000,    0.24,  5_760_000],
-  [150_000_000,   0.35, 15_440_000],
-  [300_000_000,   0.38, 19_940_000],
-  [500_000_000,   0.40, 25_940_000],
+  [14_000_000, 0.06, 0],
+  [50_000_000, 0.15, 1_260_000],
+  [88_000_000, 0.24, 5_760_000],
+  [150_000_000, 0.35, 15_440_000],
+  [300_000_000, 0.38, 19_940_000],
+  [500_000_000, 0.4, 25_940_000],
   [1_000_000_000, 0.42, 35_940_000],
-  [Infinity,      0.45, 65_940_000],
+  [Infinity, 0.45, 65_940_000],
 ] as const
 
 // ── 근로소득공제 구간 [총급여 상한, 공제율, 누진공제액] ──────────
@@ -65,10 +69,10 @@ export const INCOME_TAX_BRACKETS: readonly [number, number, number][] = [
 // 이전 코드: [Infinity, 0.00, 14_000_000] → amount*0 - 14_000_000 → Math.max(0,…) = 0 (버그!)
 // 수정: salary.ts의 calcWageDeduction() 함수에서 직접 처리
 export const WAGE_DEDUCTION_BRACKETS: readonly [number, number, number][] = [
-  [5_000_000,   0.70,          0],
-  [15_000_000,  0.40,  1_500_000],
-  [45_000_000,  0.15,  4_500_000],
-  [100_000_000, 0.05,  9_000_000],
+  [5_000_000, 0.7, 0],
+  [15_000_000, 0.4, 1_500_000],
+  [45_000_000, 0.15, 4_500_000],
+  [100_000_000, 0.05, 9_000_000],
   // 1억 초과: 고정 14,750,000원 (별도 상한 적용)
 ] as const
 
@@ -82,8 +86,8 @@ export const WAGE_DEDUCTION_MAX = 14_000_000
 export const TAX_CREDIT = {
   threshold: 1_300_000,
   lowerRate: 0.55,
-  upperRate: 0.30,
-  max:       740_000,
+  upperRate: 0.3,
+  max: 740_000,
 } as const
 
 // ── 기본공제 1인당 금액 ───────────────────────────────────────
@@ -94,7 +98,8 @@ export const BASIC_DEDUCTION_PER_PERSON = 1_500_000
 export const MIN_HOURLY_WAGE_2026 = 10_320
 
 // ── 사이트 정보 ───────────────────────────────────────────────
-export const SITE_URL       = 'https://연봉계산기.kr'
-export const SITE_NAME      = '연봉계산기.kr'
-export const OPERATOR_EMAIL = 'support@연봉계산기.kr'
-export const OPERATOR_NAME  = 'Incomelab'
+// 사이트 정보의 원본은 src/lib/site.ts에서 중앙 관리합니다.
+export const SITE_URL = SITE.url
+export const SITE_NAME = SITE.name
+export const OPERATOR_EMAIL = SITE.operatorEmail
+export const OPERATOR_NAME = SITE.operatorName
