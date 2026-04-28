@@ -27,7 +27,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
 
-  // ✅ Open Graph (공유/SEO)
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
@@ -46,7 +45,6 @@ export const metadata: Metadata = {
     ],
   },
 
-  // ✅ Twitter 카드
   twitter: {
     card: 'summary_large_image',
     title: `직장인 급여 계산기 | ${SITE_NAME}`,
@@ -69,6 +67,11 @@ export default function RootLayout({
   return (
       <html lang="ko">
       <head>
+        {/* ✅ Favicon */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+
         {/* ✅ 구글 서치콘솔 인증 */}
         <meta
             name="google-site-verification"
@@ -100,7 +103,6 @@ export default function RootLayout({
 
       <Footer />
 
-      {/* ✅ 애드센스 스크립트 (승인 전에도 넣어도 OK) */}
       {ADSENSE_CLIENT && (
           <Script
               id="adsense-script"
