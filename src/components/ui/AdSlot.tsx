@@ -13,14 +13,19 @@ export default function AdSlot({
                                    format = 'auto',
                                    className = '',
                                }: AdSlotProps) {
+    // 환경 변수
     const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
+
+    // ✅ 슬롯 ID 숫자 검증 (핵심)
     const hasValidSlotId = /^\d+$/.test(slotId)
 
+    // ✅ 광고 렌더 조건
     const canRenderAd =
         process.env.NODE_ENV === 'production' &&
         !!clientId &&
         hasValidSlotId
 
+    // ✅ 광고 push (조건 만족 시만)
     useEffect(() => {
         if (!canRenderAd) return
 
@@ -29,10 +34,11 @@ export default function AdSlot({
             w.adsbygoogle = w.adsbygoogle ?? []
             w.adsbygoogle.push({})
         } catch {
-            // 광고 차단기 또는 중복 push 무시
+            // 광고 차단기 / 중복 push 방지
         }
     }, [canRenderAd, slotId])
 
+    // ❌ 광고 안 띄우는 상태 (개발 / 승인 전 / 잘못된 slotId)
     if (!canRenderAd) {
         return (
             <div
@@ -54,6 +60,7 @@ export default function AdSlot({
         )
     }
 
+    // ✅ 실제 애드센스 광고
     return (
         <div className={className}>
             <ins
