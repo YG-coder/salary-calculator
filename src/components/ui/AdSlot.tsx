@@ -1,3 +1,23 @@
+/**
+ * src/components/ui/AdSlot.tsx
+ *
+ * 애드센스 광고 슬롯 컴포넌트
+ *
+ * [승인 전 / 개발 환경]
+ * - 광고 대신 플레이스홀더 렌더링
+ * - 잘못된 slotId (문자열 등) 차단
+ *
+ * [운영 환경]
+ * - 숫자형 slotId일 때만 <ins> 광고 태그 렌더링
+ * - adsbygoogle.push()는 useEffect에서 안전하게 실행
+ *
+ * 주요 기능:
+ * 1. slotId 숫자 검증 (정책 리스크 방지)
+ * 2. 승인 전 광고 코드 노출 차단
+ * 3. 슬롯별 독립 렌더링 (key 사용)
+ * 4. 광고 차단기 및 중복 push 예외 처리
+ */
+
 'use client'
 
 import { useEffect } from 'react'
