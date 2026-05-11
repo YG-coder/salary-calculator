@@ -4,6 +4,7 @@
  */
 
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import Script from 'next/script'
 import AdSlot from '@/components/ui/AdSlot'
 import CalculatorForm from '@/components/calculator/CalculatorForm'
@@ -45,7 +46,7 @@ const RELATED = [
   },
 ]
 
-export default function SalaryCalculatorPage() {
+export default function Page() {
   const webAppJsonLd = buildWebAppJsonLd()
   const faqJsonLd = buildFaqJsonLd()
 
@@ -111,21 +112,26 @@ export default function SalaryCalculatorPage() {
           <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
         </div>
 
-        <div className="mt-12">
-          <h2 className="text-xl font-bold mb-3">연봉별 실수령액</h2>
-          <ul className="grid grid-cols-2 gap-2 text-brand-600">
-            {Array.from({ length: 20 }, (_, i) => {
-              const val = 2000 + i * 500
-              return (
-                <li key={val}>
-                  <a href={`/salary/${val}`} className="hover:underline text-sm">
-                    연봉 {val}만원
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
+        <section className="mt-12">
+          <h2 className="text-xl font-bold text-slate-900 mb-1">
+            연봉별 실수령액 자세히 보기
+          </h2>
+          <p className="text-sm text-slate-500 mb-4">
+            구간별 공제 내역과 비과세 효과를 페이지에서 확인하세요.
+          </p>
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {Array.from({ length: 20 }, (_, i) => 2000 + i * 500).map((val) => (
+              <Link
+                key={val}
+                href={`/salary/${val}`}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 text-center hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+              >
+                연봉 {val.toLocaleString()}만원
+              </Link>
+            ))}
+          </div>
+        </section>
       </main>
     </>
   )
