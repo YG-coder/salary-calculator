@@ -63,7 +63,7 @@ export default function ContentSection() {
             {[
               {
                 name: '국민연금',
-                desc: `월 과세 급여의 ${(RATES.nationalPension * 100).toFixed(1)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 617만원을 초과해도 617만원 기준으로 계산되어 최대 277,650원이 공제됩니다.`,
+                desc: `월 과세 급여의 ${(RATES.nationalPension * 100).toFixed(1)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 약 313,000원이 공제됩니다.`,
               },
               {
                 name: '건강보험',

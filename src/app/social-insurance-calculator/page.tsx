@@ -159,7 +159,7 @@ export default function SocialInsuranceCalculatorPage() {
                   </p>
                   <p>
                     근로자 부담률은 월 과세급여의 {(RATES.nationalPension * 100).toFixed(2)}%이며,
-                    사업주가 동일 금액을 추가 부담해 총 9.0%가 적립됩니다. 단,
+                    사업주가 동일 금액을 추가 부담해 총 9.5%가 적립됩니다. 단,
                     기준소득월액에는 상한({pensionMaxMan}만원)과 하한({pensionMinMan}만원)이
                     있어 월 급여가 상한을 초과해도 그 이상은 보험료가 늘어나지 않습니다.
                     {pensionMaxMan}만원 기준 근로자 부담은 최대 약 28만원 수준입니다.
@@ -226,7 +226,7 @@ export default function SocialInsuranceCalculatorPage() {
             description:
               '각 보험의 근로자·사업주 부담 요율과 부과 기준입니다. 국민연금만 기준소득월액 상·하한이 적용되며, 나머지는 월 과세급여 전액에 비례합니다.',
             items: [
-              { label: '국민연금', value: `근로자 ${(RATES.nationalPension * 100).toFixed(2)}% + 사업주 ${(RATES.nationalPension * 100).toFixed(2)}% = 합계 9.0%` },
+              { label: '국민연금', value: `근로자 ${(RATES.nationalPension * 100).toFixed(2)}% + 사업주 ${(RATES.nationalPension * 100).toFixed(2)}% = 합계 9.5%` },
               { label: '건강보험', value: `근로자 ${(RATES.healthInsurance * 100).toFixed(3)}% + 사업주 동일 = 합계 7.19%` },
               { label: '장기요양', value: `건강보험료 × ${(RATES.longTermCare * 100).toFixed(2)}% (근로자·사업주 절반씩)` },
               { label: '고용보험(실업급여)', value: `근로자 ${(RATES.employment * 100).toFixed(1)}% + 사업주 0.9%` },
@@ -244,7 +244,7 @@ export default function SocialInsuranceCalculatorPage() {
               { label: '월 300만원', values: ['142,500원', '약 122,000원', '27,000원'] },
               { label: '월 400만원', values: ['190,000원', '약 162,000원', '36,000원'] },
               { label: '월 500만원', values: ['237,500원', '약 203,000원', '45,000원'] },
-              { label: '월 617만원 이상', values: ['293,000원 (상한)', '비례 증가', '비례 증가'] },
+              { label: '월 659만원 이상', values: ['약 313,000원 (상한)', '비례 증가', '비례 증가'] },
             ],
           }}
           legalBasis={[

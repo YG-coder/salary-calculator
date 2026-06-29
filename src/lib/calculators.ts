@@ -38,7 +38,7 @@ export function calculateSocialInsurance(input: SocialInsuranceInput): SocialIns
   // 건강보험
   const healthInsurance = floor10(monthlyGross * RATES.healthInsurance)
 
-  // 장기요양 (건강보험료 × 12.95%)
+  // 장기요양 (건강보험료 × 13.14%)
   const longTermCare = floor10(healthInsurance * RATES.longTermCare)
 
   // 고용보험 (근로자 0.9%)
@@ -275,22 +275,21 @@ export function calculateUnemploymentBenefit(input: UnemploymentBenefitInput): U
   const { dailyWage, employmentMonths, age } = input
 
   /**
-   * 2026년 실업급여 상·하한
+   * 2026년 실업급여(구직급여) 상·하한 (1일 기준)
    *
-   * ▸ 상한액: 66,000원/일
-   *   - 고용노동부 고시 기준 (2024년부터 동결 중, 2026년 고시 미변경 시 66,000원 적용)
+   * ▸ 상한액: 68,100원/일
+   *   - 2019년 이후 66,000원으로 동결되어 있었으나, 2026년 최저임금 인상으로
+   *     하한액(66,048원)이 기존 상한액(66,000원)을 넘는 역전현상이 발생하여
+   *     고용노동부가 상한액을 68,100원으로 인상 (2026.1.1 이후 이직자부터 적용)
    *
    * ▸ 하한액: 최저임금 × 8시간 × 80%
    *   - 2026년 최저시급 10,320원 기준
    *   - 10,320원 × 8시간 × 80% = 66,048원
-   *   - 하한(66,048원)이 상한(66,000원)보다 높아지는 경우
-   *     → 실업급여법상 하한이 상한보다 클 수 없으므로
-   *       상한도 최소 하한 이상으로 적용 (실무상 고용부 별도 고시로 상한 상향)
-   *   - 이 계산기는 min(MAX, max(MIN, raw)) 로직 적용;
-   *     하한이 상한보다 클 경우 하한액으로 수렴
+   *
+   * 적용 로직: min(상한, max(하한, 평균임금×60%))
    */
   const MIN_DAILY = Math.floor(MIN_HOURLY_WAGE_2026 * 8 * 0.8)  // 66,048원
-  const MAX_DAILY = Math.max(66_000, MIN_DAILY)                  // 66,048원 (2026년 기준)
+  const MAX_DAILY = Math.max(68_100, MIN_DAILY)                  // 68,100원 (2026년 고시)
 
   // 수급 요건: 이직 전 18개월 내 피보험단위기간 180일(약 6개월) 이상
   const isEligible = employmentMonths >= 6

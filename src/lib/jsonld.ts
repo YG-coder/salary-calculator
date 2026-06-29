@@ -54,7 +54,7 @@ export function buildFaqJsonLd() {
         name: `${TAX_YEAR}년 국민연금 요율은 얼마인가요?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(1)}%입니다. 기준소득월액 하한은 39만원, 상한은 617만원입니다.`,
+          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(1)}%입니다. 기준소득월액 하한은 41만원, 상한은 659만원입니다.`,
         },
       },
       {

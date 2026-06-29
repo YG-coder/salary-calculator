@@ -52,7 +52,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
       amount: breakdown.longTermCare,
       color: 'text-cyan-600',
       barColor: 'bg-cyan-400',
-      description: '건보료×12.95%',
+      description: '건보료×13.14%',
     },
     {
       label: '고용보험',

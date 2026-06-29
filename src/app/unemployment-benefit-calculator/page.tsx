@@ -22,8 +22,9 @@ function formatNum(v: string) {
 function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
 
 // 2026년 실업급여 상·하한 (calculators.ts와 동일 로직)
+// 하한 66,048원(최저임금×8h×80%), 상한 68,100원(2026년 고시 인상)
 const MIN_DAILY_BENEFIT = Math.floor(MIN_HOURLY_WAGE_2026 * 8 * 0.8)  // 66,048원
-const MAX_DAILY_BENEFIT = Math.max(66_000, MIN_DAILY_BENEFIT)           // 66,048원
+const MAX_DAILY_BENEFIT = Math.max(68_100, MIN_DAILY_BENEFIT)           // 68,100원
 
 const RELATED = [
   { href: '/severance-pay-calculator', emoji: '📦', label: '퇴직금 계산기', description: '퇴직금 산출' },
