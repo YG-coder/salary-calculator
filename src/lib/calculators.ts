@@ -1,7 +1,8 @@
 // src/lib/calculators.ts
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
-import { RATES, PENSION_LIMITS, MIN_HOURLY_WAGE_2026 } from './constants'
+import { RATES, getPensionLimits, MIN_HOURLY_WAGE_2026 } from './constants'
+import { calcSimplifiedWithholdingTax } from './incomeTax'
 
 function floor10(n: number): number {
   return Math.floor(n / 10) * 10
@@ -28,11 +29,18 @@ export interface SocialInsuranceResult {
   employerEmployment: number
 }
 
-export function calculateSocialInsurance(input: SocialInsuranceInput): SocialInsuranceResult {
+// asOfDate: 계산 기준 시점 (기본값: 호출 시점의 현재 날짜)
+// ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경되므로, 2026년
+// 1~6월과 7월 이후에 서로 다른 상·하한이 적용됩니다. (getPensionLimits() 참고)
+export function calculateSocialInsurance(
+  input: SocialInsuranceInput,
+  asOfDate: Date = new Date(),
+): SocialInsuranceResult {
   const { monthlyGross } = input
 
-  // 국민연금: 기준소득월액 상·하한 적용
-  const pensionBase = Math.min(Math.max(monthlyGross, PENSION_LIMITS.min), PENSION_LIMITS.max)
+  // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
+  const pensionLimits = getPensionLimits(asOfDate)
+  const pensionBase = Math.min(Math.max(monthlyGross, pensionLimits.min), pensionLimits.max)
   const nationalPension = floor10(pensionBase * RATES.nationalPension)
 
   // 건강보험
@@ -77,6 +85,12 @@ export interface PayrollTaxInput {
   monthlyGross: number   // 월 세전 급여 (원)
   nonTaxable?: number    // 월 비과세 (원)
   dependents?: number    // 부양가족 수
+  /**
+   * 공제대상가족 중 8세 이상 20세 이하 자녀 수 (선택, 기본값 0)
+   * ⚠️ 조건: 현재 UI는 이 값을 입력받지 않으므로 0으로 가정합니다. 실제로 해당
+   * 자녀가 있는 경우 원천징수 세액은 이 계산값보다 낮을 수 있습니다.
+   */
+  childCount8to20?: number
 }
 
 export interface PayrollTaxResult {
@@ -90,51 +104,33 @@ export interface PayrollTaxResult {
   monthlyNet: number
 }
 
-// 간이세액표 근사 계산
-function simpleIncomeTax(monthlyTaxable: number, dependents: number): number {
-  const annual = monthlyTaxable * 12
-
-  // 근로소득공제
-  let wageDeduction = 0
-  if      (annual <= 5_000_000)   wageDeduction = annual * 0.70
-  else if (annual <= 15_000_000)  wageDeduction = 3_500_000  + (annual - 5_000_000)   * 0.40
-  else if (annual <= 45_000_000)  wageDeduction = 7_500_000  + (annual - 15_000_000)  * 0.15
-  else if (annual <= 100_000_000) wageDeduction = 12_000_000 + (annual - 45_000_000)  * 0.05
-  else                            wageDeduction = 14_750_000
-  wageDeduction = Math.min(wageDeduction, 14_000_000)
-
-  const basicDeduction = 1_500_000 * Math.max(1, dependents)
-  const taxBase = Math.max(0, annual - wageDeduction - basicDeduction)
-
-  let grossTax = 0
-  if      (taxBase <= 14_000_000)    grossTax = taxBase * 0.06
-  else if (taxBase <= 50_000_000)    grossTax = 840_000    + (taxBase - 14_000_000)  * 0.15
-  else if (taxBase <= 88_000_000)    grossTax = 6_240_000  + (taxBase - 50_000_000)  * 0.24
-  else if (taxBase <= 150_000_000)   grossTax = 15_360_000 + (taxBase - 88_000_000)  * 0.35
-  else if (taxBase <= 300_000_000)   grossTax = 37_060_000 + (taxBase - 150_000_000) * 0.38
-  else if (taxBase <= 500_000_000)   grossTax = 94_060_000 + (taxBase - 300_000_000) * 0.40
-  else if (taxBase <= 1_000_000_000) grossTax = 174_060_000 + (taxBase - 500_000_000) * 0.42
-  else                               grossTax = 384_060_000 + (taxBase - 1_000_000_000) * 0.45
-
-  let credit = grossTax <= 1_300_000
-    ? grossTax * 0.55
-    : 715_000 + (grossTax - 1_300_000) * 0.30
-  credit = Math.min(credit, 740_000)
-
-  const annualTax = Math.max(0, grossTax - credit)
-  return floor10(annualTax / 12)
-}
-
-export function calculatePayrollTax(input: PayrollTaxInput): PayrollTaxResult {
-  const { monthlyGross, nonTaxable = 0, dependents = 1 } = input
+// asOfDate: 계산 기준 시점 (기본값: 호출 시점의 현재 날짜)
+// ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경되므로, 2026년
+// 1~6월과 7월 이후에 서로 다른 상·하한이 적용됩니다. (getPensionLimits() 참고)
+// ⚠️ 조건: 소득세는 종합소득세 누진세율 월할 근사가 아니라, 근로소득 간이세액표
+// (소득세법 시행령 별표2) 산식을 구현한 calcSimplifiedWithholdingTax()를 사용합니다.
+// (src/lib/incomeTax.ts 참고 — 남아있는 근사 요소는 해당 파일 상단 주석 참고)
+export function calculatePayrollTax(
+  input: PayrollTaxInput,
+  asOfDate: Date = new Date(),
+): PayrollTaxResult {
+  const { monthlyGross, nonTaxable = 0, dependents = 1, childCount8to20 = 0 } = input
   const monthlyTaxable = Math.max(0, monthlyGross - nonTaxable)
 
-  const pensionBase    = Math.min(Math.max(monthlyTaxable, PENSION_LIMITS.min), PENSION_LIMITS.max)
+  const pensionLimits   = getPensionLimits(asOfDate)
+  const pensionBase     = Math.min(Math.max(monthlyTaxable, pensionLimits.min), pensionLimits.max)
   const nationalPension = floor10(pensionBase    * RATES.nationalPension)
   const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
   const longTermCare    = floor10(healthInsurance * RATES.longTermCare)
   const employment      = floor10(monthlyTaxable * RATES.employment)
-  const incomeTax       = simpleIncomeTax(monthlyTaxable, dependents)
+  const incomeTax       = calcSimplifiedWithholdingTax(
+    {
+      monthlyTaxable,
+      dependents: Math.max(1, dependents),
+      childCount8to20,
+    },
+    asOfDate,
+  )
   const localTax        = floor10(incomeTax * 0.1)
 
   const totalDeduction  = nationalPension + healthInsurance + longTermCare + employment + incomeTax + localTax

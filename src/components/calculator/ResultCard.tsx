@@ -66,7 +66,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
       amount: breakdown.incomeTax,
       color: 'text-orange-600',
       barColor: 'bg-orange-400',
-      description: '누진세율',
+      description: '간이세액표 기준',
     },
     {
       label: '지방소득세',
@@ -172,8 +172,11 @@ export default function ResultCard({ result, annualSalary }: Props) {
 
       {/* 면책 안내 */}
       <p className="text-xs text-slate-400 text-center px-2 leading-relaxed">
-        본 계산 결과는 {TAX_YEAR}년 기준 근사값으로, 실제 급여와 다를 수 있습니다.
-        정확한 내용은 담당 세무사 또는 회사 인사팀에 문의하세요.
+        소득세는 국세청 근로소득 간이세액표({TAX_YEAR}년 기준) 산식에 따른
+        <strong className="font-semibold text-slate-500"> 간이세액표 기준 예상액</strong>이며,
+        8세 이상 20세 이하 자녀 세액공제는 미입력 시 0명으로 가정합니다.
+        연말정산 결과 및 실제 급여명세서와 다를 수 있으니, 정확한 내용은
+        담당 세무사 또는 회사 인사팀에 문의하세요.
       </p>
     </div>
   )
