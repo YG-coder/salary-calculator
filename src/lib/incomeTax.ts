@@ -118,8 +118,8 @@ export interface SimplifiedWithholdingInput {
   dependents: number
   /**
    * 공제대상가족 중 8세 이상 20세 이하 자녀 수 (기본값 0)
-   * ⚠️ dependents(공제대상가족 수)에 포함된 인원 중 해당 연령 자녀 수여야 하며,
-   * dependents를 초과할 수 없습니다. 초과 입력 시 dependents로 클램프됩니다.
+   * ⚠️ 부양가족 수(dependents)에는 본인이 포함되므로(별표2 제2호), 자녀 수는
+   * 최대 dependents-1명입니다. 초과 입력 시 dependents-1로 클램프됩니다.
    */
   childCount8to20?: number
 }
@@ -138,10 +138,12 @@ export function calcSimplifiedWithholdingTax(
   asOfDate: Date = new Date(),
 ): number {
   const dependents = Math.max(1, Math.floor(input.dependents))
-  // 자녀 수는 부양가족 수(본인 포함)에 포함된 인원이므로 dependents를 초과할 수 없음
+  // 부양가족 수(dependents)에는 본인이 포함되므로(별표2 제2호: 본인·배우자도 각각
+  // 1명으로 산정), 자녀가 될 수 있는 인원은 최대 dependents-1명입니다.
+  const maxEligibleChildren = Math.max(0, dependents - 1)
   const childCount8to20 = Math.min(
     Math.max(0, Math.floor(input.childCount8to20 ?? 0)),
-    dependents,
+    maxEligibleChildren,
   )
   const monthlyGrossWon = Math.max(0, input.monthlyTaxable)
 
