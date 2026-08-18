@@ -21,6 +21,12 @@ export const metadata: Metadata = {
 
 const RELATED = [
   {
+    href: '/target-salary-calculator',
+    emoji: '🎯',
+    label: '목표 실수령액 역산 계산기',
+    description: '원하는 실수령액 → 필요 연봉',
+  },
+  {
     href: '/social-insurance-calculator',
     emoji: '🏥',
     label: '4대보험 계산기',

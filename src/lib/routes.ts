@@ -3,6 +3,7 @@
 export const ROUTES = {
     HOME: '/',
     SALARY_CALCULATOR: '/salary-calculator',
+    TARGET_SALARY_CALCULATOR: '/target-salary-calculator',
     PAYROLL_TAX_CALCULATOR: '/payroll-tax-calculator',
     SOCIAL_INSURANCE_CALCULATOR: '/social-insurance-calculator',
     SEVERANCE_PAY_CALCULATOR: '/severance-pay-calculator',
@@ -17,6 +18,7 @@ export const ROUTES = {
 
 export const CALCULATOR_ROUTES = [
     ROUTES.SALARY_CALCULATOR,
+    ROUTES.TARGET_SALARY_CALCULATOR,
     ROUTES.PAYROLL_TAX_CALCULATOR,
     ROUTES.SOCIAL_INSURANCE_CALCULATOR,
     ROUTES.SEVERANCE_PAY_CALCULATOR,

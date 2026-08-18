@@ -13,7 +13,7 @@
 // ────────────────────────────────────────────────────────────
 
 import { RATES, getPensionLimits } from './constants'
-import { calcSimplifiedWithholdingTax } from './incomeTax'
+import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
 
@@ -40,12 +40,26 @@ export interface SalaryBreakdown {
   totalDeduction:  number  // 총 공제 (월)
 }
 
+/**
+ * 계산 과정에서 "특정 임계점을 넘었는지"를 알려주는 플래그.
+ * 콘텐츠(연봉별 실수령액 페이지)가 이 플래그를 근거로, 그 연봉에서만 실제로
+ * 발생한 계산상의 사건(상한 도달, 고소득 산식 진입 등)을 노출하는 데 사용합니다.
+ * 값은 모두 이 계산에서 실제로 일어난 사실이며 추정이 아닙니다.
+ */
+export interface SalaryFlags {
+  /** 월 과세소득이 국민연금 기준소득월액 상한을 초과하여 국민연금이 상한액으로 고정됨 */
+  pensionCapped: boolean
+  /** 월 과세소득이 간이세액표 조견표 상한(1천만원)을 초과하여 고소득 전용 산식으로 소득세를 계산함 */
+  usedHighIncomeTaxFormula: boolean
+}
+
 export interface SalaryResult {
   monthlyGross:    number          // 월 세전
   monthlyNet:      number          // 월 실수령
   annualNet:       number          // 연 실수령
   annualDeduction: number          // 연 총 공제
   breakdown:       SalaryBreakdown // 월 공제 내역
+  flags:           SalaryFlags     // 계산 임계점 도달 여부
 }
 
 // ── 유틸: 10원 단위 절사 ──────────────────────────────────────
@@ -119,6 +133,11 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = new Date())
       incomeTax,
       localTax,
       totalDeduction,
+    },
+    flags: {
+      // 상한 초과 시에만 true. pensionBase가 상한으로 클램프된 경우와 동치입니다.
+      pensionCapped: monthlyTaxable > pensionLimits.max,
+      usedHighIncomeTaxFormula: isHighIncomeMonthly(monthlyTaxable),
     },
   }
 }

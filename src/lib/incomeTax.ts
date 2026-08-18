@@ -41,6 +41,28 @@ function floor10(n: number): number {
   return Math.floor(n / 10) * 10
 }
 
+// ── 고소득 간이세액 계산 경로 진입 임계값 ─────────────────────────
+// 국세청 근로소득 간이세액표 조견표(별표2 항목1)는 월급여 10,000천원(1천만원)까지만
+// 제공됩니다. 월 과세소득이 이 값을 "초과"하면 조견표 조회가 아니라 별표2 원문의
+// 고소득자 전용 산식(calcHighIncomeTax)으로 계산 경로가 바뀝니다.
+//
+// ⚠️ 경계 주의: 월 과세소득이 정확히 10,000,000원인 경우는 조견표의 마지막 행
+// (SIMPLIFIED_TAX_TABLE_2026_AT_10M)을 사용하며, 고소득 산식은 적용되지 않습니다.
+// 따라서 판정은 "초과(>)"이며 "이상(>=)"이 아닙니다.
+//
+// 이 상수/술어는 소득세 계산 로직과 콘텐츠 페이지(연봉별 실수령액 안내)가
+// 동일한 기준으로 "고소득 계산 경로 진입 여부"를 판정하도록 단일 출처로 공유합니다.
+export const HIGH_INCOME_MONTHLY_THRESHOLD = 10_000_000 as const
+
+/**
+ * 월 과세소득(원)이 간이세액표 조견표 상한을 초과하여 고소득 전용 산식으로
+ * 계산되는 구간인지 판정합니다.
+ * @param monthlyTaxable 월 과세소득 (비과세 제외, 원)
+ */
+export function isHighIncomeMonthly(monthlyTaxable: number): boolean {
+  return monthlyTaxable > HIGH_INCOME_MONTHLY_THRESHOLD
+}
+
 // 별표2 제3호: 8세 이상 20세 이하 자녀 세액공제 금액 (시행일 기준 신/구 구분)
 // 신(2026.3.1 이후 지급분 원천징수): 소득세법 시행령 [별표 2] <개정 2026. 2. 27.>
 // 구(2026.2.28까지 지급분 원천징수): 소득세법 시행령 [별표 2] <개정 2024. 2. 29.>
@@ -147,10 +169,9 @@ export function calcSimplifiedWithholdingTax(
   )
   const monthlyGrossWon = Math.max(0, input.monthlyTaxable)
 
-  const beforeChildCredit =
-    monthlyGrossWon / 1000 > 10_000
-      ? calcHighIncomeTax(monthlyGrossWon, dependents)
-      : lookupTable(monthlyGrossWon, dependents)
+  const beforeChildCredit = isHighIncomeMonthly(monthlyGrossWon)
+    ? calcHighIncomeTax(monthlyGrossWon, dependents)
+    : lookupTable(monthlyGrossWon, dependents)
 
   const childCredit = calcChildTaxCredit(childCount8to20, asOfDate)
   return Math.max(0, beforeChildCredit - childCredit)
