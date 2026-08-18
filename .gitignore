@@ -49,4 +49,4 @@ temp/
 # ───────────────
 # Archives
 # ───────────────
-*.zip
+*.zip*.tsbuildinfo
