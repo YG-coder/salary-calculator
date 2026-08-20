@@ -37,8 +37,12 @@ export default function AnnualLeavePayCalculatorPage() {
   const [result, setResult] = useState<AnnualLeavePayResult | null>(null)
   const [annualDays, setAnnualDays] = useState<number | null>(null)
 
+  // 1일 통상임금 = 월 통상임금 ÷ 209시간(법정 월 소정근로시간) × 8시간
+  // (기존 `/ 30 * 12 / 365`는 월액을 두 번 일할하여 약 1/35 값이 나오던 오류)
+  const MONTHLY_WORK_HOURS = 209
+  const DAILY_WORK_HOURS = 8
   const computedDailyWage = mode === 'calc'
-    ? Math.floor(parseNum(monthlyWage) / 30 * 12 / 365)
+    ? Math.floor((parseNum(monthlyWage) / MONTHLY_WORK_HOURS) * DAILY_WORK_HOURS)
     : parseNum(dailyWage)
 
   const handleCalc = useCallback(() => {
