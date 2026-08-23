@@ -21,6 +21,17 @@ function formatNum(v: string) {
 }
 function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
 
+// 근로시간은 소수 첫째 자리까지 허용한다. 음수 부호는 보존해 유효하지 않은 입력으로 판정한다.
+function sanitizeHoursInput(v: string): string {
+  const withoutCommas = v.replace(/,/g, '')
+  const sign = withoutCommas.trimStart().startsWith('-') ? '-' : ''
+  const unsigned = withoutCommas.replace(/-/g, '').replace(/[^0-9.]/g, '')
+  const [integer = '', ...decimalParts] = unsigned.split('.')
+  const hasDecimalPoint = unsigned.includes('.')
+  const decimal = decimalParts.join('').slice(0, 1)
+  return `${sign}${integer}${hasDecimalPoint ? `.${decimal}` : ''}`
+}
+
 // 2026년 최저시급 (상수 모듈 사용)
 const MIN_HOURLY_WAGE = MIN_HOURLY_WAGE_2026
 
@@ -33,18 +44,25 @@ const RELATED = [
 export default function WeeklyHolidayPayCalculatorPage() {
   const [weeklyHours, setWeeklyHours] = useState('')
   const [hourlyWage, setHourlyWage] = useState('')
+  const [fullAttendance, setFullAttendance] = useState<boolean | null>(null)
   const [result, setResult] = useState<WeeklyHolidayPayResult | null>(null)
 
-  const handleCalc = useCallback(() => {
-    const wh = parseNum(weeklyHours)
-    const hw = parseNum(hourlyWage) || MIN_HOURLY_WAGE
-    if (!wh) return
-    setResult(calculateWeeklyHolidayPay({ weeklyHours: wh, hourlyWage: hw }))
-  }, [weeklyHours, hourlyWage])
+  const hoursInputComplete = weeklyHours !== '' && weeklyHours !== '-' && !weeklyHours.endsWith('.')
+  const parsedWeeklyHours = hoursInputComplete ? Number(weeklyHours) : Number.NaN
+  const hasValidWeeklyHours = Number.isFinite(parsedWeeklyHours) && parsedWeeklyHours > 0
 
-  const wh = parseNum(weeklyHours)
+  const clearResult = () => setResult(null)
+
+  const handleCalc = useCallback(() => {
+    const wh = parsedWeeklyHours
+    const hw = parseNum(hourlyWage) || MIN_HOURLY_WAGE
+    if (!hasValidWeeklyHours || fullAttendance === null) return
+    setResult(calculateWeeklyHolidayPay({ weeklyHours: wh, hourlyWage: hw, fullAttendance }))
+  }, [parsedWeeklyHours, hourlyWage, hasValidWeeklyHours, fullAttendance])
+
+  const wh = hasValidWeeklyHours ? parsedWeeklyHours : 0
   const hw = parseNum(hourlyWage) || MIN_HOURLY_WAGE
-  const isValid = wh > 0
+  const isValid = hasValidWeeklyHours && fullAttendance !== null
 
   // 월 주휴수당 예상 (주 4.345주)
   const monthlyEstimate = result?.weeklyHolidayPay
@@ -64,10 +82,13 @@ export default function WeeklyHolidayPayCalculatorPage() {
             <label className="label">주 소정근로시간 <span className="text-red-400">*</span></label>
             <div className="relative">
               <input
-                type="text" inputMode="numeric"
+                type="text" inputMode="decimal"
                 placeholder="예: 20"
                 value={weeklyHours}
-                onChange={(e) => setWeeklyHours(formatNum(e.target.value))}
+                onChange={(e) => {
+                  setWeeklyHours(sanitizeHoursInput(e.target.value))
+                  clearResult()
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-10"
               />
@@ -81,6 +102,14 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 </span>
               )}
             </p>
+            {weeklyHours !== '' && !weeklyHours.endsWith('.') && !hasValidWeeklyHours && (
+              <p className="hint text-red-500">0보다 큰 숫자를 입력하세요.</p>
+            )}
+            {hasValidWeeklyHours && wh > 168 && (
+              <p className="hint text-amber-600">
+                입력한 시간이 1주의 전체 시간(168시간)을 초과합니다. 입력값을 확인하세요.
+              </p>
+            )}
           </div>
 
           <div>
@@ -95,13 +124,45 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 type="text" inputMode="numeric"
                 placeholder={`최저시급: ${MIN_HOURLY_WAGE.toLocaleString()}`}
                 value={hourlyWage}
-                onChange={(e) => setHourlyWage(formatNum(e.target.value))}
+                onChange={(e) => {
+                  setHourlyWage(formatNum(e.target.value))
+                  clearResult()
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-10"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">{TAX_YEAR}년 최저시급 {MIN_HOURLY_WAGE.toLocaleString()}원 적용 중</p>
+          </div>
+
+          <div>
+            <label className="label">
+              해당 주의 약정 근무일에 모두 출근했나요? <span className="text-red-400">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: true, label: '모두 출근했어요' },
+                { value: false, label: '결근한 날이 있어요' },
+              ].map((option) => (
+                <button
+                  key={String(option.value)}
+                  type="button"
+                  onClick={() => {
+                    setFullAttendance(option.value)
+                    clearResult()
+                  }}
+                  className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                    fullAttendance === option.value
+                      ? 'bg-brand-600 border-brand-600 text-white'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="hint">주휴수당은 주 15시간 이상 근무하고 소정근로일을 모두 개근해야 발생합니다.</p>
           </div>
 
           <button
@@ -125,7 +186,9 @@ export default function WeeklyHolidayPayCalculatorPage() {
               <div className="card p-6 bg-red-50 border-red-100">
                 <p className="text-base font-bold text-red-700 mb-1">주휴수당 미발생</p>
                 <p className="text-sm text-red-600">
-                  주 {wh}시간 근무 → 주 15시간 미만으로 주휴수당이 발생하지 않습니다.
+                  {result.ineligibleReason === 'UNDER_15_HOURS'
+                    ? `주 ${wh}시간 근무 → 주 15시간 미만으로 주휴수당이 발생하지 않습니다.`
+                    : '소정근로일 미개근으로 그 주의 주휴수당이 발생하지 않습니다.'}
                 </p>
               </div>
             )}
@@ -136,7 +199,7 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 items={[
                   { label: '주 소정근로시간', value: `${wh}시간` },
                   { label: '시간당 임금', value: formatKRW(hw) },
-                  { label: '주휴시간 (주 소정근로 ÷ 5)', value: `${result.weeklyHolidayHours}시간` },
+                  { label: '주휴시간 (주 소정근로 ÷ 5, 최대 8시간)', value: `${result.weeklyHolidayHours}시간` },
                   { label: '주 주휴수당', value: formatKRW(result.weeklyHolidayPay), highlight: true, color: 'text-brand-700' },
                   { label: '월 예상 주휴수당 (×4.345주)', value: formatKRW(monthlyEstimate ?? 0) },
                 ]}
@@ -150,7 +213,7 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 <li>• 주휴수당 = 1일 소정근로시간 × 시간당 통상임금</li>
                 <li>• 1일 소정근로시간 = 주 소정근로시간 ÷ 5 (최대 8시간)</li>
                 <li>• 주 40시간 이상 근로자: 8시간 × 시급</li>
-                <li>• 근로기준법 제55조 기준 (2024년 개정 포함)</li>
+                <li>• 근로기준법 제55조 기준</li>
               </ul>
             </div>
 

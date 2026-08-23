@@ -240,23 +240,36 @@ export function calculateAnnualLeaveDays(workingYears: number): number {
 export interface WeeklyHolidayPayInput {
   weeklyHours: number  // 주 소정근로시간
   hourlyWage: number   // 시간당 통상임금 (원)
+  fullAttendance?: boolean  // 해당 주 소정근로일 개근 여부 (기본: true, 기존 호출 호환)
 }
+
+export type WeeklyHolidayPayIneligibleReason =
+  | 'UNDER_15_HOURS'
+  | 'NOT_FULL_ATTENDANCE'
+  | null
 
 export interface WeeklyHolidayPayResult {
   weeklyHolidayPay: number    // 주휴수당
-  isEligible: boolean         // 주 15시간 이상 여부
+  isEligible: boolean         // 주 15시간 이상 및 개근 여부
+  ineligibleReason: WeeklyHolidayPayIneligibleReason
   weeklyHolidayHours: number  // 주휴시간
 }
 
 export function calculateWeeklyHolidayPay(input: WeeklyHolidayPayInput): WeeklyHolidayPayResult {
-  const { weeklyHours, hourlyWage } = input
-  const isEligible = weeklyHours >= 15
+  const { weeklyHours, hourlyWage, fullAttendance = true } = input
+  const hasMinimumHours = Number.isFinite(weeklyHours) && weeklyHours >= 15
+  const ineligibleReason: WeeklyHolidayPayIneligibleReason = !hasMinimumHours
+    ? 'UNDER_15_HOURS'
+    : !fullAttendance
+      ? 'NOT_FULL_ATTENDANCE'
+      : null
+  const isEligible = ineligibleReason === null
 
   // 주휴시간 = 주 소정근로시간 ÷ 5 (최대 8시간)
   const weeklyHolidayHours = isEligible ? Math.min(weeklyHours / 5, 8) : 0
   const weeklyHolidayPay   = isEligible ? Math.floor(weeklyHolidayHours * hourlyWage) : 0
 
-  return { weeklyHolidayPay, isEligible, weeklyHolidayHours }
+  return { weeklyHolidayPay, isEligible, ineligibleReason, weeklyHolidayHours }
 }
 
 // ── 실업급여 계산 ─────────────────────────────────────────────
