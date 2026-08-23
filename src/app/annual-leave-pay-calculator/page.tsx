@@ -5,7 +5,12 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { calculateAnnualLeavePay, calculateAnnualLeaveDays, type AnnualLeavePayResult } from '@/lib/calculators'
+import {
+  calculateAnnualLeavePay,
+  calculateAnnualLeaveDays,
+  ANNUAL_LEAVE_MAX_DAYS,
+  type AnnualLeavePayResult,
+} from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR } from '@/lib/constants'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
@@ -20,6 +25,25 @@ function formatNum(v: string) {
   return Number(n).toLocaleString('ko-KR')
 }
 function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
+
+// 근속연수 입력 정규화: 정수 1~50년. NaN·음수·소수·범위초과를 모두 안전하게 클램프한다.
+const MIN_WORKING_YEARS = 1
+const MAX_WORKING_YEARS = 50
+// 소수점 이하는 버리고("3.7" → "3"), 부호·단위 등 숫자가 아닌 문자는 제거한다.
+function sanitizeYearsInput(v: string): string {
+  return v.split('.')[0].replace(/[^0-9]/g, '')
+}
+function normalizeWorkingYears(v: string): number {
+  const n = Number(sanitizeYearsInput(v))
+  if (!Number.isFinite(n)) return MIN_WORKING_YEARS
+  const years = Math.floor(n)
+  if (years < MIN_WORKING_YEARS) return MIN_WORKING_YEARS
+  return Math.min(years, MAX_WORKING_YEARS)
+}
+
+// 참조표 기준 근속연수 (일수는 calculateAnnualLeaveDays()로만 생성 — 하드코딩 금지)
+const REFERENCE_YEARS = [1, 3, 5, 10, 15, 21]
+const LEAVE_CAP_YEARS = 21
 
 const RELATED = [
   { href: '/weekly-holiday-pay-calculator', emoji: '📅', label: '주휴수당 계산기', description: '주 15시간 이상 근무 시 주휴수당' },
@@ -45,12 +69,22 @@ export default function AnnualLeavePayCalculatorPage() {
     ? Math.floor((parseNum(monthlyWage) / MONTHLY_WORK_HOURS) * DAILY_WORK_HOURS)
     : parseNum(dailyWage)
 
+  // 근속연수 파생값 (입력 중 빈 문자열도 안전하게 1년으로 정규화)
+  const normalizedYears = normalizeWorkingYears(workingYears)
+  const statutoryDays = calculateAnnualLeaveDays(normalizedYears)
+  const unusedDaysNum = parseNum(unusedDays)
+  const exceedsStatutory = unusedDaysNum > 0 && unusedDaysNum > statutoryDays
+
+  // 참조표: 기준 연수 + 사용자가 입력한 연수를 합쳐 오름차순 정렬
+  const referenceYears = Array.from(new Set([...REFERENCE_YEARS, normalizedYears]))
+    .sort((a, b) => a - b)
+
   const handleCalc = useCallback(() => {
     const dw = computedDailyWage
     const ud = parseNum(unusedDays)
     if (!dw || !ud) return
     setResult(calculateAnnualLeavePay({ dailyWage: dw, unusedDays: ud }))
-    setAnnualDays(calculateAnnualLeaveDays(Number(workingYears)))
+    setAnnualDays(calculateAnnualLeaveDays(normalizeWorkingYears(workingYears)))
   }, [computedDailyWage, unusedDays, workingYears])
 
   const isValid = computedDailyWage > 0 && parseNum(unusedDays) > 0
@@ -117,7 +151,7 @@ export default function AnnualLeavePayCalculatorPage() {
               </div>
               {parseNum(monthlyWage) > 0 && (
                 <p className="hint text-brand-600">
-                  계산된 1일 통상임금: {formatKRW(Math.floor(parseNum(monthlyWage) / 30 * 12 / 365))}
+                  계산된 1일 통상임금: {formatKRW(computedDailyWage)}
                 </p>
               )}
             </div>
@@ -135,28 +169,37 @@ export default function AnnualLeavePayCalculatorPage() {
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">일</span>
             </div>
+            {exceedsStatutory && (
+              <p className="hint text-amber-600">
+                입력한 미사용 연차일수({unusedDaysNum}일)가 현재 근속기간 기준 법정 연차일수
+                ({statutoryDays}일)보다 많습니다. 이월 연차나 회사의 별도 운영 기준이 있는 경우
+                그대로 계산할 수 있습니다.
+              </p>
+            )}
           </div>
 
           <div>
             <label className="label">근속 기간</label>
-            <div className="flex flex-wrap gap-2">
-              {['1', '2', '3', '4', '5', '6', '7', '10'].map((y) => (
-                <button
-                  key={y} type="button"
-                  onClick={() => setWorkingYears(y)}
-                  className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-all ${
-                    workingYears === y
-                      ? 'bg-brand-600 border-brand-600 text-white'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
-                  }`}
-                >
-                  {y}년
-                </button>
-              ))}
+            <div className="relative">
+              <input
+                type="text" inputMode="numeric"
+                placeholder="예: 12"
+                value={workingYears}
+                onChange={(e) => setWorkingYears(sanitizeYearsInput(e.target.value))}
+                onBlur={() => setWorkingYears(String(normalizeWorkingYears(workingYears)))}
+                className="input-field pr-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">년</span>
             </div>
             <p className="hint">
-              근속 {workingYears}년 기준 법정 연차: {calculateAnnualLeaveDays(Number(workingYears))}일
+              근속 {normalizedYears}년 기준 법정 연차: {statutoryDays}일
+              <span className="text-slate-400"> · 입력 범위 {MIN_WORKING_YEARS}~{MAX_WORKING_YEARS}년</span>
             </p>
+            {normalizedYears >= LEAVE_CAP_YEARS && (
+              <p className="hint text-brand-600">
+                21년 이상 근속자는 가산 연차를 포함해 법정 연차가 최대 {ANNUAL_LEAVE_MAX_DAYS}일입니다.
+              </p>
+            )}
           </div>
 
           <button
@@ -181,7 +224,7 @@ export default function AnnualLeavePayCalculatorPage() {
               items={[
                 { label: '1일 통상임금', value: formatKRW(result.perDayAmount) },
                 { label: '미사용 연차 일수', value: `${parseNum(unusedDays)}일` },
-                { label: `법정 연차 (근속 ${workingYears}년)`, value: `${annualDays ?? 0}일` },
+                { label: `법정 연차 (근속 ${normalizeWorkingYears(workingYears)}년)`, value: `${annualDays ?? 0}일` },
                 { label: '연차수당 합계', value: formatKRW(result.annualLeavePay), highlight: true, color: 'text-brand-700' },
               ]}
             />
@@ -192,8 +235,8 @@ export default function AnnualLeavePayCalculatorPage() {
                 <table className="w-full text-xs text-sky-700">
                   <thead><tr className="font-semibold"><th className="text-left py-1">근속기간</th><th className="text-right py-1">연차 일수</th></tr></thead>
                   <tbody>
-                    {[1,2,3,4,5,6,7,10].map((y) => (
-                      <tr key={y} className={workingYears === String(y) ? 'font-bold text-sky-900' : ''}>
+                    {referenceYears.map((y) => (
+                      <tr key={y} className={normalizedYears === y ? 'font-bold text-sky-900' : ''}>
                         <td className="py-0.5">{y}년</td>
                         <td className="text-right">{calculateAnnualLeaveDays(y)}일</td>
                       </tr>
@@ -201,6 +244,10 @@ export default function AnnualLeavePayCalculatorPage() {
                   </tbody>
                 </table>
               </div>
+              <p className="mt-2 text-[11px] text-sky-600">
+                근로기준법 제60조 기준. 3년 차부터 매 2년마다 1일씩 가산되며, 21년 이상 근속 시
+                가산 연차를 포함해 최대 {ANNUAL_LEAVE_MAX_DAYS}일이 적용됩니다.
+              </p>
             </div>
 
             <Disclaimer year={TAX_YEAR} extra="통상임금 산정 방식, 회사 내규에 따라 실제 금액이 달라질 수 있습니다." />
@@ -232,8 +279,8 @@ export default function AnnualLeavePayCalculatorPage() {
                   <p>
                     근로기준법 제60조는 근속연수별 연차 일수를 다음과 같이 정합니다.
                     1년 미만 신규 입사자는 1개월 개근 시 1일씩, 최대 11일까지 발생합니다.
-                    1년 이상~2년 차에는 15일, 이후 매 2년마다 1일씩 추가되어 최대 25일까지
-                    부여됩니다.
+                    1년 이상~2년 차에는 15일이며, 3년 차부터 매 2년마다 1일씩 가산됩니다.
+                    가산 연차를 포함한 총 연차일수는 최대 25일입니다.
                   </p>
                   <p>
                     예를 들어 근속 3년 차는 16일, 5년 차는 17일, 10년 차는 19일, 21년 차

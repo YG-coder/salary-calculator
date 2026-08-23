@@ -220,11 +220,20 @@ export function calculateAnnualLeavePay(input: AnnualLeavePayInput): AnnualLeave
 }
 
 // ── 연차 일수 계산 (입사 후 경과 연수 기준) ──────────────────
+// 근로기준법 제60조
+//  ① 1년간 80% 이상 출근 → 15일
+//  ④ 3년 이상 계속근로 시 최초 1년을 초과하는 계속 근로연수 매 2년에 대하여 1일 가산,
+//     가산휴가를 포함한 총 휴가 일수는 25일 한도
+export const ANNUAL_LEAVE_BASE_DAYS = 15
+export const ANNUAL_LEAVE_MAX_DAYS = 25
+
+// 근속연수를 숫자로 직접 입력받으므로 NaN·Infinity·음수·소수를 함수 진입 시점에서 정규화한다.
 export function calculateAnnualLeaveDays(workingYears: number): number {
-  if (workingYears < 1)  return 0
-  if (workingYears === 1) return 15
-  const extra = Math.floor((workingYears - 1) / 2)
-  return Math.min(15 + extra, 25)
+  if (!Number.isFinite(workingYears)) return 0
+  const years = Math.floor(workingYears)
+  if (years < 1) return 0
+  const extra = Math.floor((years - 1) / 2)
+  return Math.min(ANNUAL_LEAVE_BASE_DAYS + extra, ANNUAL_LEAVE_MAX_DAYS)
 }
 
 // ── 주휴수당 계산 ─────────────────────────────────────────────
