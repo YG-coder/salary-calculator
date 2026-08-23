@@ -38,6 +38,7 @@ export default function UnemploymentBenefitCalculatorPage() {
   const [useMonthly, setUseMonthly]             = useState(true)
   const [employmentMonths, setEmploymentMonths] = useState('')
   const [age, setAge]                           = useState('40')
+  const [isDisabled, setIsDisabled]             = useState(false)
   const [result, setResult]                     = useState<UnemploymentBenefitResult | null>(null)
 
   const computedDailyWage = useMonthly
@@ -49,8 +50,8 @@ export default function UnemploymentBenefitCalculatorPage() {
     const em = parseNum(employmentMonths)
     const a  = Number(age) || 40
     if (!dw || !em) return
-    setResult(calculateUnemploymentBenefit({ dailyWage: dw, employmentMonths: em, age: a }))
-  }, [computedDailyWage, employmentMonths, age])
+    setResult(calculateUnemploymentBenefit({ dailyWage: dw, employmentMonths: em, age: a, isDisabled }))
+  }, [computedDailyWage, employmentMonths, age, isDisabled])
 
   const isValid = computedDailyWage > 0 && parseNum(employmentMonths) > 0
 
@@ -163,6 +164,33 @@ export default function UnemploymentBenefitCalculatorPage() {
               ))}
             </div>
             <p className="hint">50세 이상은 수급 일수가 더 길게 산정됩니다</p>
+          </div>
+
+          <div>
+            <label className="label">장애인 해당 여부</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: false, label: '해당 없음' },
+                { value: true, label: '장애인 해당' },
+              ].map((option) => (
+                <button
+                  key={String(option.value)}
+                  type="button"
+                  onClick={() => {
+                    setIsDisabled(option.value)
+                    setResult(null)
+                  }}
+                  className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                    isDisabled === option.value
+                      ? 'bg-brand-600 border-brand-600 text-white'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="hint">50세 이상 또는 장애인은 우대 소정급여일수가 적용됩니다</p>
           </div>
 
           <button
@@ -334,7 +362,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                     수급 일수는 고용보험 가입기간과 연령에 따라 결정됩니다(고용보험법
                     별표 1). 50세 미만 일반 근로자는 6개월~1년 가입 시 120일, 1~3년
                     150일, 3~5년 180일, 5~10년 210일, 10년 이상 240일을 받습니다. 50세
-                    이상 또는 장애인은 가입기간이 같아도 30일씩 더 지급됩니다.
+                    이상 또는 장애인은 가입기간 1년 이상 구간에서 30일 더 지급됩니다.
                   </p>
                   <p>
                     수급 일수는 “며칠 동안” 지급되는지를 의미하며, 매주 정해진 실업인정일
@@ -392,7 +420,7 @@ export default function UnemploymentBenefitCalculatorPage() {
           referenceTable={{
             caption: '연령·가입기간별 소정급여일수',
             footnote:
-              '고용보험법 별표 1 기준. 50세 이상 또는 장애인은 가입기간이 같아도 30~60일씩 더 지급됩니다.',
+              '고용보험법 별표 1 기준. 6개월~1년 미만 구간은 동일하며, 1년 이상이면 50세 이상 또는 장애인에게 30일이 추가됩니다.',
             headers: ['50세 미만', '50세 이상 또는 장애인'],
             rows: [
               { label: '6개월~1년 미만', values: ['120일', '120일'] },

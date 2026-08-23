@@ -325,7 +325,7 @@ export interface UnemploymentBenefitResult {
 }
 
 export function calculateUnemploymentBenefit(input: UnemploymentBenefitInput): UnemploymentBenefitResult {
-  const { dailyWage, employmentMonths, age } = input
+  const { dailyWage, employmentMonths, age, isDisabled = false } = input
 
   /**
    * 2026년 실업급여(구직급여) 상·하한 (1일 기준)
@@ -369,7 +369,7 @@ export function calculateUnemploymentBenefit(input: UnemploymentBenefitInput): U
   // ─────────────────────────────────────────────────────
   let totalDays = 0
   if (isEligible) {
-    if (age < 50) {
+    if (age < 50 && !isDisabled) {
       if      (employmentMonths <  12) totalDays = 120
       else if (employmentMonths <  36) totalDays = 150
       else if (employmentMonths <  60) totalDays = 180
