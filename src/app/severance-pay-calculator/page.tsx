@@ -34,6 +34,9 @@ export default function SeverancePayCalculatorPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [bonus, setBonus] = useState('')
+  const [annualLeaveAllowance, setAnnualLeaveAllowance] = useState('')
+  const [ordinaryDailyWage, setOrdinaryDailyWage] = useState('')
+  const [weeklyHours, setWeeklyHours] = useState('40')
   const [result, setResult] = useState<SeverancePayResult | null>(null)
 
   const handleCalc = useCallback(() => {
@@ -50,10 +53,14 @@ export default function SeverancePayCalculatorPage() {
       startDate,
       endDate,
       annualBonus: parseNum(bonus),
+      annualLeaveAllowance: parseNum(annualLeaveAllowance),
+      ordinaryDailyWage: parseNum(ordinaryDailyWage),
+      weeklyHours: parseNum(weeklyHours),
     }))
-  }, [month1, month2, month3, startDate, endDate, bonus])
+  }, [month1, month2, month3, startDate, endDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours])
 
-  const isValid = parseNum(month1) > 0 && parseNum(month2) > 0 && parseNum(month3) > 0 && !!startDate && !!endDate
+  const isValid = parseNum(month1) > 0 && parseNum(month2) > 0 && parseNum(month3) > 0 &&
+    parseNum(weeklyHours) > 0 && !!startDate && !!endDate && new Date(endDate) > new Date(startDate)
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -125,6 +132,51 @@ export default function SeverancePayCalculatorPage() {
             <p className="hint">연간 지급된 상여금 총액 (평균임금 산정에 포함)</p>
           </div>
 
+          <div>
+            <label className="label">직전 1년간 지급된 연차수당 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <div className="relative">
+              <input
+                type="text" inputMode="numeric"
+                placeholder="예: 1,500,000"
+                value={annualLeaveAllowance}
+                onChange={(e) => setAnnualLeaveAllowance(formatNum(e.target.value))}
+                className="input-field pr-8"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+            </div>
+            <p className="hint">입력액의 3/12을 평균임금 산정에 반영합니다</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">주 소정근로시간</label>
+              <div className="relative">
+                <input
+                  type="text" inputMode="numeric"
+                  value={weeklyHours}
+                  onChange={(e) => setWeeklyHours(formatNum(e.target.value))}
+                  className="input-field pr-10"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">시간</span>
+              </div>
+              <p className="hint">4주 평균 주 15시간 이상 필요</p>
+            </div>
+            <div>
+              <label className="label">1일 통상임금 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+              <div className="relative">
+                <input
+                  type="text" inputMode="numeric"
+                  placeholder="예: 120,000"
+                  value={ordinaryDailyWage}
+                  onChange={(e) => setOrdinaryDailyWage(formatNum(e.target.value))}
+                  className="input-field pr-8"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              </div>
+              <p className="hint">평균임금보다 높으면 하한으로 적용</p>
+            </div>
+          </div>
+
           <button
             type="button" onClick={handleCalc} disabled={!isValid}
             className="btn-primary w-full py-3.5 text-base"
@@ -146,7 +198,9 @@ export default function SeverancePayCalculatorPage() {
               <div className="card p-6 bg-red-50 border-red-100">
                 <p className="text-base font-bold text-red-700 mb-1">퇴직금 지급 요건 미충족</p>
                 <p className="text-sm text-red-600">
-                  재직일수 {result.workingDays}일 · 퇴직금은 1년(365일) 이상 재직 시 지급됩니다.
+                  {result.ineligibleReason === 'UNDER_ONE_YEAR'
+                    ? `재직일수 ${result.workingDays}일 · 퇴직금은 1년(365일) 이상 재직 시 지급됩니다.`
+                    : '4주 평균 주 소정근로시간이 15시간 미만이면 법정 퇴직금 대상이 아닙니다.'}
                 </p>
               </div>
             )}
@@ -156,7 +210,12 @@ export default function SeverancePayCalculatorPage() {
                 title="계산 내역"
                 items={[
                   { label: '재직일수', value: `${result.workingDays.toLocaleString()}일` },
+                  { label: '평균임금 산정기간', value: `퇴직 전 3개월 · ${result.averageWagePeriodDays}일` },
+                  { label: '산정 평균임금', value: formatKRW(Math.round(result.calculatedAverageDailyWage)) },
                   { label: '1일 평균임금', value: formatKRW(Math.round(result.averageDailyWage)) },
+                  ...(result.usedOrdinaryWage
+                    ? [{ label: '통상임금 하한 적용', value: formatKRW(parseNum(ordinaryDailyWage)) }]
+                    : []),
                   { label: '공식: 1일 평균임금 × 30 × (재직일수/365)', value: '' },
                   { label: '퇴직금', value: formatKRW(result.severancePay), highlight: true, color: 'text-brand-700' },
                 ]}

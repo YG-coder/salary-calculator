@@ -156,13 +156,19 @@ export interface SeverancePayInput {
   endDate: string       // 퇴직일 (YYYY-MM-DD)
   annualBonus?: number           // 연간 상여금 (원, 선택)
   annualLeaveAllowance?: number  // 연차수당 (원, 선택)
+  ordinaryDailyWage?: number     // 1일 통상임금 (평균임금 하한 비교용, 선택)
+  weeklyHours?: number           // 4주 평균 주 소정근로시간 (기본 40시간)
 }
 
 export interface SeverancePayResult {
   averageDailyWage: number  // 1일 평균임금
+  calculatedAverageDailyWage: number // 통상임금 하한 적용 전 평균임금
+  averageWagePeriodDays: number // 퇴직 전 3개월 실제 총일수
   workingDays: number       // 총 재직일수
   severancePay: number      // 퇴직금
   isEligible: boolean       // 지급 요건 충족 여부 (1년 이상)
+  ineligibleReason: 'UNDER_ONE_YEAR' | 'UNDER_15_HOURS' | null
+  usedOrdinaryWage: boolean
 }
 
 function daysBetween(start: string, end: string): number {
@@ -171,16 +177,35 @@ function daysBetween(start: string, end: string): number {
   return Math.floor((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24))
 }
 
+// 퇴직일 이전 3개월의 실제 달력 일수. 월말은 대상 월의 마지막 날로 보정한다.
+function averageWagePeriodDays(endDate: string): number {
+  const end = new Date(`${endDate}T00:00:00Z`)
+  if (!Number.isFinite(end.getTime())) return 0
+  const targetMonth = end.getUTCMonth() - 3
+  const targetYear = end.getUTCFullYear() + Math.floor(targetMonth / 12)
+  const normalizedMonth = ((targetMonth % 12) + 12) % 12
+  const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate()
+  const start = new Date(Date.UTC(targetYear, normalizedMonth, Math.min(end.getUTCDate(), lastDay)))
+  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+}
+
 export function calculateSeverancePay(input: SeverancePayInput): SeverancePayResult {
   const {
     month1Pay, month2Pay, month3Pay,
     startDate, endDate,
     annualBonus = 0,
     annualLeaveAllowance = 0,
+    ordinaryDailyWage = 0,
+    weeklyHours = 40,
   } = input
 
   const workingDays = daysBetween(startDate, endDate)
-  const isEligible  = workingDays >= 365
+  const ineligibleReason = workingDays < 365
+    ? 'UNDER_ONE_YEAR' as const
+    : weeklyHours < 15
+      ? 'UNDER_15_HOURS' as const
+      : null
+  const isEligible = ineligibleReason === null
 
   // 3개월 합산 급여 + 상여금 3/12 + 연차수당 3/12
   const threeMonthTotal =
@@ -188,16 +213,26 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
     (annualBonus / 12) * 3 +
     (annualLeaveAllowance / 12) * 3
 
-  // 최근 3개월 총 일수: 실무상 92일 기준 사용 (법적으로는 실제 달력 일수 합산)
-  const threeMonthDays  = 92
-  const averageDailyWage = threeMonthTotal / threeMonthDays
+  const threeMonthDays = averageWagePeriodDays(endDate)
+  const calculatedAverageDailyWage = threeMonthDays > 0 ? threeMonthTotal / threeMonthDays : 0
+  const averageDailyWage = Math.max(calculatedAverageDailyWage, ordinaryDailyWage)
+  const usedOrdinaryWage = ordinaryDailyWage > calculatedAverageDailyWage
 
   // 퇴직금 = 1일 평균임금 × 30 × (재직일수 / 365)
   const severancePay = isEligible
     ? Math.floor(averageDailyWage * 30 * (workingDays / 365))
     : 0
 
-  return { averageDailyWage, workingDays, severancePay, isEligible }
+  return {
+    averageDailyWage,
+    calculatedAverageDailyWage,
+    averageWagePeriodDays: threeMonthDays,
+    workingDays,
+    severancePay,
+    isEligible,
+    ineligibleReason,
+    usedOrdinaryWage,
+  }
 }
 
 // ── 연차수당 계산 ─────────────────────────────────────────────
