@@ -40,14 +40,15 @@ const RELATED = [
 
 export default function SocialInsuranceCalculatorPage() {
   const [monthlyGross, setMonthlyGross] = useState('')
+  const [nonTaxable, setNonTaxable] = useState('')
   const [employerEmploymentRate, setEmployerEmploymentRate] = useState('0.0115')
   const [result, setResult] = useState<SocialInsuranceResult | null>(null)
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
     if (!gross || gross < 100_000) return
-    setResult(calculateSocialInsurance({ monthlyGross: gross, employerEmploymentRate: Number(employerEmploymentRate) }))
-  }, [monthlyGross, employerEmploymentRate])
+    setResult(calculateSocialInsurance({ monthlyGross: gross, nonTaxable: parseNum(nonTaxable), employerEmploymentRate: Number(employerEmploymentRate) }))
+  }, [monthlyGross, nonTaxable, employerEmploymentRate])
 
   const isValid = parseNum(monthlyGross) >= 100_000
 
@@ -74,6 +75,16 @@ export default function SocialInsuranceCalculatorPage() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">월 세전 급여를 입력하세요</p>
+          </div>
+
+          <div>
+            <label className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <div className="relative">
+              <input type="text" inputMode="numeric" placeholder="예: 200,000" value={nonTaxable}
+                onChange={(e) => setNonTaxable(formatNum(e.target.value))} className="input-field pr-8" />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+            </div>
+            <p className="hint">세전 급여에서 차감한 금액을 보험료 산정 기준으로 사용합니다</p>
           </div>
 
           <div>

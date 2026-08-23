@@ -11,6 +11,7 @@ function floor10(n: number): number {
 // ── 4대보험 계산 ──────────────────────────────────────────────
 export interface SocialInsuranceInput {
   monthlyGross: number       // 월 세전 급여 (원)
+  nonTaxable?: number        // 월 비과세 급여 (기본 0원)
   isBusinessOwner?: boolean  // 사업주 여부 (기본: 근로자)
   employerEmploymentRate?: number // 실업급여 0.9% + 사업규모별 고용안정·직업능력 요율
 }
@@ -37,24 +38,25 @@ export function calculateSocialInsurance(
   input: SocialInsuranceInput,
   asOfDate: Date = new Date(),
 ): SocialInsuranceResult {
-  const { monthlyGross, employerEmploymentRate = 0.0115 } = input
+  const { monthlyGross, nonTaxable = 0, employerEmploymentRate = 0.0115 } = input
+  const monthlyTaxable = Math.max(0, monthlyGross - nonTaxable)
 
   // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
   const pensionLimits = getPensionLimits(asOfDate)
-  const pensionBase = Math.min(Math.max(monthlyGross, pensionLimits.min), pensionLimits.max)
+  const pensionBase = Math.min(Math.max(monthlyTaxable, pensionLimits.min), pensionLimits.max)
   const nationalPension = floor10(pensionBase * RATES.nationalPension)
 
   // 건강보험
-  const healthInsurance = floor10(monthlyGross * RATES.healthInsurance)
+  const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
 
   // 장기요양 (건강보험료 × 13.14%)
   const longTermCare = floor10(healthInsurance * RATES.longTermCare)
 
   // 고용보험 (근로자 0.9%)
-  const employment = floor10(monthlyGross * RATES.employment)
+  const employment = floor10(monthlyTaxable * RATES.employment)
 
   // 산재보험 (사업주 전액 부담, 업종별 상이 → 평균값 0.7% 사용)
-  const industrialAccident = floor10(monthlyGross * 0.007)
+  const industrialAccident = floor10(monthlyTaxable * 0.007)
 
   const totalEmployee = nationalPension + healthInsurance + longTermCare + employment
 
@@ -62,7 +64,7 @@ export function calculateSocialInsurance(
   const employerPension    = nationalPension                           // 동일 요율 (4.75%)
   const employerHealth     = healthInsurance                           // 동일 요율 (3.595%)
   const employerLongTerm   = longTermCare                              // 동일 요율
-  const employerEmployment = floor10(monthlyGross * employerEmploymentRate)
+  const employerEmployment = floor10(monthlyTaxable * employerEmploymentRate)
   const totalEmployer =
     employerPension + employerHealth + employerLongTerm + employerEmployment + industrialAccident
 
