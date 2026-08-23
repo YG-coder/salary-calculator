@@ -98,7 +98,7 @@ export default function PayrollTaxCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">부양가족 수 (본인 포함)</label>
+            <label className="label">공제대상가족 수 (본인 포함)</label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                 <button
@@ -120,7 +120,7 @@ export default function PayrollTaxCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">8세 이상 20세 이하 자녀 수</label>
+            <label className="label">공제대상가족 중 8세 이상 20세 이하 자녀 수</label>
             <div className="flex flex-wrap gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button" onClick={() => setChildren(String(n))}
@@ -129,7 +129,7 @@ export default function PayrollTaxCalculatorPage() {
                 </button>
               ))}
             </div>
-            <p className="hint">본인을 제외한 공제대상 가족 중 해당 연령 자녀 수</p>
+            <p className="hint">배우자·부모 등은 가족 수에만 포함하고, 여기에는 해당 연령의 자녀만 입력하세요</p>
           </div>
 
           <button

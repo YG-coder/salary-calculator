@@ -36,12 +36,12 @@ export default function ReverseCalculatorForm() {
   const [hasCalculated, setHasCalculated] = useState(false)
 
   const dependentsNum = Number(dependents) || 1
-  // 자녀 수는 본인을 제외한 부양가족 수(부양가족 - 1) 이하로 제한
+  // 자녀 수는 공제대상가족 중 일부이므로 가능한 최대치(본인을 제외한 인원)만 제한한다.
   const maxChildren = Math.max(0, dependentsNum - 1)
 
   const selectDependents = (n: number) => {
     setDependents(String(n))
-    // 부양가족이 줄면 자녀 수를 상한에 맞춰 클램프
+    // 공제대상가족이 줄면 자녀 수를 가능한 최대치에 맞춰 클램프
     setChildren((prev) => String(Math.min(Number(prev) || 0, Math.max(0, n - 1))))
   }
 
@@ -132,16 +132,16 @@ export default function ReverseCalculatorForm() {
           </p>
         </div>
 
-        {/* 부양가족 수 */}
+        {/* 공제대상가족 수 */}
         <div>
-          <label className="label">부양가족 수 (본인 포함)</label>
-          <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((n) => (
+          <label className="label">공제대상가족 수 (본인 포함)</label>
+          <div className="flex flex-wrap items-center gap-2">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => selectDependents(n)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
+                className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   dependents === String(n)
                     ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
@@ -157,7 +157,7 @@ export default function ReverseCalculatorForm() {
         {/* 8~20세 자녀 수 (자녀세액공제) — 순방향 입력 계약과 동일 */}
         <div>
           <label className="label">
-            8~20세 자녀 수{' '}
+            공제대상가족 중 8세 이상 20세 이하 자녀 수{' '}
             <span className="text-xs font-normal text-slate-400">(선택)</span>
           </label>
           <div className="flex items-center gap-2">
@@ -177,8 +177,8 @@ export default function ReverseCalculatorForm() {
             ))}
           </div>
           <p className="hint">
-            부양가족 중 8세 이상 20세 이하 자녀 수 — 자녀세액공제로 소득세가 낮아집니다
-            {maxChildren === 0 && ' (부양가족을 2명 이상으로 설정하면 입력 가능)'}
+            배우자·부모 등은 가족 수에만 포함하고, 여기에는 해당 연령의 자녀만 입력하세요
+            {maxChildren === 0 && ' (공제대상가족을 2명 이상으로 설정하면 입력 가능)'}
           </p>
         </div>
 
