@@ -12,6 +12,7 @@ function floor10(n: number): number {
 export interface SocialInsuranceInput {
   monthlyGross: number       // 월 세전 급여 (원)
   isBusinessOwner?: boolean  // 사업주 여부 (기본: 근로자)
+  employerEmploymentRate?: number // 실업급여 0.9% + 사업규모별 고용안정·직업능력 요율
 }
 
 export interface SocialInsuranceResult {
@@ -36,7 +37,7 @@ export function calculateSocialInsurance(
   input: SocialInsuranceInput,
   asOfDate: Date = new Date(),
 ): SocialInsuranceResult {
-  const { monthlyGross } = input
+  const { monthlyGross, employerEmploymentRate = 0.0115 } = input
 
   // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
   const pensionLimits = getPensionLimits(asOfDate)
@@ -61,7 +62,7 @@ export function calculateSocialInsurance(
   const employerPension    = nationalPension                           // 동일 요율 (4.75%)
   const employerHealth     = healthInsurance                           // 동일 요율 (3.595%)
   const employerLongTerm   = longTermCare                              // 동일 요율
-  const employerEmployment = floor10(monthlyGross * 0.013)             // 사업주 1.3%
+  const employerEmployment = floor10(monthlyGross * employerEmploymentRate)
   const totalEmployer =
     employerPension + employerHealth + employerLongTerm + employerEmployment + industrialAccident
 

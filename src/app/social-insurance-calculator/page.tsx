@@ -23,6 +23,14 @@ function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
+const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * RATES.nationalPension / 10) * 10
+
+const EMPLOYER_EMPLOYMENT_OPTIONS = [
+  { value: '0.0115', label: '150인 미만', rateLabel: '1.15%' },
+  { value: '0.0135', label: '150인 이상 우선지원대상', rateLabel: '1.35%' },
+  { value: '0.0155', label: '150~999인', rateLabel: '1.55%' },
+  { value: '0.0175', label: '1,000인 이상·국가/지자체', rateLabel: '1.75%' },
+] as const
 
 const RELATED = [
   { href: '/salary-calculator', emoji: '💰', label: '실수령액 계산기', description: '4대보험 포함 월 실수령액 계산' },
@@ -32,13 +40,14 @@ const RELATED = [
 
 export default function SocialInsuranceCalculatorPage() {
   const [monthlyGross, setMonthlyGross] = useState('')
+  const [employerEmploymentRate, setEmployerEmploymentRate] = useState('0.0115')
   const [result, setResult] = useState<SocialInsuranceResult | null>(null)
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
     if (!gross || gross < 100_000) return
-    setResult(calculateSocialInsurance({ monthlyGross: gross }))
-  }, [monthlyGross])
+    setResult(calculateSocialInsurance({ monthlyGross: gross, employerEmploymentRate: Number(employerEmploymentRate) }))
+  }, [monthlyGross, employerEmploymentRate])
 
   const isValid = parseNum(monthlyGross) >= 100_000
 
@@ -65,6 +74,25 @@ export default function SocialInsuranceCalculatorPage() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">월 세전 급여를 입력하세요</p>
+          </div>
+
+          <div>
+            <label className="label">사업장 규모</label>
+            <select
+              value={employerEmploymentRate}
+              onChange={(e) => {
+                setEmployerEmploymentRate(e.target.value)
+                setResult(null)
+              }}
+              className="input-field"
+            >
+              {EMPLOYER_EMPLOYMENT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label} · 사업주 고용보험 {option.rateLabel}
+                </option>
+              ))}
+            </select>
+            <p className="hint">실업급여 0.9%와 고용안정·직업능력개발 요율을 합산합니다</p>
           </div>
 
           <button
@@ -112,7 +140,7 @@ export default function SocialInsuranceCalculatorPage() {
                 { label: `국민연금 (${(RATES.nationalPension * 100).toFixed(2)}%)`, value: formatKRW(result.employerPension) },
                 { label: `건강보험 (${(RATES.healthInsurance * 100).toFixed(3)}%)`, value: formatKRW(result.employerHealth) },
                 { label: `장기요양`, value: formatKRW(result.employerLongTerm) },
-                { label: '고용보험 (1.3%, 사업주)', value: formatKRW(result.employerEmployment) },
+                { label: `고용보험 (${(Number(employerEmploymentRate) * 100).toFixed(2)}%, 사업주)`, value: formatKRW(result.employerEmployment) },
                 { label: '산재보험 (약 0.7%)', value: formatKRW(result.industrialAccident) },
                 { label: '사업주 합계', value: formatKRW(result.totalEmployer), highlight: true, color: 'text-orange-600' },
               ]}
@@ -162,7 +190,7 @@ export default function SocialInsuranceCalculatorPage() {
                     사업주가 동일 금액을 추가 부담해 총 9.5%가 적립됩니다. 단,
                     기준소득월액에는 상한({pensionMaxMan}만원)과 하한({pensionMinMan}만원)이
                     있어 월 급여가 상한을 초과해도 그 이상은 보험료가 늘어나지 않습니다.
-                    {pensionMaxMan}만원 기준 근로자 부담은 최대 약 28만원 수준입니다.
+                    {pensionMaxMan}만원 기준 근로자 부담은 최대 {formatKRW(pensionMaxEmployee)}입니다.
                   </p>
                 </>
               ),
@@ -280,7 +308,7 @@ export default function SocialInsuranceCalculatorPage() {
             },
             {
               q: '국민연금에 상한액이 있다는데 무슨 뜻인가요?',
-              a: `국민연금은 기준소득월액 상한(${pensionMaxMan}만원)을 두고 있어, 월 급여가 이를 초과해도 ${pensionMaxMan}만원을 기준으로만 보험료가 산정됩니다. 따라서 월 급여 700만원이든 1,000만원이든 국민연금 근로자 부담은 최대 약 28만원 수준에서 고정됩니다. 하한액은 ${pensionMinMan}만원으로, 월 급여가 이보다 낮아도 ${pensionMinMan}만원 기준으로 부과됩니다.`,
+              a: `국민연금은 기준소득월액 상한(${pensionMaxMan}만원)을 두고 있어, 월 급여가 이를 초과해도 ${pensionMaxMan}만원을 기준으로만 보험료가 산정됩니다. 따라서 월 급여 700만원이든 1,000만원이든 국민연금 근로자 부담은 최대 ${formatKRW(pensionMaxEmployee)}로 고정됩니다. 하한액은 ${pensionMinMan}만원으로, 월 급여가 이보다 낮아도 ${pensionMinMan}만원 기준으로 부과됩니다.`,
             },
             {
               q: '두루누리 사회보험 지원은 어떻게 받나요?',
