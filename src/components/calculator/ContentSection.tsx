@@ -12,28 +12,27 @@
  */
 import Link from 'next/link'
 import { TAX_YEAR, RATES, PENSION_LIMITS } from '@/lib/constants'
+import { calculateSalary, formatKRW } from '@/lib/salary'
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
+const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * RATES.nationalPension / 10) * 10
 
 /**
  * 연봉 구간별 참고 실수령액 테이블
  * 조건: 부양가족 1명(본인), 비과세 0, 일반 근로자 기준 근사값
  * monthlyGross: 연봉 ÷ 12 (만원 단위)
  */
-const REFERENCE_TABLE = [
-  { annual: '2,400만원',     monthlyGross: '200만원',   monthlyNet: '약 168만원', rate: '84%' },
-  { annual: '3,000만원',     monthlyGross: '250만원',   monthlyNet: '약 207만원', rate: '83%' },
-  { annual: '3,600만원',     monthlyGross: '300만원',   monthlyNet: '약 246만원', rate: '82%' },
-  { annual: '4,000만원',     monthlyGross: '333만원',   monthlyNet: '약 269만원', rate: '81%' },
-  { annual: '4,800만원',     monthlyGross: '400만원',   monthlyNet: '약 318만원', rate: '79%' },
-  { annual: '5,000만원',     monthlyGross: '417만원',   monthlyNet: '약 330만원', rate: '79%' },
-  { annual: '6,000만원',     monthlyGross: '500만원',   monthlyNet: '약 390만원', rate: '78%' },
-  { annual: '7,000만원',     monthlyGross: '583만원',   monthlyNet: '약 437만원', rate: '75%' },
-  { annual: '8,000만원',     monthlyGross: '667만원',   monthlyNet: '약 492만원', rate: '74%' },
-  { annual: '1억원',         monthlyGross: '833만원',   monthlyNet: '약 597만원', rate: '72%' },
-  { annual: '1억 2,000만원', monthlyGross: '1,000만원', monthlyNet: '약 704만원', rate: '70%' },
-] as const
+const REFERENCE_TABLE = [24, 30, 36, 40, 48, 50, 60, 70, 80, 100, 120].map((million) => {
+  const annualSalary = million * 1_000_000
+  const result = calculateSalary({ annualSalary, nonTaxable: 0, dependents: 1 })
+  return {
+    annual: formatKRW(annualSalary),
+    monthlyGross: `${Math.round(result.monthlyGross / 10_000).toLocaleString()}만원`,
+    monthlyNet: `약 ${Math.round(result.monthlyNet / 10_000).toLocaleString()}만원`,
+    rate: `${((result.monthlyNet / result.monthlyGross) * 100).toFixed(1)}%`,
+  }
+})
 
 export default function ContentSection() {
   return (
@@ -50,7 +49,7 @@ export default function ContentSection() {
             연봉 실수령액이란 세전 연봉에서 4대보험(국민연금, 건강보험, 장기요양보험, 고용보험)과
             소득세·지방소득세를 공제한 후 실제로 통장에 입금되는 금액입니다. 동일한 연봉이라도
             비과세 항목, 부양가족 수, 회사 규모(두루누리 사회보험 지원 여부)에 따라 실수령액이
-            크게 달라질 수 있습니다. 일반적으로 연봉의 72~85% 수준이 실수령액이며,
+            크게 달라질 수 있습니다. 실수령 비율은 연봉과 공제 조건에 따라 달라지며,
             연봉이 높을수록 누진세율 적용으로 실효세율이 높아집니다.
           </p>
         </div>
@@ -63,7 +62,7 @@ export default function ContentSection() {
             {[
               {
                 name: '국민연금',
-                desc: `월 과세 급여의 ${(RATES.nationalPension * 100).toFixed(1)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 약 313,000원이 공제됩니다.`,
+                desc: `월 과세 급여의 ${(RATES.nationalPension * 100).toFixed(2)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 ${formatKRW(pensionMaxEmployee)}이 공제됩니다.`,
               },
               {
                 name: '건강보험',

@@ -46,7 +46,7 @@ export function buildFaqJsonLd() {
         name: '연봉 실수령액이란 무엇인가요?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: '세전 연봉에서 4대보험(국민연금·건강보험·장기요양·고용보험)과 소득세·지방소득세를 공제한 뒤 실제로 통장에 입금되는 금액입니다. 보통 연봉의 75~88% 수준이며, 연봉이 높을수록 실효세율이 높아집니다.',
+          text: '세전 연봉에서 4대보험(국민연금·건강보험·장기요양·고용보험)과 소득세·지방소득세를 공제한 뒤 실제로 통장에 입금되는 금액입니다. 비율은 연봉과 공제 조건에 따라 달라집니다.',
         },
       },
       {
@@ -54,7 +54,7 @@ export function buildFaqJsonLd() {
         name: `${TAX_YEAR}년 국민연금 요율은 얼마인가요?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(1)}%입니다. 기준소득월액 하한은 41만원, 상한은 659만원입니다.`,
+          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(2)}%이며, 계산 시점의 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
         },
       },
       {
@@ -78,7 +78,7 @@ export function buildFaqJsonLd() {
         name: '부양가족 수를 늘리면 세금이 줄어드나요?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: '네. 부양가족 1인당 연 150만원의 기본공제가 적용되어 소득세 과세표준이 낮아집니다. 예를 들어 본인 포함 3명이면 연 300만원 추가 공제가 발생해 소득세가 감소합니다.',
+          text: '네. 본인을 포함한 공제대상 가족 수와 8세 이상 20세 이하 자녀 수에 따라 국세청 근로소득 간이세액표의 원천징수 세액이 달라집니다.',
         },
       },
       {

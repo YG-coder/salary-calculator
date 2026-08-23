@@ -24,6 +24,7 @@ export default function CalculatorForm() {
   const [annualSalary, setAnnualSalary] = useState('')
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
+  const [children, setChildren] = useState('0')
   const [result, setResult] = useState<SalaryResult | null>(null)
   const [hasCalculated, setHasCalculated] = useState(false)
 
@@ -36,11 +37,12 @@ export default function CalculatorForm() {
       // nonTaxable 은 월 단위 금액 그대로 전달 (salary.ts 내부에서 ÷12 하지 않음)
       nonTaxable: parseNumberInput(nonTaxable),
       dependents: Math.max(1, Number(dependents) || 1),
+      childCount8to20: Math.min(Number(children) || 0, Math.max(0, (Number(dependents) || 1) - 1)),
     }
 
     setResult(calculateSalary(input))
     setHasCalculated(true)
-  }, [annualSalary, nonTaxable, dependents])
+  }, [annualSalary, nonTaxable, dependents, children])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCalculate()
@@ -50,6 +52,7 @@ export default function CalculatorForm() {
     setAnnualSalary('')
     setNonTaxable('')
     setDependents('1')
+    setChildren('0')
     setResult(null)
     setHasCalculated(false)
   }
@@ -118,13 +121,16 @@ export default function CalculatorForm() {
         {/* 부양가족 수 */}
         <div>
           <label className="label">부양가족 수 (본인 포함)</label>
-          <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((n) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                onClick={() => setDependents(String(n))}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
+                onClick={() => {
+                  setDependents(String(n))
+                  setChildren((current) => String(Math.min(Number(current) || 0, n - 1)))
+                }}
+                className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   dependents === String(n)
                     ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
@@ -134,7 +140,20 @@ export default function CalculatorForm() {
               </button>
             ))}
           </div>
-          <p className="hint">본인 1명 포함. 1인당 연 150만원 기본공제 적용</p>
+          <p className="hint">본인 포함 인원으로 국세청 근로소득 간이세액표를 조회합니다</p>
+        </div>
+
+        <div>
+          <label className="label">8세 이상 20세 이하 자녀 수</label>
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
+              <button key={n} type="button" onClick={() => setChildren(String(n))}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`}>
+                {n}명
+              </button>
+            ))}
+          </div>
+          <p className="hint">본인을 제외한 공제대상 가족 중 해당 연령 자녀 수</p>
         </div>
 
         {/* 입력값 요약 (계산 전 미리보기) */}

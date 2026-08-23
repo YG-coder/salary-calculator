@@ -11,11 +11,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { TAX_YEAR, RATES } from '@/lib/constants'
+import { calculateSalary, formatKRW } from '@/lib/salary'
 
 interface FaqItem {
   q: string
   a: React.ReactNode
 }
+
+const salary50m = calculateSalary({ annualSalary: 50_000_000, nonTaxable: 0, dependents: 1 })
 
 export default function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
@@ -23,11 +26,11 @@ export default function FaqSection() {
   const faqs: FaqItem[] = [
     {
       q: '연봉 실수령액이란 무엇인가요?',
-      a: `세전 연봉에서 4대보험(국민연금·건강보험·장기요양·고용보험)과 소득세·지방소득세를 공제한 뒤 실제로 통장에 입금되는 금액입니다. 보통 연봉의 72~85% 수준이며, 연봉이 높을수록 누진세율 적용으로 실효세율이 높아집니다.`,
+      a: `세전 연봉에서 4대보험(국민연금·건강보험·장기요양·고용보험)과 소득세·지방소득세를 공제한 뒤 실제로 통장에 입금되는 금액입니다. 비율은 연봉·비과세·부양가족·자녀 조건에 따라 달라집니다.`,
     },
     {
       q: `${TAX_YEAR}년 국민연금 요율은 얼마인가요?`,
-      a: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(1)}%입니다. 기준소득월액 하한은 41만원, 상한은 659만원으로 이 범위 내에서만 계산됩니다. 월 급여가 659만원을 초과해도 659만원 기준으로 계산되어 최대 월 약 313,000원이 공제됩니다.`,
+      a: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(2)}%입니다. 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
     },
     {
       q: '건강보험료와 장기요양보험료는 어떻게 계산되나요?',
@@ -43,14 +46,13 @@ export default function FaqSection() {
     },
     {
       q: '부양가족 수를 늘리면 세금이 줄어드나요?',
-      a: '네. 부양가족 1인당 연 150만원의 기본공제가 적용되어 소득세 과세표준이 낮아집니다. 예를 들어 본인 포함 3명이면 연 300만원 추가 공제가 발생합니다. 소득세율 15% 구간이라면 연 45만원, 24% 구간이라면 72만원의 세금이 줄어드는 효과가 있습니다.',
+      a: '네. 본인을 포함한 공제대상 가족 수에 따라 국세청 근로소득 간이세액표의 원천징수 세액이 달라집니다. 8세 이상 20세 이하 자녀 수에 따른 세액공제도 별도로 반영됩니다.',
     },
     {
       q: '연봉 5,000만원 실수령액은 얼마인가요?',
       a: (
         <>
-          연봉 5,000만원 기준(부양가족 1명, 비과세 없음) 월 실수령액은 약 330만원 수준입니다.
-          월 비과세 식대 20만원을 적용하면 약 340만원대로 높아집니다.
+          연봉 5,000만원 기준(부양가족 1명, 비과세 없음) 현재 계산 결과는 월 {formatKRW(salary50m.monthlyNet)}입니다.
           정확한 금액은{' '}
           <Link href="/" className="text-brand-600 hover:underline font-medium">
             위 계산기

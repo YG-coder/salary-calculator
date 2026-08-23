@@ -31,6 +31,7 @@ export default function PayrollTaxCalculatorPage() {
   const [monthlyGross, setMonthlyGross] = useState('')
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
+  const [children, setChildren] = useState('0')
   const [result, setResult] = useState<PayrollTaxResult | null>(null)
 
   const handleCalc = useCallback(() => {
@@ -40,11 +41,20 @@ export default function PayrollTaxCalculatorPage() {
       monthlyGross: gross,
       nonTaxable: parseNum(nonTaxable),
       dependents: Math.max(1, Number(dependents) || 1),
+      childCount8to20: Math.min(Number(children) || 0, Math.max(0, (Number(dependents) || 1) - 1)),
     }))
-  }, [monthlyGross, nonTaxable, dependents])
+  }, [monthlyGross, nonTaxable, dependents, children])
 
   const grossNum = parseNum(monthlyGross)
   const isValid = grossNum >= 100_000
+  const referenceRows = [2_000_000, 3_000_000, 4_000_000, 5_000_000, 7_000_000, 10_000_000].map((gross) => {
+    const calculated = calculatePayrollTax({ monthlyGross: gross, nonTaxable: 0, dependents: 1 })
+    const insurance = calculated.nationalPension + calculated.healthInsurance + calculated.longTermCare + calculated.employment
+    return {
+      label: `월 ${(gross / 10_000).toLocaleString()}만원`,
+      values: [formatKRW(insurance), formatKRW(calculated.incomeTax + calculated.localTax), formatKRW(calculated.monthlyNet)],
+    }
+  })
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -89,12 +99,15 @@ export default function PayrollTaxCalculatorPage() {
 
           <div>
             <label className="label">부양가족 수 (본인 포함)</label>
-            <div className="flex items-center gap-2">
-              {[1, 2, 3, 4, 5].map((n) => (
+            <div className="flex flex-wrap items-center gap-2">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n} type="button"
-                  onClick={() => setDependents(String(n))}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
+                  onClick={() => {
+                    setDependents(String(n))
+                    setChildren((current) => String(Math.min(Number(current) || 0, n - 1)))
+                  }}
+                  className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                     dependents === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
@@ -104,6 +117,19 @@ export default function PayrollTaxCalculatorPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="label">8세 이상 20세 이하 자녀 수</label>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
+                <button key={n} type="button" onClick={() => setChildren(String(n))}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`}>
+                  {n}명
+                </button>
+              ))}
+            </div>
+            <p className="hint">본인을 제외한 공제대상 가족 중 해당 연령 자녀 수</p>
           </div>
 
           <button
@@ -201,7 +227,8 @@ export default function PayrollTaxCalculatorPage() {
               heading: '부양가족 공제',
               body: (
                 <p>
-                  부양가족 1인당 연 150만원의 기본공제가 적용됩니다. 본인을 포함해
+                  본인을 포함한 공제대상 가족 수에 따라 국세청 근로소득 간이세액표의
+                  원천징수 세액이 달라집니다. 본인을 포함해
                   배우자, 직계존비속(부모·자녀), 형제자매 중 일정 요건을 충족하는
                   사람이 대상입니다. 부양가족 수가 늘어날수록 과세표준이 줄어 세금
                   부담이 낮아지는 효과가 큽니다. 다만 부양가족이 연 100만원 이상 소득이
@@ -218,7 +245,7 @@ export default function PayrollTaxCalculatorPage() {
                   조금씩 다를 수 있습니다. 회사가 100%가 아닌 80% 또는 120% 간이세액표를
                   적용하는 경우, 분기별 보너스가 있는 경우, 연말정산 결과를 매년 2월
                   급여에 반영하는 경우 등 다양한 변동 요인이 있습니다. 연 단위로 봤을
-                  때의 실수령률(약 72~85%)은 본 계산기 결과와 일치합니다.
+                  때의 실수령률은 입력한 급여와 공제 조건에 따라 달라집니다.
                 </p>
               ),
             },
@@ -240,14 +267,7 @@ export default function PayrollTaxCalculatorPage() {
             footnote:
               `${TAX_YEAR}년 요율 기준, 부양가족 1명·비과세 없음 가정. 실수령액은 회사 정책에 따라 다를 수 있습니다.`,
             headers: ['4대보험', '소득세+지방세', '월 실수령'],
-            rows: [
-              { label: '월 200만원', values: ['약 194,000원', '약 21,000원', '약 178만원'] },
-              { label: '월 300만원', values: ['약 292,000원', '약 82,000원', '약 263만원'] },
-              { label: '월 400만원', values: ['약 389,000원', '약 216,000원', '약 340만원'] },
-              { label: '월 500만원', values: ['약 486,000원', '약 369,000원', '약 415만원'] },
-              { label: '월 700만원', values: ['약 661,000원', '약 806,000원', '약 553만원'] },
-              { label: '월 1,000만원', values: ['약 810,000원', '약 1,658,000원', '약 753만원'] },
-            ],
+            rows: referenceRows,
           }}
           legalBasis={[
             { label: '소득세법 (근로소득공제, 세액공제 등)' },

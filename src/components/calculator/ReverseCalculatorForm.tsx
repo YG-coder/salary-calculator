@@ -151,7 +151,7 @@ export default function ReverseCalculatorForm() {
               </button>
             ))}
           </div>
-          <p className="hint">본인 1명 포함. 1인당 연 150만원 기본공제 적용</p>
+          <p className="hint">본인 포함 인원으로 국세청 근로소득 간이세액표를 조회합니다</p>
         </div>
 
         {/* 8~20세 자녀 수 (자녀세액공제) — 순방향 입력 계약과 동일 */}
