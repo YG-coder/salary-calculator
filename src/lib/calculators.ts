@@ -2,7 +2,7 @@
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
 import { RATES, getPensionLimits, MIN_HOURLY_WAGE_2026 } from './constants'
-import { calcSimplifiedWithholdingTax } from './incomeTax'
+import { calculateSalary } from './salary'
 
 function floor10(n: number): number {
   return Math.floor(n / 10) * 10
@@ -118,25 +118,24 @@ export function calculatePayrollTax(
   asOfDate: Date = new Date(),
 ): PayrollTaxResult {
   const { monthlyGross, nonTaxable = 0, dependents = 1, childCount8to20 = 0 } = input
-  const monthlyTaxable = Math.max(0, monthlyGross - nonTaxable)
-
-  const pensionLimits   = getPensionLimits(asOfDate)
-  const pensionBase     = Math.min(Math.max(monthlyTaxable, pensionLimits.min), pensionLimits.max)
-  const nationalPension = floor10(pensionBase    * RATES.nationalPension)
-  const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
-  const longTermCare    = floor10(healthInsurance * RATES.longTermCare)
-  const employment      = floor10(monthlyTaxable * RATES.employment)
-  const incomeTax       = calcSimplifiedWithholdingTax(
+  const salaryResult = calculateSalary(
     {
-      monthlyTaxable,
-      dependents: Math.max(1, dependents),
+      annualSalary: monthlyGross * 12,
+      nonTaxable,
+      dependents,
       childCount8to20,
     },
     asOfDate,
   )
-  const localTax        = floor10(incomeTax * 0.1)
-
-  const totalDeduction  = nationalPension + healthInsurance + longTermCare + employment + incomeTax + localTax
+  const {
+    nationalPension,
+    healthInsurance,
+    longTermCare,
+    employment,
+    incomeTax,
+    localTax,
+    totalDeduction,
+  } = salaryResult.breakdown
 
   return {
     nationalPension,
@@ -146,7 +145,7 @@ export function calculatePayrollTax(
     incomeTax,
     localTax,
     totalDeduction,
-    monthlyNet: monthlyGross - totalDeduction,
+    monthlyNet: salaryResult.monthlyNet,
   }
 }
 
