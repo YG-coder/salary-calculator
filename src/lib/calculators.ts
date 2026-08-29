@@ -2,6 +2,13 @@
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
 import { RATES, getPensionLimits, MIN_HOURLY_WAGE_2026 } from './constants'
+import {
+  ANNUAL_LEAVE_BASE_DAYS,
+  ANNUAL_LEAVE_MAX_DAYS,
+  ADDITIONAL_LEAVE_INTERVAL_YEARS,
+  SUB_ONE_YEAR_MONTHLY_DAYS,
+  SUB_ONE_YEAR_MAX_DAYS,
+} from './policy/annualLeave'
 import { calculateSalary } from './salary'
 
 function floor10(n: number): number {
@@ -240,7 +247,7 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
 // ── 연차수당 계산 ─────────────────────────────────────────────
 export interface AnnualLeavePayInput {
   dailyWage: number   // 1일 통상임금 (원)
-  unusedDays: number  // 미사용 연차 일수
+  unusedDays: number  // 미사용 연차 일수 (반차 등 소수 허용)
 }
 
 export interface AnnualLeavePayResult {
@@ -248,29 +255,141 @@ export interface AnnualLeavePayResult {
   perDayAmount: number
 }
 
+/**
+ * 비정상 입력 정규화 정책.
+ *
+ * 이 프로젝트의 다른 계산 함수(calculateSocialInsurance의 Math.max(0, ...),
+ * calculateAnnualLeaveDays·calculateWeeklyHolidayPay의 Number.isFinite 가드,
+ * incomeTax의 Math.max(0, ...))는 모두 "오류 상태를 반환하지 않고 안전한 값으로
+ * 정규화"하는 방식을 씁니다. ineligibleReason 같은 상태 필드는 입력 오류가 아니라
+ * "법정 지급 요건 미충족"을 나타낼 때만 사용합니다.
+ *
+ * 따라서 여기서도 동일하게 NaN·±Infinity·음수를 0으로 정규화하며, 반환 타입은
+ * 바꾸지 않습니다. 0은 "계산 대상 없음"으로 보아 0원을 반환합니다(오류 아님).
+ */
+function toSafeNonNegative(value: number): number {
+  if (!Number.isFinite(value) || value < 0) return 0
+  return Math.min(value, Number.MAX_SAFE_INTEGER)
+}
+
 export function calculateAnnualLeavePay(input: AnnualLeavePayInput): AnnualLeavePayResult {
-  const { dailyWage, unusedDays } = input
+  // 1일 통상임금·미사용 일수 모두 유한한 0 이상 값으로 정규화한다.
+  const dailyWage = toSafeNonNegative(input.dailyWage)
+  // ⚠️ 소수 연차일수(반차 0.5일 등)는 반올림·절사하지 않고 그대로 사용한다.
+  //    현행법상 1일 미만 단위 부여를 강제하는 규정이 없어 임의 정수화의 근거가 없다.
+  const unusedDays = toSafeNonNegative(input.unusedDays)
+
+  // 정규화 후에도 두 값의 곱이 표현 범위를 넘지 않도록 최종 결과를 한 번 더 제한한다.
+  const rawPay = Math.floor(dailyWage * unusedDays)
+  const annualLeavePay = Number.isFinite(rawPay)
+    ? Math.min(rawPay, Number.MAX_SAFE_INTEGER)
+    : 0
+
   return {
-    annualLeavePay: Math.floor(dailyWage * unusedDays),
+    annualLeavePay,
     perDayAmount: dailyWage,
   }
 }
 
-// ── 연차 일수 계산 (입사 후 경과 연수 기준) ──────────────────
-// 근로기준법 제60조
+// ── 연차 발생일수 계산 ────────────────────────────────────────
+// 근로기준법 제60조 (정책 상수는 src/lib/policy/annualLeave.ts 단일 출처)
 //  ① 1년간 80% 이상 출근 → 15일
+//  ② 계속근로 1년 미만 또는 출근율 80% 미만 → 1개월 개근 시 1일
 //  ④ 3년 이상 계속근로 시 최초 1년을 초과하는 계속 근로연수 매 2년에 대하여 1일 가산,
 //     가산휴가를 포함한 총 휴가 일수는 25일 한도
-export const ANNUAL_LEAVE_BASE_DAYS = 15
-export const ANNUAL_LEAVE_MAX_DAYS = 25
+export {
+  ANNUAL_LEAVE_BASE_DAYS,
+  ANNUAL_LEAVE_MAX_DAYS,
+  SUB_ONE_YEAR_MAX_DAYS,
+}
 
-// 근속연수를 숫자로 직접 입력받으므로 NaN·Infinity·음수·소수를 함수 진입 시점에서 정규화한다.
+/**
+ * 근로기준법 제60조 제2항: 1년 미만 근로자의 연차일수.
+ * 1개월 개근 시 1일, 최대 11일.
+ */
+export function calculateSubOneYearLeaveDays(fullAttendanceMonths: number): number {
+  if (!Number.isFinite(fullAttendanceMonths)) return 0
+  const months = Math.floor(fullAttendanceMonths)
+  if (months < 1) return 0
+  return Math.min(months * SUB_ONE_YEAR_MONTHLY_DAYS, SUB_ONE_YEAR_MAX_DAYS)
+}
+
+/**
+ * 근로기준법 제60조 제1항·제4항: 366일째에도 근로관계가 유지되는 근로자의
+ * 해당 연차연도 발생일수.
+ *
+ * 근속연수를 숫자로 직접 입력받으므로 NaN·Infinity·음수·소수를 함수 진입 시점에서
+ * 정규화한다.
+ */
 export function calculateAnnualLeaveDays(workingYears: number): number {
   if (!Number.isFinite(workingYears)) return 0
   const years = Math.floor(workingYears)
   if (years < 1) return 0
-  const extra = Math.floor((years - 1) / 2)
+  const extra = Math.floor((years - 1) / ADDITIONAL_LEAVE_INTERVAL_YEARS)
   return Math.min(ANNUAL_LEAVE_BASE_DAYS + extra, ANNUAL_LEAVE_MAX_DAYS)
+}
+
+// ── 법정 연차일수 참고값 (수당 계산과 분리된 "참고 기준") ──────
+export type AnnualLeaveTenure =
+  | { category: 'under1'; fullAttendanceMonths: number }
+  | { category: 'exact1' }
+  | { category: 'over1'; workingYears: number }
+
+export interface StatutoryLeaveReference {
+  /** 해당 시점에 발생하는 연차연도 기준 일수 */
+  annualGrantDays: number
+  /**
+   * 정산 시 참고할 수 있는 법정 발생일수 상한.
+   * ⚠️ 이 값은 수당 계산을 제한하지 않는다. 회사의 약정휴가·이월휴가가 있으면
+   *    사용자가 입력한 미사용 일수가 이 값을 넘을 수 있으며, 그대로 계산한다.
+   */
+  settlementReferenceDays: number
+  /** 근거 요약 (화면 안내 문구용) */
+  basis: string
+}
+
+/**
+ * 근속 구분별 법정 연차일수 참고값.
+ *
+ * 대법원 2021.10.14. 선고 2021다227100 판결 및 고용노동부 행정해석 변경
+ * (2021.12.16)에 따라, 제60조 제1항의 15일은 "1년간의 근로를 마친 다음 날"에
+ * 근로관계가 존속해야 발생한다. 따라서 365일 근무 후 퇴직(exact1)과
+ * 366일째 근로관계 유지(over1)를 분리한다.
+ */
+export function getStatutoryLeaveReference(tenure: AnnualLeaveTenure): StatutoryLeaveReference {
+  if (tenure.category === 'under1') {
+    const days = calculateSubOneYearLeaveDays(tenure.fullAttendanceMonths)
+    return {
+      annualGrantDays: days,
+      settlementReferenceDays: days,
+      basis: '근로기준법 제60조 제2항 (1개월 개근 시 1일, 최대 11일)',
+    }
+  }
+
+  if (tenure.category === 'exact1') {
+    // 365일을 채우고 퇴직하면 제60조 제1항의 15일은 발생하지 않는다.
+    return {
+      annualGrantDays: SUB_ONE_YEAR_MAX_DAYS,
+      settlementReferenceDays: SUB_ONE_YEAR_MAX_DAYS,
+      basis: '근로기준법 제60조 제2항 · 대법원 2021다227100 (1년 근무 후 퇴직 시 최대 11일)',
+    }
+  }
+
+  const annualGrantDays = calculateAnnualLeaveDays(tenure.workingYears)
+  const years = Number.isFinite(tenure.workingYears) ? Math.floor(tenure.workingYears) : 0
+  // 366일~2년 미만 구간은 1년 미만 기간에 발생한 최대 11일의 미사용분이
+  // 함께 남아 있을 수 있어, 정산 참고 상한은 15 + 11 = 26일이 된다.
+  const settlementReferenceDays =
+    years === 1 ? annualGrantDays + SUB_ONE_YEAR_MAX_DAYS : annualGrantDays
+
+  return {
+    annualGrantDays,
+    settlementReferenceDays,
+    basis:
+      years === 1
+        ? '근로기준법 제60조 제1항 15일 + 제2항 미사용분 최대 11일'
+        : '근로기준법 제60조 제1항·제4항 (15일 + 매 2년 1일 가산, 25일 한도)',
+  }
 }
 
 // ── 주휴수당 계산 ─────────────────────────────────────────────
