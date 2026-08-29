@@ -10,13 +10,27 @@ import {
   calculateAnnualLeaveDays,
   calculateSubOneYearLeaveDays,
   getStatutoryLeaveReference,
-  type AnnualLeaveTenure,
+  exceedsWarningThreshold,
   type AnnualLeavePayResult,
+  type StatutoryLeaveReference,
 } from '@/lib/calculators'
 import {
+  sanitizeDaysInput,
+  parseDays,
+  sanitizeIntegerInput,
+  normalizeWorkingYears,
+  normalizeMonths,
+  formatAmountInput,
+  parseAmount,
+  buildTenure,
+} from '@/lib/annualLeaveInput'
+import {
+  ANNUAL_LEAVE_BASE_DAYS,
   ANNUAL_LEAVE_MAX_DAYS,
   ANNUAL_LEAVE_CAP_YEARS,
   ADDITIONAL_LEAVE_START_YEARS,
+  ADDITIONAL_LEAVE_INTERVAL_YEARS,
+  ATTENDANCE_RATE_THRESHOLD,
   SUB_ONE_YEAR_MAX_DAYS,
   MONTHLY_WORK_HOURS,
   DAILY_WORK_HOURS,
@@ -25,7 +39,7 @@ import {
   MAX_FULL_ATTENDANCE_MONTHS,
   type AnnualLeaveTenureCategory,
 } from '@/lib/policy/annualLeave'
-import { formatKRW } from '@/lib/salary'
+import { formatKRW, formatKRWShort } from '@/lib/salary'
 import { TAX_YEAR } from '@/lib/constants'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
@@ -33,43 +47,7 @@ import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 import AdSlot from '@/components/ui/AdSlot'
 
-function formatNum(v: string) {
-  const n = v.replace(/[^0-9]/g, '')
-  if (!n) return ''
-  return Number(n).toLocaleString('ko-KR')
-}
-function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
-
-// 미사용 연차일수 입력: 반차(0.5일) 등 소수를 허용한다.
-// ⚠️ 현행법상 1일 미만 단위 부여를 강제하는 규정이 없으므로 소수 입력을 임의로
-//    반올림·절사하지 않는다. 소수점 문자만 1개로 제한한다.
-function sanitizeDaysInput(v: string): string {
-  const cleaned = v.replace(/[^0-9.]/g, '')
-  const [head, ...rest] = cleaned.split('.')
-  return rest.length > 0 ? `${head}.${rest.join('')}` : head
-}
-function parseDays(v: string): number {
-  const n = Number(sanitizeDaysInput(v))
-  return Number.isFinite(n) && n >= 0 ? n : 0
-}
-
-// 근속연수 입력 정규화: 정수 1~50년. NaN·음수·소수·범위초과를 모두 안전하게 클램프한다.
-// 소수점 이하는 버리고("3.7" → "3"), 부호·단위 등 숫자가 아닌 문자는 제거한다.
-function sanitizeYearsInput(v: string): string {
-  return v.split('.')[0].replace(/[^0-9]/g, '')
-}
-function normalizeWorkingYears(v: string): number {
-  const n = Number(sanitizeYearsInput(v))
-  if (!Number.isFinite(n)) return MIN_WORKING_YEARS
-  const years = Math.floor(n)
-  if (years < MIN_WORKING_YEARS) return MIN_WORKING_YEARS
-  return Math.min(years, MAX_WORKING_YEARS)
-}
-function normalizeMonths(v: string): number {
-  const n = Number(sanitizeYearsInput(v))
-  if (!Number.isFinite(n) || n < 0) return 0
-  return Math.min(Math.floor(n), MAX_FULL_ATTENDANCE_MONTHS)
-}
+// 입력 정규화는 전부 src/lib/annualLeaveInput.ts (테스트 대상)에 있습니다.
 
 // 참조표 기준 근속연수 (일수는 calculateAnnualLeaveDays()로만 생성 — 하드코딩 금지)
 const REFERENCE_YEARS = [1, 3, 5, 10, 15, ANNUAL_LEAVE_CAP_YEARS]
@@ -84,8 +62,9 @@ const GUIDE_YEAR_ROWS: { label: string; years: number }[] = [
   { label: '근속 15년', years: 15 },
   { label: `근속 ${ANNUAL_LEAVE_CAP_YEARS}년 이상`, years: ANNUAL_LEAVE_CAP_YEARS },
 ]
+// 기존 표기(「120만원」)를 유지한다. formatKRW를 쓰면 「1,200,000원」으로 바뀌어 회귀가 된다.
 function guideAmount(days: number) {
-  return formatKRW(days * GUIDE_SAMPLE_DAILY_WAGE)
+  return formatKRWShort(days * GUIDE_SAMPLE_DAILY_WAGE)
 }
 
 const TENURE_OPTIONS: { value: AnnualLeaveTenureCategory; label: string; hint: string }[] = [
@@ -93,16 +72,6 @@ const TENURE_OPTIONS: { value: AnnualLeaveTenureCategory; label: string; hint: s
   { value: 'exact1', label: '1년 근무 후 퇴직', hint: '365일을 채우고 그 다음 날 근로관계가 끝난 경우' },
   { value: 'over1', label: '1년 초과 재직', hint: '366일째에도 근로관계가 유지되는 경우' },
 ]
-
-function buildTenure(
-  category: AnnualLeaveTenureCategory,
-  workingYears: number,
-  fullAttendanceMonths: number,
-): AnnualLeaveTenure {
-  if (category === 'under1') return { category: 'under1', fullAttendanceMonths }
-  if (category === 'exact1') return { category: 'exact1' }
-  return { category: 'over1', workingYears }
-}
 
 const RELATED = [
   { href: '/weekly-holiday-pay-calculator', emoji: '📅', label: '주휴수당 계산기', description: '주 15시간 이상 근무 시 주휴수당' },
@@ -120,13 +89,17 @@ export default function AnnualLeavePayCalculatorPage() {
   const [workingYears, setWorkingYears] = useState('1')
   const [attendanceMonths, setAttendanceMonths] = useState('6')
   const [result, setResult] = useState<AnnualLeavePayResult | null>(null)
+  // ⚠️ 결과 카드는 "계산 버튼을 누른 시점"의 값만 보여준다. 입력을 바꾸면 결과 카드
+  //    일부만 갱신되어 한 카드 안에 서로 다른 근속 구분이 섞이는 문제가 있었다.
   const [submittedDays, setSubmittedDays] = useState(0)
-  const [submittedReference, setSubmittedReference] = useState<ReturnType<typeof getStatutoryLeaveReference> | null>(null)
+  const [submittedReference, setSubmittedReference] = useState<StatutoryLeaveReference | null>(null)
+  const [submittedCategory, setSubmittedCategory] = useState<AnnualLeaveTenureCategory>('over1')
+  const [submittedYears, setSubmittedYears] = useState(1)
 
   // 1일 통상임금 = 월 통상임금 ÷ 209시간(법정 월 소정근로시간) × 8시간
   const computedDailyWage = mode === 'calc'
-    ? Math.floor((parseNum(monthlyWage) / MONTHLY_WORK_HOURS) * DAILY_WORK_HOURS)
-    : parseNum(dailyWage)
+    ? Math.floor((parseAmount(monthlyWage) / MONTHLY_WORK_HOURS) * DAILY_WORK_HOURS)
+    : parseAmount(dailyWage)
 
   // 근속 구분 파생값
   const normalizedYears = normalizeWorkingYears(workingYears)
@@ -136,11 +109,11 @@ export default function AnnualLeavePayCalculatorPage() {
   // ⚠️ 법정 발생일수는 "참고 기준"일 뿐, 수당 계산을 제한하지 않는다.
   const statutory = getStatutoryLeaveReference(tenure)
   const unusedDaysNum = parseDays(unusedDays)
-  const exceedsStatutory = unusedDaysNum > 0 && unusedDaysNum > statutory.settlementReferenceDays
+  const exceedsStatutory = exceedsWarningThreshold(unusedDaysNum, statutory)
 
   // 참조표: 기준 연수 + 사용자가 입력한 연수를 합쳐 오름차순 정렬
   const referenceYears = Array.from(
-    new Set([...REFERENCE_YEARS, ...(tenureCategory === 'over1' ? [normalizedYears] : [])]),
+    new Set([...REFERENCE_YEARS, ...(submittedCategory === 'over1' ? [submittedYears] : [])]),
   ).sort((a, b) => a - b)
 
   const handleCalc = useCallback(() => {
@@ -150,20 +123,17 @@ export default function AnnualLeavePayCalculatorPage() {
     setResult(calculateAnnualLeavePay({ dailyWage: dw, unusedDays: ud }))
     setSubmittedDays(ud)
     // ⚠️ React Compiler가 수동 메모이제이션을 보존할 수 있도록 원시값만 의존성으로 둔다.
+    const years = normalizeWorkingYears(workingYears)
     setSubmittedReference(
-      getStatutoryLeaveReference(
-        buildTenure(
-          tenureCategory,
-          normalizeWorkingYears(workingYears),
-          normalizeMonths(attendanceMonths),
-        ),
-      ),
+      getStatutoryLeaveReference(buildTenure(tenureCategory, years, normalizeMonths(attendanceMonths))),
     )
+    setSubmittedCategory(tenureCategory)
+    setSubmittedYears(years)
   }, [computedDailyWage, unusedDays, tenureCategory, workingYears, attendanceMonths])
 
   const isValid = computedDailyWage > 0 && parseDays(unusedDays) > 0
   const submittedExceeds =
-    submittedReference !== null && submittedDays > submittedReference.settlementReferenceDays
+    submittedReference !== null && exceedsWarningThreshold(submittedDays, submittedReference)
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -205,7 +175,7 @@ export default function AnnualLeavePayCalculatorPage() {
                   type="text" inputMode="numeric"
                   placeholder="예: 80,000"
                   value={dailyWage}
-                  onChange={(e) => setDailyWage(formatNum(e.target.value))}
+                  onChange={(e) => setDailyWage(formatAmountInput(e.target.value))}
                   className="input-field pr-8"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
@@ -220,12 +190,12 @@ export default function AnnualLeavePayCalculatorPage() {
                   type="text" inputMode="numeric"
                   placeholder="예: 2,500,000"
                   value={monthlyWage}
-                  onChange={(e) => setMonthlyWage(formatNum(e.target.value))}
+                  onChange={(e) => setMonthlyWage(formatAmountInput(e.target.value))}
                   className="input-field pr-8"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
               </div>
-              {parseNum(monthlyWage) > 0 && (
+              {parseAmount(monthlyWage) > 0 && (
                 <p className="hint text-brand-600">
                   계산된 1일 통상임금: {formatKRW(computedDailyWage)}
                 </p>
@@ -248,10 +218,10 @@ export default function AnnualLeavePayCalculatorPage() {
             <p className="hint">반차·반반차가 남았다면 0.5, 0.25처럼 소수로 입력할 수 있습니다</p>
             {exceedsStatutory && (
               <p className="hint text-amber-600">
-                입력한 미사용 연차일수({unusedDaysNum}일)가 선택한 근속 구분의 법정 발생일수
-                ({statutory.settlementReferenceDays}일)보다 많습니다. 회사의 약정휴가·추가휴가,
-                이월 연차, 회계연도 운영 기준이 있는 경우 정상적인 값일 수 있으므로 입력값
-                그대로 계산합니다. 입력 내용만 한 번 확인해 주세요.
+                입력한 미사용 연차일수({unusedDaysNum}일)가 선택한 근속 구분에서 통상
+                남을 수 있는 최대치({statutory.warningThresholdDays}일)보다 많습니다. 회사의
+                약정휴가·추가휴가, 이월 연차, 회계연도 운영 기준이 있는 경우 정상적인 값일 수
+                있으므로 입력값 그대로 계산합니다. 입력 내용만 한 번 확인해 주세요.
               </p>
             )}
           </div>
@@ -286,7 +256,7 @@ export default function AnnualLeavePayCalculatorPage() {
                   type="text" inputMode="numeric"
                   placeholder="예: 6"
                   value={attendanceMonths}
-                  onChange={(e) => setAttendanceMonths(sanitizeYearsInput(e.target.value))}
+                  onChange={(e) => setAttendanceMonths(sanitizeIntegerInput(e.target.value))}
                   onBlur={() => setAttendanceMonths(String(normalizeMonths(attendanceMonths)))}
                   className="input-field pr-10"
                 />
@@ -315,7 +285,7 @@ export default function AnnualLeavePayCalculatorPage() {
                   type="text" inputMode="numeric"
                   placeholder="예: 12"
                   value={workingYears}
-                  onChange={(e) => setWorkingYears(sanitizeYearsInput(e.target.value))}
+                  onChange={(e) => setWorkingYears(sanitizeIntegerInput(e.target.value))}
                   onBlur={() => setWorkingYears(String(normalizeWorkingYears(workingYears)))}
                   className="input-field pr-10"
                 />
@@ -328,7 +298,7 @@ export default function AnnualLeavePayCalculatorPage() {
               {normalizedYears === 1 && (
                 <p className="hint text-brand-600">
                   1년 미만 기간에 발생한 최대 {SUB_ONE_YEAR_MAX_DAYS}일이 남아 있다면 합쳐서
-                  최대 {statutory.settlementReferenceDays}일까지 정산 대상이 될 수 있습니다.
+                  최대 {statutory.warningThresholdDays}일까지 정산 대상이 될 수 있습니다.
                 </p>
               )}
               {normalizedYears >= ANNUAL_LEAVE_CAP_YEARS && (
@@ -360,10 +330,10 @@ export default function AnnualLeavePayCalculatorPage() {
               <div className="card p-4 bg-amber-50 border-amber-200">
                 <p className="text-sm text-amber-800">
                   <strong>확인해 주세요.</strong> 계산에 사용한 미사용 연차 {submittedDays}일은
-                  선택한 근속 구분의 법정 발생일수 {submittedReference.settlementReferenceDays}일을
+                  선택한 근속 구분에서 통상 남을 수 있는 최대치 {submittedReference.warningThresholdDays}일을
                   초과합니다. 회사의 약정휴가·추가휴가, 이월 연차, 회계연도 기준 운영 등으로
                   초과할 수 있어 <strong>입력값 그대로 계산했습니다.</strong> 오류가 아니라 확인
-                  안내입니다.
+                  안내이며, 법정 상한이 아니라 입력 확인용 기준입니다.
                 </p>
                 <p className="mt-1 text-[11px] text-amber-700">기준: {submittedReference.basis}</p>
               </div>
@@ -374,7 +344,7 @@ export default function AnnualLeavePayCalculatorPage() {
               items={[
                 { label: '1일 통상임금', value: formatKRW(result.perDayAmount) },
                 { label: '미사용 연차 일수 (입력값)', value: `${submittedDays}일` },
-                { label: '법정 발생일수 (참고)', value: `${submittedReference?.settlementReferenceDays ?? 0}일` },
+                { label: '법정 발생일수 (참고)', value: `${submittedReference?.annualGrantDays ?? 0}일` },
                 { label: '연차수당 합계', value: formatKRW(result.annualLeavePay), highlight: true, color: 'text-brand-700' },
               ]}
             />
@@ -385,16 +355,16 @@ export default function AnnualLeavePayCalculatorPage() {
                 <table className="w-full text-xs text-sky-700">
                   <thead><tr className="font-semibold"><th className="text-left py-1">근속기간</th><th className="text-right py-1">연차 일수</th></tr></thead>
                   <tbody>
-                    <tr className={tenureCategory === 'under1' ? 'font-bold text-sky-900' : ''}>
+                    <tr className={submittedCategory === 'under1' ? 'font-bold text-sky-900' : ''}>
                       <td className="py-0.5">1년 미만 (1개월 개근당 1일)</td>
                       <td className="text-right">최대 {SUB_ONE_YEAR_MAX_DAYS}일</td>
                     </tr>
-                    <tr className={tenureCategory === 'exact1' ? 'font-bold text-sky-900' : ''}>
+                    <tr className={submittedCategory === 'exact1' ? 'font-bold text-sky-900' : ''}>
                       <td className="py-0.5">365일 근무 후 퇴직</td>
                       <td className="text-right">최대 {SUB_ONE_YEAR_MAX_DAYS}일</td>
                     </tr>
                     {referenceYears.map((y) => (
-                      <tr key={y} className={tenureCategory === 'over1' && normalizedYears === y ? 'font-bold text-sky-900' : ''}>
+                      <tr key={y} className={submittedCategory === 'over1' && submittedYears === y ? 'font-bold text-sky-900' : ''}>
                         <td className="py-0.5">{y}년 (366일째 이후 계속근로)</td>
                         <td className="text-right">{calculateAnnualLeaveDays(y)}일</td>
                       </tr>
@@ -403,7 +373,7 @@ export default function AnnualLeavePayCalculatorPage() {
                 </table>
               </div>
               <p className="mt-2 text-[11px] text-sky-600">
-                근로기준법 제60조 기준. {ADDITIONAL_LEAVE_START_YEARS}년 차부터 매 2년마다 1일씩 가산되며,
+                근로기준법 제60조 기준. {ADDITIONAL_LEAVE_START_YEARS}년 차부터 매 {ADDITIONAL_LEAVE_INTERVAL_YEARS}년마다 1일씩 가산되며,
                 {' '}{ANNUAL_LEAVE_CAP_YEARS}년 이상 근속 시 가산 연차를 포함해 최대 {ANNUAL_LEAVE_MAX_DAYS}일이 적용됩니다.
               </p>
             </div>
@@ -422,8 +392,8 @@ export default function AnnualLeavePayCalculatorPage() {
           intro={
             <p>
               연차수당은 근로자가 1년 동안 부여받은 연차유급휴가 중 사용하지 못한 일수에
-              대해 사용자가 지급하는 임금입니다. 「근로기준법」 제60조에 따라 1년간 80%
-              이상 출근한 근로자에게는 15일의 유급휴가가 부여되며, 사용하지 못한 연차에
+              대해 사용자가 지급하는 임금입니다. 「근로기준법」 제60조에 따라 1년간 {ATTENDANCE_RATE_THRESHOLD * 100}%
+              이상 출근한 근로자에게는 {ANNUAL_LEAVE_BASE_DAYS}일의 유급휴가가 부여되며, 사용하지 못한 연차에
               대해서는 통상임금 또는 평균임금을 기준으로 보상받을 권리가 있습니다.
               연차수당은 임금에 해당하므로 임의 포기가 원칙적으로 불가능하며, 미지급 시
               임금체불로 신고할 수 있습니다.
@@ -437,14 +407,14 @@ export default function AnnualLeavePayCalculatorPage() {
                   <p>
                     근로기준법 제60조는 근속연수별 연차 일수를 다음과 같이 정합니다.
                     1년 미만 신규 입사자는 1개월 개근 시 1일씩, 최대 {SUB_ONE_YEAR_MAX_DAYS}일까지 발생합니다
-                    (제2항). 1년간 80% 이상 출근하면 15일이 부여되며(제1항),
-                    {' '}{ADDITIONAL_LEAVE_START_YEARS}년 차부터 매 2년마다 1일씩 가산됩니다(제4항).
+                    (제2항). 1년간 {ATTENDANCE_RATE_THRESHOLD * 100}% 이상 출근하면 {ANNUAL_LEAVE_BASE_DAYS}일이 부여되며(제1항),
+                    {' '}{ADDITIONAL_LEAVE_START_YEARS}년 차부터 매 {ADDITIONAL_LEAVE_INTERVAL_YEARS}년마다 1일씩 가산됩니다(제4항).
                     가산 연차를 포함한 총 연차일수는 최대 {ANNUAL_LEAVE_MAX_DAYS}일입니다.
                   </p>
                   <p>
                     예를 들어 근속 3년 차는 {calculateAnnualLeaveDays(3)}일, 5년 차는 {calculateAnnualLeaveDays(5)}일,
                     10년 차는 {calculateAnnualLeaveDays(10)}일, {ANNUAL_LEAVE_CAP_YEARS}년 차
-                    이상은 상한선인 {ANNUAL_LEAVE_MAX_DAYS}일을 받습니다. 단, 1년간 출근율이 80% 미만이면
+                    이상은 상한선인 {ANNUAL_LEAVE_MAX_DAYS}일을 받습니다. 단, 1년간 출근율이 {ATTENDANCE_RATE_THRESHOLD * 100}% 미만이면
                     개근한 월수만큼만 부여됩니다.
                   </p>
                 </>
@@ -463,7 +433,7 @@ export default function AnnualLeavePayCalculatorPage() {
                   </p>
                   <p>
                     반대로 366일째에도 근로관계가 유지되면 제2항의 최대 {SUB_ONE_YEAR_MAX_DAYS}일과
-                    제1항의 15일이 함께 인정되어 최대 26일이 될 수 있습니다. 이는 대법원
+                    제1항의 {ANNUAL_LEAVE_BASE_DAYS}일이 함께 인정되어 최대 {ANNUAL_LEAVE_BASE_DAYS + SUB_ONE_YEAR_MAX_DAYS}일이 될 수 있습니다. 이는 대법원
                     2021. 10. 14. 선고 2021다227100 판결과 이를 반영한 고용노동부 행정해석
                     변경(2021. 12. 16.)에 따른 기준입니다. 가산휴가 역시 해당 근속연수를
                     채운 다음 날에 발생합니다.
