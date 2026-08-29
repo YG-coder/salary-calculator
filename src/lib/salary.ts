@@ -12,7 +12,7 @@
 //         (소득세법 시행령 별표2) 산식으로 교체 (src/lib/incomeTax.ts)
 // ────────────────────────────────────────────────────────────
 
-import { RATES, getPensionLimits } from './constants'
+import { RATES, getPensionLimits, getPensionRate } from './constants'
 import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
@@ -90,7 +90,7 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = new Date())
     Math.max(monthlyTaxable, pensionLimits.min),
     pensionLimits.max,
   )
-  const nationalPension = floor10(pensionBase * RATES.nationalPension)
+  const nationalPension = floor10(pensionBase * getPensionRate(asOfDate))
 
   // ── 건강보험 ─────────────────────────────────────────────
   const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)

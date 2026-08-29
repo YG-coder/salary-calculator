@@ -18,7 +18,7 @@
 //   월 과세소득 = 월 세전이다.)
 // ────────────────────────────────────────────────────────────
 
-import { RATES, getPensionLimits } from './constants'
+import { RATES, getPensionLimits, getPensionRate } from './constants'
 import { HIGH_INCOME_MONTHLY_THRESHOLD } from './incomeTax'
 import { calculateSalary, type SalaryResult } from './salary'
 
@@ -187,7 +187,8 @@ export function buildSalaryPageData(
   if (result.flags.pensionCapped) {
     const pensionMax = getPensionLimits(asOfDate).max
     const cappedPension = result.breakdown.nationalPension
-    const uncappedPension = floor10(monthlyTaxable * RATES.nationalPension)
+    const pensionRate = getPensionRate(asOfDate)
+    const uncappedPension = floor10(monthlyTaxable * pensionRate)
     const monthlyDifference = uncappedPension - cappedPension
     const isEntry = prevResult !== null && !prevResult.flags.pensionCapped
 
@@ -214,7 +215,7 @@ export function buildSalaryPageData(
           )}을 넘어, 국민연금은 상한 기준 월 ${won(
             cappedPension,
           )}으로 고정됩니다. 연봉이 더 올라도 이 금액은 늘지 않습니다.`,
-      detail: `월 과세소득 전체에 국민연금 요율(${+(RATES.nationalPension * 100).toFixed(3)}%)을 그대로 적용하면 월 ${won(
+      detail: `월 과세소득 전체에 국민연금 요율(${+(pensionRate * 100).toFixed(3)}%)을 그대로 적용하면 월 ${won(
         uncappedPension,
       )}이지만, 기준소득월액 상한이 적용되어 실제 국민연금 본인부담은 월 ${won(
         cappedPension,

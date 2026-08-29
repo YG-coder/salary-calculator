@@ -42,6 +42,45 @@ export const RATES = {
   localTax: 0.1,
 } as const
 
+// ── 국민연금 사업장가입자 부담률 (연도별) ──────────────────────
+// 국민연금법 부칙 <법률 제20903호, 2025.4.2> 제4조에 따라
+// 2026~2032년에는 근로자와 사용자가 아래 비율을 각각 부담합니다.
+// 2033년부터는 국민연금법 제88조 제3항 본칙(각 6.5%)이 적용됩니다.
+export interface PensionRatePeriod {
+  /** 이 부담률이 적용되는 첫 해 */
+  effectiveYear: number
+  /** 사업장가입자 근로자·사용자 각각의 부담률 */
+  employeeRate: number
+  /** 참고용 법정 적용 기간 */
+  label: string
+}
+
+export const PENSION_RATE_PERIODS: readonly PensionRatePeriod[] = [
+  { effectiveYear: 2025, employeeRate: 0.045, label: '~2025' },
+  { effectiveYear: 2026, employeeRate: 0.0475, label: '2026' },
+  { effectiveYear: 2027, employeeRate: 0.05, label: '2027' },
+  { effectiveYear: 2028, employeeRate: 0.0525, label: '2028' },
+  { effectiveYear: 2029, employeeRate: 0.055, label: '2029' },
+  { effectiveYear: 2030, employeeRate: 0.0575, label: '2030' },
+  { effectiveYear: 2031, employeeRate: 0.06, label: '2031' },
+  { effectiveYear: 2032, employeeRate: 0.0625, label: '2032' },
+  { effectiveYear: 2033, employeeRate: 0.065, label: '2033~' },
+] as const
+
+/** 계산 기준일에 적용되는 사업장가입자 근로자·사용자 각각의 국민연금 부담률을 반환합니다. */
+export function getPensionRate(date: Date = new Date()): number {
+  // Vercel 서버는 UTC이므로 Date#getFullYear()를 쓰면 한국시간 1월 1일 00:00~08:59에
+  // 전년도 요율을 반환할 수 있습니다. 법정 시행일은 대한민국 표준시 기준입니다.
+  const year = Number(
+    new Intl.DateTimeFormat('en', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(date),
+  )
+  let matched: PensionRatePeriod = PENSION_RATE_PERIODS[0]
+  for (const period of PENSION_RATE_PERIODS) {
+    if (year >= period.effectiveYear) matched = period
+  }
+  return matched.employeeRate
+}
+
 // ── 국민연금 기준소득월액 상·하한 (기간별) ────────────────────
 // ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경 고시됩니다.
 // "연도"만으로 값을 고정하면 안 되며, 반드시 적용 시작일(effectiveFrom)을

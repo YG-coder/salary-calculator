@@ -1,7 +1,7 @@
 // src/lib/calculators.ts
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
-import { RATES, getPensionLimits, MIN_HOURLY_WAGE_2026 } from './constants'
+import { RATES, getPensionLimits, getPensionRate, MIN_HOURLY_WAGE_2026 } from './constants'
 import {
   ANNUAL_LEAVE_BASE_DAYS,
   ANNUAL_LEAVE_MAX_DAYS,
@@ -52,7 +52,7 @@ export function calculateSocialInsurance(
   // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
   const pensionLimits = getPensionLimits(asOfDate)
   const pensionBase = Math.min(Math.max(monthlyTaxable, pensionLimits.min), pensionLimits.max)
-  const nationalPension = floor10(pensionBase * RATES.nationalPension)
+  const nationalPension = floor10(pensionBase * getPensionRate(asOfDate))
 
   // 건강보험
   const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
@@ -69,7 +69,7 @@ export function calculateSocialInsurance(
   const totalEmployee = nationalPension + healthInsurance + longTermCare + employment
 
   // 사업주 부담분
-  const employerPension    = nationalPension                           // 동일 요율 (4.75%)
+  const employerPension    = nationalPension                           // 법정 동일 요율
   const employerHealth     = healthInsurance                           // 동일 요율 (3.595%)
   const employerLongTerm   = longTermCare                              // 동일 요율
   const employerEmployment = floor10(monthlyTaxable * employerEmploymentRate)
