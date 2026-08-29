@@ -3,8 +3,8 @@
 - 작업일: 2026-08-29
 - 저장소: `/Users/yg.han/Projects/Salary-calculator`
 - 브랜치: `fix/annual-leave-accuracy`
-- 커밋: 6개 (`5b79d5a` → HEAD), base `327bc09`
-- 원격 푸시: **하지 않음** / Vercel 배포 없음
+- 커밋: 6개 (`5b79d5a` → `a57006c`), base `327bc09`
+- 상태: **완료 · `main` 병합 · 배포됨**
 - 최종 확인: 2026-08-29, 사용자가 macOS(Darwin arm64) 로컬에서 직접 재확인 — 테스트 106/106, 워킹트리 깨끗
 
 > 이 문서가 PR 1의 정본입니다. 상태가 바뀌면 새 사본을 만들지 말고 이 파일을 갱신하세요.
@@ -199,19 +199,18 @@ npm run build       → 통과 (43/43 static pages)
 
 ```
 브랜치 : fix/annual-leave-accuracy  (main에서 분기, main 직접 커밋 없음)
-커밋   : (HEAD)   docs: PR1 보고서 커밋 목록·잔여 항목 정정   ← 이 문서를 담은 커밋
+커밋   : a57006c  docs: PR1 보고서 커밋 목록·잔여 항목 정정
          8844183  docs: PR1 보고서를 최종 상태로 갱신
          ca17531  chore: output/ 을 .gitignore에 추가
          64c6408  docs: 프로젝트 문서를 docs/로 정리하고 README·개선 로드맵 추가
          905a8dc  fix(annual-leave): 코드 리뷰 지적 사항 반영
          5b79d5a  fix(annual-leave): 연차수당 입력 검증과 정책 분리
 부모   : 327bc09  refactor(payroll): 연봉 계산 공통 엔진으로 통합
-원격   : 푸시하지 않음 (사용자 요청)
+원격   : origin/main 에 병합·푸시 완료 (배포됨)
 ```
 
-> ℹ️ 최신 커밋을 `(HEAD)`로 적는 이유: 이 문서를 담은 커밋의 해시는 커밋이 만들어지기
-> 전에는 알 수 없어 문서 안에 적을 수 없습니다. 해시를 적으면 문서를 갱신할 때마다
-> 목록이 한 칸씩 뒤처집니다. 실제 해시는 `git log --oneline -6`으로 확인하세요.
+> ℹ️ PR 1은 위 6개 커밋으로 확정되어 `main`에 병합·배포되었습니다. 이후 이 문서를
+> 수정하더라도 PR 1의 커밋 목록은 바뀌지 않습니다.
 
 `5b79d5a` 포함 파일 8개:
 `package.json`, `package-lock.json`, `vitest.config.ts`, `src/lib/calculators.ts`, `src/lib/policy/annualLeave.ts`, `src/lib/__tests__/annualLeave.test.ts`, `src/app/annual-leave-pay-calculator/page.tsx`, `docs/annual-leave-policy.md`
