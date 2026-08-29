@@ -10,7 +10,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { TAX_YEAR, RATES } from '@/lib/constants'
+import { TAX_YEAR, TAX_YEAR_AS_OF, RATES, getPensionRateForYear } from '@/lib/constants'
 import { calculateSalary, formatKRW } from '@/lib/salary'
 
 interface FaqItem {
@@ -18,7 +18,11 @@ interface FaqItem {
   a: React.ReactNode
 }
 
-const salary50m = calculateSalary({ annualSalary: 50_000_000, nonTaxable: 0, dependents: 1 })
+const salary50m = calculateSalary(
+  { annualSalary: 50_000_000, nonTaxable: 0, dependents: 1 },
+  TAX_YEAR_AS_OF,
+)
+const pensionRate = getPensionRateForYear(TAX_YEAR)
 
 export default function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
@@ -30,7 +34,7 @@ export default function FaqSection() {
     },
     {
       q: `${TAX_YEAR}년 국민연금 요율은 얼마인가요?`,
-      a: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(2)}%입니다. 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
+      a: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(pensionRate * 100).toFixed(2)}%입니다. 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
     },
     {
       q: '건강보험료와 장기요양보험료는 어떻게 계산되나요?',

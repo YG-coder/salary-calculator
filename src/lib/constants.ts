@@ -9,12 +9,14 @@ import { SITE } from '@/lib/site'
 export { SITE }
 
 export const TAX_YEAR = 2026
+/** TAX_YEAR 기준 정적 콘텐츠 계산일. 한국시간 연말 정오로 고정해 빌드 시각의 영향을 없앱니다. */
+export const TAX_YEAR_AS_OF = new Date(`${TAX_YEAR}-12-31T12:00:00+09:00`)
 
 // ── 4대보험 근로자 부담 요율 ────────────────────────────────
 export const RATES = {
   /**
-   * 국민연금 근로자 부담율
-   * 2026년 고시: 4.75% (사업주 4.75%, 합계 9.5%)
+   * @deprecated 2026년 정적 콘텐츠 호환용입니다. 계산·표시에는
+   * getPensionRate(date) 또는 getPensionRateForYear(year)를 사용하세요.
    */
   nationalPension: 0.0475,
 
@@ -74,6 +76,11 @@ export function getPensionRate(date: Date = new Date()): number {
   const year = Number(
     new Intl.DateTimeFormat('en', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(date),
   )
+  return getPensionRateForYear(year)
+}
+
+/** 특정 기준연도의 사업장가입자 근로자·사용자 각각의 국민연금 부담률을 반환합니다. */
+export function getPensionRateForYear(year: number): number {
   let matched: PensionRatePeriod = PENSION_RATE_PERIODS[0]
   for (const period of PENSION_RATE_PERIODS) {
     if (year >= period.effectiveYear) matched = period

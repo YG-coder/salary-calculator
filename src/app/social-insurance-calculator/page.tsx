@@ -7,7 +7,7 @@
 import { useState, useCallback } from 'react'
 import { calculateSocialInsurance, type SocialInsuranceResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
-import { TAX_YEAR, RATES, PENSION_LIMITS } from '@/lib/constants'
+import { TAX_YEAR, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
@@ -23,7 +23,6 @@ function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
-const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * RATES.nationalPension / 10) * 10
 
 const EMPLOYER_EMPLOYMENT_OPTIONS = [
   { value: '0.0115', label: '150인 미만', rateLabel: '1.15%' },
@@ -39,6 +38,8 @@ const RELATED = [
 ]
 
 export default function SocialInsuranceCalculatorPage() {
+  const pensionRate = getPensionRate()
+  const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * pensionRate / 10) * 10
   const [monthlyGross, setMonthlyGross] = useState('')
   const [nonTaxable, setNonTaxable] = useState('')
   const [employerEmploymentRate, setEmployerEmploymentRate] = useState('0.0115')
@@ -137,7 +138,7 @@ export default function SocialInsuranceCalculatorPage() {
             <BreakdownCard
               title="근로자 부담 내역"
               items={[
-                { label: `국민연금 (${(RATES.nationalPension * 100).toFixed(2)}%)`, value: formatKRW(result.nationalPension) },
+                { label: `국민연금 (${(pensionRate * 100).toFixed(2)}%)`, value: formatKRW(result.nationalPension) },
                 { label: `건강보험 (${(RATES.healthInsurance * 100).toFixed(3)}%)`, value: formatKRW(result.healthInsurance) },
                 { label: `장기요양 (건보료×${(RATES.longTermCare * 100).toFixed(2)}%)`, value: formatKRW(result.longTermCare) },
                 { label: `고용보험 (${(RATES.employment * 100).toFixed(1)}%)`, value: formatKRW(result.employment) },
@@ -148,7 +149,7 @@ export default function SocialInsuranceCalculatorPage() {
             <BreakdownCard
               title="사업주 부담 내역"
               items={[
-                { label: `국민연금 (${(RATES.nationalPension * 100).toFixed(2)}%)`, value: formatKRW(result.employerPension) },
+                { label: `국민연금 (${(pensionRate * 100).toFixed(2)}%)`, value: formatKRW(result.employerPension) },
                 { label: `건강보험 (${(RATES.healthInsurance * 100).toFixed(3)}%)`, value: formatKRW(result.employerHealth) },
                 { label: `장기요양`, value: formatKRW(result.employerLongTerm) },
                 { label: `고용보험 (${(Number(employerEmploymentRate) * 100).toFixed(2)}%, 사업주)`, value: formatKRW(result.employerEmployment) },
@@ -197,8 +198,8 @@ export default function SocialInsuranceCalculatorPage() {
                     개시 연령이 60~65세로 다름).
                   </p>
                   <p>
-                    근로자 부담률은 월 과세급여의 {(RATES.nationalPension * 100).toFixed(2)}%이며,
-                    사업주가 동일 금액을 추가 부담해 총 9.5%가 적립됩니다. 단,
+                    근로자 부담률은 월 과세급여의 {(pensionRate * 100).toFixed(2)}%이며,
+                    사업주가 동일 금액을 추가 부담해 총 {(pensionRate * 200).toFixed(1)}%가 적립됩니다. 단,
                     기준소득월액에는 상한({pensionMaxMan}만원)과 하한({pensionMinMan}만원)이
                     있어 월 급여가 상한을 초과해도 그 이상은 보험료가 늘어나지 않습니다.
                     {pensionMaxMan}만원 기준 근로자 부담은 최대 {formatKRW(pensionMaxEmployee)}입니다.
@@ -265,7 +266,7 @@ export default function SocialInsuranceCalculatorPage() {
             description:
               '각 보험의 근로자·사업주 부담 요율과 부과 기준입니다. 국민연금만 기준소득월액 상·하한이 적용되며, 나머지는 월 과세급여 전액에 비례합니다.',
             items: [
-              { label: '국민연금', value: `근로자 ${(RATES.nationalPension * 100).toFixed(2)}% + 사업주 ${(RATES.nationalPension * 100).toFixed(2)}% = 합계 9.5%` },
+              { label: '국민연금', value: `근로자 ${(pensionRate * 100).toFixed(2)}% + 사업주 ${(pensionRate * 100).toFixed(2)}% = 합계 ${(pensionRate * 200).toFixed(1)}%` },
               { label: '건강보험', value: `근로자 ${(RATES.healthInsurance * 100).toFixed(3)}% + 사업주 동일 = 합계 7.19%` },
               { label: '장기요양', value: `건강보험료 × ${(RATES.longTermCare * 100).toFixed(2)}% (근로자·사업주 절반씩)` },
               { label: '고용보험(실업급여)', value: `근로자 ${(RATES.employment * 100).toFixed(1)}% + 사업주 0.9%` },

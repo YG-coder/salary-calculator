@@ -8,7 +8,7 @@
 'use client'
 
 import { formatKRW } from '@/lib/salary'
-import { TAX_YEAR, RATES } from '@/lib/constants'
+import { TAX_YEAR, getPensionRate } from '@/lib/constants'
 import type { SalaryResult } from '@/lib/salary'
 
 interface Props {
@@ -25,6 +25,7 @@ interface BreakdownRow {
 }
 
 export default function ResultCard({ result, annualSalary }: Props) {
+  const pensionRate = getPensionRate()
   const { monthlyGross, monthlyNet, annualNet, annualDeduction, breakdown } = result
 
   const effectiveRate =
@@ -38,7 +39,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
       amount: breakdown.nationalPension,
       color: 'text-violet-600',
       barColor: 'bg-violet-400',
-      description: `${(RATES.nationalPension * 100).toFixed(2)}%`,
+      description: `${(pensionRate * 100).toFixed(2)}%`,
     },
     {
       label: '건강보험',

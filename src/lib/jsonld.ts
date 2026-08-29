@@ -6,8 +6,10 @@
  * - 두 페이지(/, /salary-calculator)가 공유 → 중복 제거
  */
 import {
-  SITE_URL, OPERATOR_NAME, OPERATOR_EMAIL, TAX_YEAR, RATES,
+  SITE_URL, OPERATOR_NAME, OPERATOR_EMAIL, TAX_YEAR, RATES, getPensionRateForYear,
 } from './constants'
+
+const pensionRate = getPensionRateForYear(TAX_YEAR)
 
 export function buildWebAppJsonLd() {
   return {
@@ -28,7 +30,7 @@ export function buildWebAppJsonLd() {
     inLanguage: 'ko',
     featureList: [
       '연봉 실수령액 계산',
-      `4대보험 계산 (국민연금 ${(RATES.nationalPension * 100).toFixed(1)}%, 건강보험 ${(RATES.healthInsurance * 100).toFixed(3)}%, 장기요양, 고용보험 ${(RATES.employment * 100).toFixed(1)}%)`,
+      `4대보험 계산 (국민연금 ${(pensionRate * 100).toFixed(2)}%, 건강보험 ${(RATES.healthInsurance * 100).toFixed(3)}%, 장기요양, 고용보험 ${(RATES.employment * 100).toFixed(1)}%)`,
       '소득세 및 지방소득세 계산',
       '부양가족 수에 따른 인적공제 반영',
       '월 비과세 금액 반영',
@@ -54,7 +56,7 @@ export function buildFaqJsonLd() {
         name: `${TAX_YEAR}년 국민연금 요율은 얼마인가요?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(RATES.nationalPension * 100).toFixed(2)}%이며, 계산 시점의 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
+          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(pensionRate * 100).toFixed(2)}%이며, 계산 시점의 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
         },
       },
       {

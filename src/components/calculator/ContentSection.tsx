@@ -11,12 +11,13 @@
  *   수정: 데이터 객체에 monthlyGross 직접 포함
  */
 import Link from 'next/link'
-import { TAX_YEAR, RATES, PENSION_LIMITS } from '@/lib/constants'
+import { TAX_YEAR, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear } from '@/lib/constants'
 import { calculateSalary, formatKRW } from '@/lib/salary'
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
-const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * RATES.nationalPension / 10) * 10
+const pensionRate = getPensionRateForYear(TAX_YEAR)
+const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * pensionRate / 10) * 10
 
 /**
  * 연봉 구간별 참고 실수령액 테이블
@@ -25,7 +26,7 @@ const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * RATES.nationalPension
  */
 const REFERENCE_TABLE = [24, 30, 36, 40, 48, 50, 60, 70, 80, 100, 120].map((million) => {
   const annualSalary = million * 1_000_000
-  const result = calculateSalary({ annualSalary, nonTaxable: 0, dependents: 1 })
+  const result = calculateSalary({ annualSalary, nonTaxable: 0, dependents: 1 }, TAX_YEAR_AS_OF)
   return {
     annual: formatKRW(annualSalary),
     monthlyGross: `${Math.round(result.monthlyGross / 10_000).toLocaleString()}만원`,
@@ -62,7 +63,7 @@ export default function ContentSection() {
             {[
               {
                 name: '국민연금',
-                desc: `월 과세 급여의 ${(RATES.nationalPension * 100).toFixed(2)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 ${formatKRW(pensionMaxEmployee)}이 공제됩니다.`,
+                desc: `월 과세 급여의 ${(pensionRate * 100).toFixed(2)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 ${formatKRW(pensionMaxEmployee)}이 공제됩니다.`,
               },
               {
                 name: '건강보험',

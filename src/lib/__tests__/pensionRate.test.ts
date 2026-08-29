@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { calculateSocialInsurance } from '../calculators'
-import { getPensionRate, PENSION_RATE_PERIODS } from '../constants'
+import { getPensionRate, getPensionRateForYear, PENSION_RATE_PERIODS, TAX_YEAR } from '../constants'
+import { buildFaqJsonLd, buildWebAppJsonLd } from '../jsonld'
 import { calculateSalary } from '../salary'
 
 const at = (year: number) => new Date(`${year}-01-01T00:00:00+09:00`)
@@ -53,5 +56,29 @@ describe('공통 급여 엔진의 국민연금 요율 적용', () => {
     const result = calculateSocialInsurance({ monthlyGross: 3_000_000 }, at(2033))
     expect(result.nationalPension).toBe(195_000)
     expect(result.employerPension).toBe(195_000)
+  })
+})
+
+describe('표시 계층과 계산 요율의 일치', () => {
+  const displayFiles = [
+    'src/app/payroll-tax-calculator/page.tsx',
+    'src/app/social-insurance-calculator/page.tsx',
+    'src/app/about/page.tsx',
+    'src/components/calculator/ResultCard.tsx',
+    'src/components/calculator/ContentSection.tsx',
+    'src/components/calculator/FaqSection.tsx',
+    'src/lib/jsonld.ts',
+  ]
+
+  it.each(displayFiles)('%s — 폐기된 고정 국민연금 상수를 표시하지 않는다', (file) => {
+    const source = readFileSync(resolve(process.cwd(), file), 'utf8')
+    expect(source).not.toContain('RATES.nationalPension')
+    expect(source).not.toMatch(/국민연금\s*\(4\.75%\)/)
+  })
+
+  it('구조화 데이터의 표시 요율이 명시된 기준연도 계산 요율과 같다', () => {
+    const expected = (getPensionRateForYear(TAX_YEAR) * 100).toFixed(2)
+    expect(JSON.stringify(buildWebAppJsonLd())).toContain(`국민연금 ${expected}%`)
+    expect(JSON.stringify(buildFaqJsonLd())).toContain(`부담율은 ${expected}%`)
   })
 })

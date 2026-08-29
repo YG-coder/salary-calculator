@@ -15,6 +15,7 @@ import {
   TAX_YEAR,
   RATES,
   PENSION_LIMITS,
+  getPensionRateForYear,
   MIN_HOURLY_WAGE_2026,
 } from '@/lib/constants'
 
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
+const pensionRate = getPensionRateForYear(TAX_YEAR)
 
 const CALCULATORS = [
   { href: '/salary-calculator', label: '연봉 실수령액 계산기' },
@@ -123,7 +125,7 @@ export default function AboutPage() {
           <div className="flex justify-between gap-3">
             <span className="text-slate-500">국민연금 (근로자)</span>
             <span className="font-semibold text-slate-800">
-              {(RATES.nationalPension * 100).toFixed(2)}% (상한 {pensionMaxMan}만원
+              {(pensionRate * 100).toFixed(2)}% (상한 {pensionMaxMan}만원
               / 하한 {pensionMinMan}만원)
             </span>
           </div>

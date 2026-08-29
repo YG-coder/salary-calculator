@@ -7,7 +7,7 @@
 import { useState, useCallback } from 'react'
 import { calculatePayrollTax, type PayrollTaxResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
-import { TAX_YEAR } from '@/lib/constants'
+import { TAX_YEAR, getPensionRate } from '@/lib/constants'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
@@ -28,6 +28,7 @@ const RELATED = [
 ]
 
 export default function PayrollTaxCalculatorPage() {
+  const pensionRate = getPensionRate()
   const [monthlyGross, setMonthlyGross] = useState('')
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
@@ -151,7 +152,7 @@ export default function PayrollTaxCalculatorPage() {
             <BreakdownCard
               title="월 공제 내역"
               items={[
-                { label: '국민연금 (4.75%)', value: formatKRW(result.nationalPension) },
+                { label: `국민연금 (${(pensionRate * 100).toFixed(2)}%)`, value: formatKRW(result.nationalPension) },
                 { label: '건강보험 (3.595%)', value: formatKRW(result.healthInsurance) },
                 { label: '장기요양 (건보료×13.14%)', value: formatKRW(result.longTermCare) },
                 { label: '고용보험 (0.9%)', value: formatKRW(result.employment) },
