@@ -5,6 +5,7 @@ import { OPERATOR_EMAIL, OPERATOR_NAME, SITE_NAME } from '@/lib/constants'
 const CALC_LINKS = [
   { href: '/salary-calculator', label: '실수령액 계산기' },
   { href: '/payroll-tax-calculator', label: '급여 세금 계산' },
+  { href: '/salary-comparison-calculator', label: '연봉 비교 계산기' },
   { href: '/social-insurance-calculator', label: '4대보험 계산기' },
   { href: '/severance-pay-calculator', label: '퇴직금 계산기' },
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },

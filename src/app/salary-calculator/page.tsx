@@ -21,6 +21,12 @@ export const metadata: Metadata = {
 
 const RELATED = [
   {
+    href: '/salary-comparison-calculator',
+    emoji: '📊',
+    label: '연봉 비교 계산기',
+    description: '두 연봉의 실수령액 차이 비교',
+  },
+  {
     href: '/target-salary-calculator',
     emoji: '🎯',
     label: '목표 실수령액 역산 계산기',

@@ -16,6 +16,7 @@ const NAV_ITEMS = [
 
 const MORE_ITEMS = [
   { href: '/payroll-tax-calculator', label: '급여 세금 간편 계산' },
+  { href: '/salary-comparison-calculator', label: '연봉 비교 계산기' },
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },
   { href: '/weekly-holiday-pay-calculator', label: '주휴수당 계산기' },
   { href: '/unemployment-benefit-calculator', label: '실업급여 계산기' },

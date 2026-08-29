@@ -30,6 +30,14 @@ const CALCULATORS = [
     highlight: false,
   },
   {
+    href: '/salary-comparison-calculator',
+    emoji: '📊',
+    title: '연봉 비교 계산기',
+    description: '두 연봉의 실수령액·공제액 차이를 한눈에 비교',
+    badge: null,
+    highlight: false,
+  },
+  {
     href: '/social-insurance-calculator',
     emoji: '🏥',
     title: '4대보험 계산기',
