@@ -2,6 +2,7 @@
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
 import { RATES, getPensionLimits, getPensionRate, MIN_HOURLY_WAGE_2026 } from './constants'
+import { DEFAULT_EMPLOYER_EMPLOYMENT_RATE } from './policy/socialInsurance'
 import {
   ANNUAL_LEAVE_BASE_DAYS,
   ANNUAL_LEAVE_MAX_DAYS,
@@ -22,6 +23,16 @@ export interface SocialInsuranceInput {
   nonTaxable?: number        // 월 비과세 급여 (기본 0원)
   isBusinessOwner?: boolean  // 사업주 여부 (기본: 근로자)
   employerEmploymentRate?: number // 실업급여 0.9% + 사업규모별 고용안정·직업능력 요율
+  /**
+   * 산재보험료율 (사업주 전액 부담).
+   *
+   * ⚠️ 법정 요율은 사업의 종류별로 고용노동부령으로 정하며(보험료징수법 제14조③),
+   *    특정 업종이 전체 평균의 20배까지 갈 수 있다(같은 조 ⑤). 따라서 정확한 계산에는
+   *    사업장의 실제 요율을 넘겨야 한다.
+   *
+   *    생략하면 0으로 계산한다. 업종을 모르는 상태에서 임의 요율을 적용하지 않는다.
+   */
+  industrialAccidentRate?: number
 }
 
 export interface SocialInsuranceResult {
@@ -37,6 +48,8 @@ export interface SocialInsuranceResult {
   employerHealth: number
   employerLongTerm: number
   employerEmployment: number
+  /** 실제 적용된 산재보험료율 (화면 표시용) */
+  industrialAccidentRate: number
 }
 
 // asOfDate: 계산 기준 시점 (기본값: 호출 시점의 현재 날짜)
@@ -46,7 +59,12 @@ export function calculateSocialInsurance(
   input: SocialInsuranceInput,
   asOfDate: Date = new Date(),
 ): SocialInsuranceResult {
-  const { monthlyGross, nonTaxable = 0, employerEmploymentRate = 0.0115 } = input
+  const {
+    monthlyGross,
+    nonTaxable = 0,
+    employerEmploymentRate = DEFAULT_EMPLOYER_EMPLOYMENT_RATE,
+    industrialAccidentRate = 0,
+  } = input
   const monthlyTaxable = Math.max(0, monthlyGross - nonTaxable)
 
   // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
@@ -63,8 +81,12 @@ export function calculateSocialInsurance(
   // 고용보험 (근로자 0.9%)
   const employment = floor10(monthlyTaxable * RATES.employment)
 
-  // 산재보험 (사업주 전액 부담, 업종별 상이 → 평균값 0.7% 사용)
-  const industrialAccident = floor10(monthlyTaxable * 0.007)
+  // 산재보험 (사업주 전액 부담, 업종별 고용노동부령 — 호출부가 요율을 넘긴다)
+  const safeIndustrialRate =
+    Number.isFinite(industrialAccidentRate) && industrialAccidentRate > 0
+      ? industrialAccidentRate
+      : 0
+  const industrialAccident = floor10(monthlyTaxable * safeIndustrialRate)
 
   const totalEmployee = nationalPension + healthInsurance + longTermCare + employment
 
@@ -88,6 +110,7 @@ export function calculateSocialInsurance(
     employerHealth,
     employerLongTerm,
     employerEmployment,
+    industrialAccidentRate: safeIndustrialRate,
   }
 }
 

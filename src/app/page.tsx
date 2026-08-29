@@ -62,6 +62,14 @@ export const CALCULATORS = [
     highlight: false,
   },
   {
+    href: '/employer-cost-calculator',
+    emoji: '🏢',
+    title: '기업 총 인건비 계산기',
+    description: '연봉 외에 회사가 추가로 부담하는 4대보험',
+    badge: null,
+    highlight: false,
+  },
+  {
     href: '/severance-pay-calculator',
     emoji: '📦',
     title: '퇴직금 계산기',

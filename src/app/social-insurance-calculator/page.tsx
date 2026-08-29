@@ -8,6 +8,12 @@ import { useState, useCallback } from 'react'
 import { calculateSocialInsurance, type SocialInsuranceResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
+import {
+  EMPLOYER_EMPLOYMENT_RATES,
+  DEFAULT_EMPLOYER_EMPLOYMENT_RATE,
+  sanitizeIndustrialAccidentRateInput,
+  parseIndustrialAccidentRatePercent,
+} from '@/lib/policy/socialInsurance'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
@@ -24,12 +30,12 @@ function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
 
-const EMPLOYER_EMPLOYMENT_OPTIONS = [
-  { value: '0.0115', label: '150인 미만', rateLabel: '1.15%' },
-  { value: '0.0135', label: '150인 이상 우선지원대상', rateLabel: '1.35%' },
-  { value: '0.0155', label: '150~999인', rateLabel: '1.55%' },
-  { value: '0.0175', label: '1,000인 이상·국가/지자체', rateLabel: '1.75%' },
-] as const
+// 요율 정의는 src/lib/policy/socialInsurance.ts 단일 출처를 따른다.
+const EMPLOYER_EMPLOYMENT_OPTIONS = EMPLOYER_EMPLOYMENT_RATES.map((o) => ({
+  value: String(o.rate),
+  label: o.label,
+  rateLabel: o.rateLabel,
+}))
 
 const RELATED = [
   { href: '/salary-calculator', emoji: '💰', label: '실수령액 계산기', description: '4대보험 포함 월 실수령액 계산' },
@@ -42,16 +48,25 @@ export default function SocialInsuranceCalculatorPage() {
   const pensionMaxEmployee = Math.floor(PENSION_LIMITS.max * pensionRate / 10) * 10
   const [monthlyGross, setMonthlyGross] = useState('')
   const [nonTaxable, setNonTaxable] = useState('')
-  const [employerEmploymentRate, setEmployerEmploymentRate] = useState('0.0115')
+  const [employerEmploymentRate, setEmployerEmploymentRate] = useState(String(DEFAULT_EMPLOYER_EMPLOYMENT_RATE))
+  const [industrialAccidentRate, setIndustrialAccidentRate] = useState('')
   const [result, setResult] = useState<SocialInsuranceResult | null>(null)
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
     if (!gross || gross < 100_000) return
-    setResult(calculateSocialInsurance({ monthlyGross: gross, nonTaxable: parseNum(nonTaxable), employerEmploymentRate: Number(employerEmploymentRate) }))
-  }, [monthlyGross, nonTaxable, employerEmploymentRate])
+    const industrialRatePercent = parseIndustrialAccidentRatePercent(industrialAccidentRate)
+    if (industrialRatePercent === null) return
+    setResult(calculateSocialInsurance({
+      monthlyGross: gross,
+      nonTaxable: parseNum(nonTaxable),
+      employerEmploymentRate: Number(employerEmploymentRate),
+      industrialAccidentRate: industrialRatePercent / 100,
+    }))
+  }, [monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate])
 
-  const isValid = parseNum(monthlyGross) >= 100_000
+  const industrialRatePercent = parseIndustrialAccidentRatePercent(industrialAccidentRate)
+  const isValid = parseNum(monthlyGross) >= 100_000 && industrialRatePercent !== null
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -107,6 +122,30 @@ export default function SocialInsuranceCalculatorPage() {
             <p className="hint">실업급여 0.9%와 고용안정·직업능력개발 요율을 합산합니다</p>
           </div>
 
+          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+            <label htmlFor="industrialAccidentRate" className="label">
+              산재보험료율 <span className="text-red-400">*</span>
+            </label>
+            <div className="relative">
+              <input id="industrialAccidentRate" type="text" inputMode="decimal"
+                autoComplete="off" placeholder="예: 0.7" value={industrialAccidentRate}
+                onChange={(e) => {
+                  setIndustrialAccidentRate(sanitizeIndustrialAccidentRateInput(e.target.value))
+                  setResult(null)
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
+                className="input-field pr-8" />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">%</span>
+            </div>
+            <p className="mt-2 text-xs text-amber-800">
+              산재보험료율은 업종별로 크게 다르므로 기본값을 제공하지 않습니다. 사업장의
+              실제 요율을 입력하세요. 요율은{' '}
+              <a href="https://total.comwel.or.kr" target="_blank" rel="noopener noreferrer"
+                className="underline font-semibold">근로복지공단 고용·산재보험 토탈서비스</a>
+              에서 확인할 수 있습니다.
+            </p>
+          </div>
+
           <button
             type="button" onClick={handleCalc} disabled={!isValid}
             className="btn-primary w-full py-3.5 text-base"
@@ -153,14 +192,14 @@ export default function SocialInsuranceCalculatorPage() {
                 { label: `건강보험 (${(RATES.healthInsurance * 100).toFixed(3)}%)`, value: formatKRW(result.employerHealth) },
                 { label: `장기요양`, value: formatKRW(result.employerLongTerm) },
                 { label: `고용보험 (${(Number(employerEmploymentRate) * 100).toFixed(2)}%, 사업주)`, value: formatKRW(result.employerEmployment) },
-                { label: '산재보험 (약 0.7%)', value: formatKRW(result.industrialAccident) },
+                { label: `산재보험 (${(result.industrialAccidentRate * 100).toFixed(3)}%)`, value: formatKRW(result.industrialAccident) },
                 { label: '사업주 합계', value: formatKRW(result.totalEmployer), highlight: true, color: 'text-orange-600' },
               ]}
             />
 
             <div className="card p-5 bg-amber-50 border-amber-100">
               <p className="text-xs text-amber-700 leading-relaxed">
-                <strong className="font-semibold">📌 안내:</strong> 산재보험료는 업종별로 상이하며, 여기서는 평균값(0.7%)을 사용합니다.
+                <strong className="font-semibold">📌 안내:</strong> 입력한 사업장의 실제 산재보험료율을 적용했습니다. 근로자 실수령액과 회사 총비용을 함께 보려면 <a href="/employer-cost-calculator" className="underline font-semibold">기업 총 인건비 계산기</a>를 이용하세요.
                 국민연금은 기준소득월액 상한({pensionMaxMan}만원)·하한({pensionMinMan}만원) 내에서 계산됩니다.
                 실제 보험료는 공단 고지서를 기준으로 확인하세요.
               </p>
@@ -183,8 +222,8 @@ export default function SocialInsuranceCalculatorPage() {
               근로자의 노후·질병·실업·산재 위험을 국가가 사회 전체적으로 분담하는 안전망입니다.
               상시 근로자 1명 이상을 사용하는 사업장은 4대보험에 의무 가입해야 하며, 보험료는
               근로자와 사업주가 분담합니다. {TAX_YEAR}년 기준 근로자가 부담하는 4대보험은
-              월 과세급여의 약 9% 수준이며, 사업주는 산재보험까지 포함해 약 10% 내외를
-              부담합니다.
+              월 과세급여의 약 9% 수준입니다. 사업주 부담은 사업장 규모와 사용자가 입력한
+              업종별 산재보험료율에 따라 달라집니다.
             </p>
           }
           sections={[
@@ -244,8 +283,8 @@ export default function SocialInsuranceCalculatorPage() {
                 <p>
                   산재보험은 업무상 재해·질병 시 의료비와 휴업급여, 장해·유족급여를 지급하는
                   보험입니다. <strong>전액 사업주가 부담</strong>하며 근로자 부담은 없습니다.
-                  업종별로 위험도가 달라 0.7%(평균)부터 18%대까지 요율이 천차만별이며, 본
-                  계산기에서는 평균값 0.7%를 사용합니다.
+                  업종별로 위험도가 달라 요율 차이가 크므로, 본 계산기는 임의 평균값 대신
+                  사용자가 입력한 사업장의 실제 요율을 사용합니다.
                 </p>
               ),
             },
@@ -271,7 +310,7 @@ export default function SocialInsuranceCalculatorPage() {
               { label: '장기요양', value: `건강보험료 × ${(RATES.longTermCare * 100).toFixed(2)}% (근로자·사업주 절반씩)` },
               { label: '고용보험(실업급여)', value: `근로자 ${(RATES.employment * 100).toFixed(1)}% + 사업주 0.9%` },
               { label: '고용안정·직업능력', value: '사업주 0.25~0.85% (규모별)' },
-              { label: '산재보험', value: '사업주 전액 부담 (업종별 0.7%~18%)' },
+              { label: '산재보험', value: '사업주 전액 부담 (사업장의 실제 업종별 요율 입력)' },
             ],
           }}
           referenceTable={{

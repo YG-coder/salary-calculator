@@ -19,6 +19,7 @@ export const MORE_ITEMS = [
   { href: '/salary-comparison-calculator', label: '연봉 비교 계산기' },
   { href: '/target-salary-calculator', label: '목표 실수령액 역산 계산기' },
   { href: '/bonus-withholding-calculator', label: '상여금 원천징수 계산기' },
+  { href: '/employer-cost-calculator', label: '기업 총 인건비 계산기' },
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },
   { href: '/weekly-holiday-pay-calculator', label: '주휴수당 계산기' },
   { href: '/unemployment-benefit-calculator', label: '실업급여 계산기' },

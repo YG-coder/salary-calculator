@@ -8,6 +8,7 @@ export const CALC_LINKS = [
   { href: '/salary-comparison-calculator', label: '연봉 비교 계산기' },
   { href: '/target-salary-calculator', label: '목표 실수령액 역산 계산기' },
   { href: '/bonus-withholding-calculator', label: '상여금 원천징수 계산기' },
+  { href: '/employer-cost-calculator', label: '기업 총 인건비 계산기' },
   { href: '/social-insurance-calculator', label: '4대보험 계산기' },
   { href: '/severance-pay-calculator', label: '퇴직금 계산기' },
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },
