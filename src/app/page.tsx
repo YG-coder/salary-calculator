@@ -38,6 +38,14 @@ export const CALCULATORS = [
     highlight: false,
   },
   {
+    href: '/bonus-withholding-calculator',
+    emoji: '🎁',
+    title: '상여금 원천징수 계산기',
+    description: '성과급·명절상여에서 떼는 세금과 실수령액',
+    badge: null,
+    highlight: false,
+  },
+  {
     href: '/target-salary-calculator',
     emoji: '🎯',
     title: '목표 실수령액 역산 계산기',
