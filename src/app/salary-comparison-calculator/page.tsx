@@ -9,6 +9,7 @@
 import type { Metadata } from 'next'
 import AdSlot from '@/components/ui/AdSlot'
 import ComparisonForm from '@/components/calculator/ComparisonForm'
+import ToolPicker from '@/components/calculator/ToolPicker'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
@@ -58,6 +59,10 @@ export default function Page() {
 
       <div className="mt-6">
         <ComparisonForm />
+      </div>
+
+      <div className="mt-10">
+        <ToolPicker current="comparison" />
       </div>
 
       <div className="mt-10">
@@ -123,6 +128,12 @@ export default function Page() {
                   때문입니다. 이직처럼 비과세 구성이나 부양 조건까지 달라지는 경우라면,
                   각각을 <a href="/salary-calculator" className="text-brand-600 underline">
                   연봉 실수령액 계산기</a>로 따로 계산해 비교하세요.
+                  반대로 <strong>받고 싶은 실수령액이 먼저 정해져 있다면</strong>{' '}
+                  <a href="/target-salary-calculator" className="text-brand-600 underline">
+                  목표 실수령액 역산 계산기</a>가 맞습니다. 이 계산기는 &ldquo;연봉이
+                  바뀌면 실수령액이 얼마나 달라지는가&rdquo;에 답하고, 역산 계산기는
+                  &ldquo;원하는 실수령액을 받으려면 연봉이 얼마여야 하는가&rdquo;에
+                  답합니다.
                 </p>
               ),
             },

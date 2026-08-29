@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: `실수령액, 4대보험, 퇴직금, 연차수당, 주휴수당, 실업급여까지 직장인 필수 급여 계산기 모음. ${TAX_YEAR}년 최신 기준 반영.`,
 }
 
-const CALCULATORS = [
+export const CALCULATORS = [
   {
     href: '/salary-calculator',
     emoji: '💰',
@@ -34,6 +34,14 @@ const CALCULATORS = [
     emoji: '📊',
     title: '연봉 비교 계산기',
     description: '두 연봉의 실수령액·공제액 차이를 한눈에 비교',
+    badge: null,
+    highlight: false,
+  },
+  {
+    href: '/target-salary-calculator',
+    emoji: '🎯',
+    title: '목표 실수령액 역산 계산기',
+    description: '원하는 실수령액을 받으려면 연봉이 얼마여야 하는지 역산',
     badge: null,
     highlight: false,
   },

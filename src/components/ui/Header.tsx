@@ -7,16 +7,17 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { SITE_NAME } from '@/lib/constants'
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { href: '/', label: '홈' },
   { href: '/salary-calculator', label: '실수령액' },
   { href: '/social-insurance-calculator', label: '4대보험' },
   { href: '/severance-pay-calculator', label: '퇴직금' },
 ]
 
-const MORE_ITEMS = [
+export const MORE_ITEMS = [
   { href: '/payroll-tax-calculator', label: '급여 세금 간편 계산' },
   { href: '/salary-comparison-calculator', label: '연봉 비교 계산기' },
+  { href: '/target-salary-calculator', label: '목표 실수령액 역산 계산기' },
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },
   { href: '/weekly-holiday-pay-calculator', label: '주휴수당 계산기' },
   { href: '/unemployment-benefit-calculator', label: '실업급여 계산기' },

@@ -9,6 +9,7 @@ import Link from 'next/link'
 import Script from 'next/script'
 import AdSlot from '@/components/ui/AdSlot'
 import ReverseCalculatorForm from '@/components/calculator/ReverseCalculatorForm'
+import ToolPicker from '@/components/calculator/ToolPicker'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
 
@@ -41,6 +42,12 @@ const RELATED = [
     emoji: '💰',
     label: '연봉 실수령액 계산기',
     description: '연봉 → 실수령액 (순방향)',
+  },
+  {
+    href: '/salary-comparison-calculator',
+    emoji: '📊',
+    label: '연봉 비교 계산기',
+    description: '두 연봉의 실수령액 차이 비교',
   },
   {
     href: '/social-insurance-calculator',
@@ -93,6 +100,10 @@ export default function Page() {
 
         <div className="mt-6">
           <ReverseCalculatorForm />
+        </div>
+
+        <div className="mt-10">
+          <ToolPicker current="reverse" />
         </div>
 
         <div className="mt-10">
