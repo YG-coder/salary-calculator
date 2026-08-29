@@ -3,10 +3,11 @@
 - 작업일: 2026-08-29
 - 저장소: `/Users/yg.han/Projects/Salary-calculator`
 - 브랜치: `fix/annual-leave-accuracy`
-- 커밋: `5b79d5a` (구현) + `905a8dc` (코드 리뷰 반영), base `327bc09`
-- 원격 푸시: **하지 않음**
+- 커밋: 4개 (`5b79d5a` → `ca17531`), base `327bc09`
+- 원격 푸시: **하지 않음** / Vercel 배포 없음
+- 최종 확인: 2026-08-29, 사용자가 macOS(Darwin arm64) 로컬에서 직접 재확인 — 테스트 106/106, 워킹트리 깨끗
 
-> 이 문서는 코드 리뷰 반영(`905a8dc`) 이후 기준으로 갱신되었습니다.
+> 이 문서가 PR 1의 정본입니다. 상태가 바뀌면 새 사본을 만들지 말고 이 파일을 갱신하세요.
 
 ---
 
@@ -198,10 +199,12 @@ npm run build       → 통과 (43/43 static pages)
 
 ```
 브랜치 : fix/annual-leave-accuracy  (main에서 분기, main 직접 커밋 없음)
-커밋   : 905a8dc  fix(annual-leave): 코드 리뷰 지적 사항 반영
+커밋   : ca17531  chore: output/ 을 .gitignore에 추가
+         64c6408  docs: 프로젝트 문서를 docs/로 정리하고 README·개선 로드맵 추가
+         905a8dc  fix(annual-leave): 코드 리뷰 지적 사항 반영
          5b79d5a  fix(annual-leave): 연차수당 입력 검증과 정책 분리
 부모   : 327bc09  refactor(payroll): 연봉 계산 공통 엔진으로 통합
-원격   : 푸시하지 않음
+원격   : 푸시하지 않음 (사용자 요청)
 ```
 
 `5b79d5a` 포함 파일 8개:
@@ -209,6 +212,11 @@ npm run build       → 통과 (43/43 static pages)
 
 `905a8dc` 포함 파일 5개:
 `src/lib/annualLeaveInput.ts`(신규), `src/lib/calculators.ts`, `src/lib/__tests__/annualLeave.test.ts`, `src/app/annual-leave-pay-calculator/page.tsx`, `docs/annual-leave-policy.md`
+
+`64c6408` — 코드 변경 없음. 루트 CHANGELOG 2개를 `docs/`로 이동(rename 인식, 내용 변경 0),
+`README.md`·`docs/연봉계산기-개선계획.md`·`docs/PR1-연차수당-정확성-마무리-보고서.md` 추가.
+
+`ca17531` — `.gitignore`에 `output/` 추가 (로컬 PDF 산출물 제외).
 
 ## 11. 개발 환경 주의사항
 
@@ -220,3 +228,14 @@ npm run build       → 통과 (43/43 static pages)
 - 이번에는 `@rollup/rollup-darwin-arm64@4.63.1`과 `@esbuild/darwin-arm64@0.28.2`를
   `node_modules`에 직접 복원했습니다.
 - 재발 시 macOS에서 `rm -rf node_modules && npm install`을 실행하는 것이 근본 해결입니다.
+- **패키지 설치는 macOS에서 할 것.** 리눅스 VM 쉘에서 `npm install`을 돌리지 않습니다.
+
+## 12. 다음 세션이 이어받을 때
+
+1. **2027-06-10 재검토 필수** — 근로기준법 제60조 시간단위 분할 사용(법률 제21784호) 시행일.
+   대통령령 미제정이라 소수 연차 최소 단위는 `unsupported`.
+   `ANNUAL_LEAVE_POLICY_META.reviewAt`이 지나면 테스트가 실패하도록 걸어 두었습니다.
+2. **소수 정밀도 테스트에 0.1·0.05 단위를 반드시 포함할 것.** 0.5·0.25는 이진 분수라
+   절대 실패하지 않습니다. 실제로 1차 커밋에서 이 함정 때문에 1원 손실 버그를 놓쳤습니다.
+3. **이 문서가 정본입니다.** 상태가 바뀌면 사본을 만들지 말고 이 파일을 갱신하세요.
+4. PR 2~5(연봉 비교 계산기, 협상 도구 정리, 상여금 사전 조사, 기업 총 인건비)는 미착수.
