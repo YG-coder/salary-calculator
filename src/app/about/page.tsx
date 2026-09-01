@@ -33,6 +33,10 @@ const pensionRate = getPensionRateForYear(TAX_YEAR)
 const CALCULATORS = [
   { href: '/salary-calculator', label: '연봉 실수령액 계산기' },
   { href: '/payroll-tax-calculator', label: '급여 세금 간편 계산기' },
+  { href: '/salary-comparison-calculator', label: '연봉 비교 계산기' },
+  { href: '/target-salary-calculator', label: '목표 실수령액 역산 계산기' },
+  { href: '/bonus-withholding-calculator', label: '상여금 원천징수 계산기' },
+  { href: '/employer-cost-calculator', label: '기업 총 인건비 계산기' },
   { href: '/social-insurance-calculator', label: '4대보험 계산기' },
   { href: '/severance-pay-calculator', label: '퇴직금 계산기' },
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },
@@ -83,12 +87,13 @@ export default function AboutPage() {
         <p className="text-sm">
           {SITE_NAME}은 한국 직장인이 자신의 연봉·월급에서 얼마가 공제되고 실제로 통장에
           얼마가 들어오는지를 빠르게 확인할 수 있도록 만든 무료 온라인 계산기 서비스입니다.
-          별도의 회원가입, 개인정보 입력, 광고 시청 없이 바로 사용할 수 있으며, 입력한
+          별도의 회원가입이나 개인정보 입력 없이 바로 사용할 수 있으며, 입력한
           금액은 서버로 전송되지 않고 사용자의 브라우저에서만 계산됩니다.
         </p>
         <p className="text-sm">
           연봉 실수령액 계산을 중심으로, 직장인이 자주 필요로 하는 4대보험·퇴직금·연차
-          수당·주휴수당·실업급여까지 7가지 계산기를 제공합니다. 각 계산기는 {TAX_YEAR}년
+          수당·주휴수당·실업급여, 연봉 비교·목표 실수령액 역산, 상여금 원천징수와 기업
+          총 인건비까지 11가지 계산기를 제공합니다. 각 계산기는 {TAX_YEAR}년
           최신 법령과 고시 요율을 반영해 갱신되며, 결과 화면에 계산 근거가 되는 공식과
           요율을 함께 표시합니다.
         </p>
@@ -268,10 +273,11 @@ export default function AboutPage() {
       <section className="card p-6 sm:p-8 mb-6 space-y-3 leading-relaxed">
         <h2 className="text-lg font-bold text-slate-800">개인정보 처리</h2>
         <p className="text-sm">
-          본 서비스는 사용자의 개인정보를 수집하지 않습니다. 입력한 연봉·월급 등의
-          금액은 사용자의 브라우저에서만 계산되며 외부 서버로 전송되지 않습니다.
-          접속 통계 수집을 위해 일부 익명 분석 도구(Google Analytics 등)가 적용될 수
-          있으며, 자세한 내용은{' '}
+          계산기에 입력한 연봉·월급·가족 수 등의 값은 사용자의 브라우저에서만 계산되며
+          운영자 서버로 전송하거나 저장하지 않습니다. 다만 사이트 운영에 필요한 접속
+          로그와 Google 광고 제공 과정에서는 쿠키, IP 주소와 같은 정보가 처리될 수
+          있습니다. 이메일 문의를 보내는 경우에는 회신을 위해 이메일 주소와 문의 내용이
+          처리됩니다. 자세한 내용은{' '}
           <Link href="/privacy" className="text-brand-600 hover:underline">
             개인정보 처리방침
           </Link>
