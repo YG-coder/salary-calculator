@@ -47,7 +47,11 @@ describe('내비게이션에 존재하지 않는 경로가 없다', () => {
 
 describe('중복 링크가 없다', () => {
   it.each([
-    ['헤더', headerHrefs],
+    // 데스크톱 직접 링크는 모바일에서 숨겨지므로, 모바일 드롭다운에도 같은
+    // 계산기가 있어야 한다. 두 영역을 합친 배열의 중복은 의도적이며,
+    // 각 영역 안에서의 중복만 금지한다.
+    ['헤더 직접 링크', NAV_ITEMS.map((item) => item.href)],
+    ['헤더 계산기 메뉴', MORE_ITEMS.map((item) => item.href)],
     ['푸터', footerHrefs],
     ['홈 카드', homeHrefs],
   ])('%s에 같은 경로가 두 번 들어가지 않는다', (_label, hrefs) => {
