@@ -11,6 +11,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import SalaryAmountLinks from '@/components/calculator/SalaryAmountLinks'
 import { formatKRW } from '@/lib/salary'
 import {
   buildSalaryPageData,
@@ -313,7 +314,11 @@ export default async function SalaryDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* 현재 구간에서 바로 이어지는 이전·다음 연봉만 제공한다. */}
+      <div className="mb-8 border-t border-slate-200 pt-6">
+        <SalaryAmountLinks currentAmountMan={parsed} />
+      </div>
+
+      {/* 현재 구간에서 바로 이어지는 이전·다음 연봉을 추가로 제공한다. */}
       <section className="mb-8 border-t border-slate-200 pt-6">
         <h2 className="text-sm font-semibold text-slate-500">이전·다음 연봉</h2>
         <div className="mt-3 flex justify-between gap-4 text-sm">

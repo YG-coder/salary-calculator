@@ -29,6 +29,7 @@ import {
   RATES, TAX_YEAR, TAX_YEAR_AS_OF, MIN_HOURLY_WAGE_2026, getPensionRateForYear,
 } from '@/lib/constants'
 import { CALCULATOR_ROUTES, ROUTES } from '@/lib/routes'
+import { REPRESENTATIVE_SALARY_AMOUNTS_MAN } from '@/components/calculator/SalaryAmountLinks'
 
 describe('① 연봉별 빠른 표가 계산 엔진과 일치한다', () => {
   it.each(HOME_SALARY_SAMPLES_MAN.map((m) => [m]))(
@@ -94,12 +95,22 @@ describe('② ⚠️ /salary/[amount] 로 링크하지 않는다 (sitemap 제외
     expect(dataSource).not.toMatch(/["'`]\/salary\/\d/)
   })
 
-  it('실수령액 계산기에서 연봉별 상세 페이지를 대량 링크하지 않는다', () => {
-    expect(calculatorSource).not.toMatch(/href=\{`\/salary\/\$\{/)
-    expect(calculatorSource).not.toContain('연봉별 실수령액 자세히 보기')
+  it('두 화면이 같은 대표 연봉 링크 컴포넌트를 사용한다', () => {
+    expect(calculatorSource).toContain('<SalaryAmountLinks />')
+    expect(detailSource).toContain('<SalaryAmountLinks currentAmountMan={parsed} />')
   })
 
-  it('연봉 상세 페이지에는 이전·다음 링크만 남긴다', () => {
+  it('대표 연봉은 과도하지 않은 8개이며 중복 없이 오름차순이다', () => {
+    expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN).toHaveLength(8)
+    expect(new Set(REPRESENTATIVE_SALARY_AMOUNTS_MAN).size).toBe(8)
+    for (let i = 1; i < REPRESENTATIVE_SALARY_AMOUNTS_MAN.length; i++) {
+      expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN[i]).toBeGreaterThan(
+        REPRESENTATIVE_SALARY_AMOUNTS_MAN[i - 1],
+      )
+    }
+  })
+
+  it('연봉 상세 페이지의 별도 이동은 이전·다음 두 개뿐이다', () => {
     expect(detailSource).not.toContain('relatedAmounts')
     expect(detailSource).not.toContain('다른 연봉 실수령액 보기')
     expect(detailSource.match(/href=\{`\/salary\/\$\{/g)).toHaveLength(2)

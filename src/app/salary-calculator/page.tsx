@@ -11,6 +11,7 @@ import CalculatorForm from '@/components/calculator/CalculatorForm'
 import ContentSection from '@/components/calculator/ContentSection'
 import FaqSection from '@/components/calculator/FaqSection'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
+import SalaryAmountLinks from '@/components/calculator/SalaryAmountLinks'
 import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
 import { buildWebAppJsonLd, buildFaqJsonLd } from '@/lib/jsonld'
 
@@ -130,6 +131,10 @@ export default function Page() {
 
         <div className="mt-10">
           <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
+        </div>
+
+        <div className="mt-12">
+          <SalaryAmountLinks />
         </div>
 
       </main>
