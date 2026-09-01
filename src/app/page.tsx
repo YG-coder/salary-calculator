@@ -9,7 +9,8 @@ import { SITE_NAME, TAX_YEAR } from '@/lib/constants'
 import {
   buildSalaryQuickRows,
   buildKeyFigures,
-  HOME_SALARY_ASSUMPTION,
+  HOME_SALARY_ASSUMPTION_TEXT,
+  buildQuickRowHref,
   SITUATION_GROUPS,
   HOME_GUIDES,
 } from '@/lib/homeData'
@@ -21,6 +22,13 @@ const FEATURED_HREFS: string[] = [
   ROUTES.SEVERANCE_PAY_CALCULATOR,
   ROUTES.ANNUAL_LEAVE_PAY_CALCULATOR,
 ]
+
+/** 연봉 표기 — 표 셀과 aria-label이 같은 문자열을 쓰도록 한 곳에서 만든다 */
+function quickRowLabel(annualMan: number): string {
+  return annualMan >= 10_000
+    ? `${(annualMan / 10_000).toLocaleString('ko-KR')}억원`
+    : `${annualMan.toLocaleString('ko-KR')}만원`
+}
 
 /** 정책 최근 검토일 — 조사 문서 갱신일과 맞춘다 */
 const POLICY_REVIEWED_AT = '2026년 8월 29일'
@@ -205,41 +213,53 @@ export default function Home() {
       {/* ── 4. 연봉별 실수령액 빠른 표 ───────────────────── */}
       {/* ⚠️ /salary/[amount] 페이지로 링크하지 않는다. sitemap 제외 취지를 우회하게 된다. */}
       <section className="mt-12">
-        <h2 className="text-xl font-black text-slate-900">연봉별 실수령액</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          월 비과세 {HOME_SALARY_ASSUMPTION.nonTaxable.toLocaleString('ko-KR')}원 ·
-          공제대상가족 {HOME_SALARY_ASSUMPTION.dependents}명 기준입니다.
-          조건에 따라 달라지므로 정확한 값은 계산기에서 확인하세요.
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-black text-slate-900">연봉별 예상 월 실수령액</h2>
+          <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-700">
+            {TAX_YEAR}년 기준
+          </span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+            예상값
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+          {HOME_SALARY_ASSUMPTION_TEXT}
         </p>
         <div className="mt-4 card p-0 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-slate-50 text-left text-slate-500">
-                <th className="py-3 px-4 font-medium">연봉</th>
-                <th className="py-3 px-4 font-medium text-right">월 세전</th>
-                <th className="py-3 px-4 font-medium text-right">월 공제</th>
-                <th className="py-3 px-4 font-medium text-right">월 실수령액</th>
-                <th className="py-3 px-4 font-medium text-right">실수령률</th>
+                <th className="py-3 px-3 sm:px-4 font-medium whitespace-nowrap">연봉</th>
+                <th className="py-3 px-3 sm:px-4 font-medium text-right whitespace-nowrap">월 세전 (원)</th>
+                {/* ⚠️ 모바일에서는 연봉·월세전·실수령액 3열만 보인다.
+                    가장 중요한 실수령액이 화면 밖으로 밀리면 안 된다. */}
+                <th className="hidden sm:table-cell py-3 px-4 font-medium text-right whitespace-nowrap">월 공제 (원)</th>
+                <th className="py-3 px-3 sm:px-4 font-medium text-right whitespace-nowrap">월 실수령액 (원)</th>
+                <th className="hidden sm:table-cell py-3 px-4 font-medium text-right whitespace-nowrap">실수령률</th>
               </tr>
             </thead>
             <tbody>
               {quickRows.map((r) => (
-                <tr key={r.annualMan} className="border-b last:border-0">
-                  <td className="py-3 px-4 font-semibold text-slate-800">
-                    {r.annualMan >= 10_000
-                      ? `${(r.annualMan / 10_000).toLocaleString('ko-KR')}억원`
-                      : `${r.annualMan.toLocaleString('ko-KR')}만원`}
+                <tr key={r.annualMan} className="border-b last:border-0 hover:bg-brand-50/40 transition-colors">
+                  <td className="py-0 px-0 font-semibold text-slate-800">
+                    {/* ⚠️ /salary/[amount] 가 아니라 계산기로 보낸다. 표의 전제를 함께 넘겨
+                        홈에서 본 숫자와 계산기 결과가 일치하게 한다. */}
+                    <Link href={buildQuickRowHref(r.annualSalary)}
+                      aria-label={`연봉 ${quickRowLabel(r.annualMan)}으로 실수령액 계산하기`}
+                      className="block py-3 px-3 sm:px-4 whitespace-nowrap hover:text-brand-700">
+                      {quickRowLabel(r.annualMan)}
+                    </Link>
                   </td>
-                  <td className="py-3 px-4 text-right tabular-nums text-slate-600">
+                  <td className="py-3 px-3 sm:px-4 text-right tabular-nums text-slate-600 whitespace-nowrap">
                     {r.monthlyGross.toLocaleString('ko-KR')}
                   </td>
-                  <td className="py-3 px-4 text-right tabular-nums text-slate-500">
+                  <td className="hidden sm:table-cell py-3 px-4 text-right tabular-nums text-slate-500 whitespace-nowrap">
                     −{r.monthlyDeduction.toLocaleString('ko-KR')}
                   </td>
-                  <td className="py-3 px-4 text-right tabular-nums font-bold text-brand-700">
+                  <td className="py-3 px-3 sm:px-4 text-right tabular-nums font-bold text-brand-700 whitespace-nowrap">
                     {r.monthlyNet.toLocaleString('ko-KR')}
                   </td>
-                  <td className="py-3 px-4 text-right tabular-nums text-slate-500">
+                  <td className="hidden sm:table-cell py-3 px-4 text-right tabular-nums text-slate-500 whitespace-nowrap">
                     {(r.netRate * 100).toFixed(1)}%
                   </td>
                 </tr>
@@ -247,7 +267,10 @@ export default function Home() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-[11px] text-slate-400">단위: 원</p>
+        <p className="mt-2 text-[11px] text-slate-400">
+          연봉을 누르면 위 조건이 채워진 상태로 계산기가 열립니다.
+          <span className="sm:hidden"> 월 공제액과 실수령률은 넓은 화면에서 함께 표시됩니다.</span>
+        </p>
         <Link href="/salary-calculator"
           className="mt-3 inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors">
           내 연봉으로 계산하기 →
@@ -351,19 +374,6 @@ export default function Home() {
         </p>
       </section>
 
-      {/* 세금계산기 외부 CTA */}
-      <section className="mt-12 rounded-2xl border bg-blue-50 p-6">
-        <h2 className="text-base font-bold mb-1 text-slate-900">
-          세금 상세 계산이 필요하신가요?
-        </h2>
-        <p className="text-slate-600 text-sm mb-4">
-          부가세, 종합소득세, 양도세 등 더 자세한 세금 계산은 세금계산기에서 확인하세요.
-        </p>
-        <Link href="https://taxsim.kr" target="_blank" rel="noopener noreferrer"
-          className="inline-flex rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-          세금 계산기 바로가기 →
-        </Link>
-      </section>
     </main>
   )
 }

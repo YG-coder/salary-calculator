@@ -7,8 +7,10 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { calculateSalary, formatKRW, type SalaryInput, type SalaryResult } from '@/lib/salary'
 import ResultCard from './ResultCard'
+import { resolvePrefill, PREFILL_FALLBACK } from '@/lib/homeData'
 
 function formatNumberInput(value: string): string {
   const num = value.replace(/[^0-9]/g, '')
@@ -20,11 +22,25 @@ function parseNumberInput(value: string): number {
   return Number(value.replace(/[^0-9]/g, '')) || 0
 }
 
+/**
+ * 홈의 연봉별 실수령액 표에서 넘어온 조건을 읽는다.
+ *
+ * ⚠️ 연봉만 채우면 비과세·부양가족이 폼 기본값으로 남아 홈에서 본 숫자와 달라진다.
+ *    표의 전제 전체를 함께 받아야 결과가 일치한다.
+ * ⚠️ effect가 아니라 초기 상태로 읽는다. effect에서 setState하면 렌더가 한 번 더 돈다.
+ *    값 검증은 resolvePrefill()이 담당한다 (테스트 대상).
+ */
+function usePrefill() {
+  const searchParams = useSearchParams()
+  return resolvePrefill((key) => searchParams.get(key))
+}
+
 export default function CalculatorForm() {
-  const [annualSalary, setAnnualSalary] = useState('')
-  const [nonTaxable, setNonTaxable] = useState('')
-  const [dependents, setDependents] = useState('1')
-  const [children, setChildren] = useState('0')
+  const prefill = usePrefill()
+  const [annualSalary, setAnnualSalary] = useState(prefill?.annualSalary ?? PREFILL_FALLBACK.annualSalary)
+  const [nonTaxable, setNonTaxable] = useState(prefill?.nonTaxable ?? PREFILL_FALLBACK.nonTaxable)
+  const [dependents, setDependents] = useState(prefill?.dependents ?? PREFILL_FALLBACK.dependents)
+  const [children, setChildren] = useState(prefill?.children ?? PREFILL_FALLBACK.children)
   const [result, setResult] = useState<SalaryResult | null>(null)
   const [hasCalculated, setHasCalculated] = useState(false)
 

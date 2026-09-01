@@ -25,12 +25,119 @@ import { ROUTES } from './routes'
  */
 export const HOME_SALARY_SAMPLES_MAN = [3_000, 4_000, 5_000, 6_000, 10_000] as const
 
-/** 빠른 표의 가정 — 화면에 함께 표시해 오해를 막는다 */
+/**
+ * 빠른 표의 계산 전제.
+ *
+ * ⚠️ 이 값은 화면에 **전부** 표시해야 한다. 실수령액은 부양가족·자녀·비과세에 따라
+ *    달라지므로 전제를 밝히지 않은 금액표는 오해를 만든다.
+ *    또한 행을 눌러 계산기로 갈 때 이 전제를 그대로 넘겨야 홈에서 본 숫자와
+ *    계산기 결과가 일치한다(계산기 폼의 비과세 기본값은 0이다).
+ */
 export const HOME_SALARY_ASSUMPTION = {
   nonTaxable: 200_000,
   dependents: 1,
   childCount8to20: 0,
 } as const
+
+/** 표 아래에 함께 표시할 전제 문장 (단일 출처) */
+export const HOME_SALARY_ASSUMPTION_TEXT =
+  `본인 1명, 부양가족 없음, 자녀 없음, 비과세 월 ${(HOME_SALARY_ASSUMPTION.nonTaxable / 10_000).toLocaleString('ko-KR')}만원, ` +
+  '퇴직금 별도, 연봉 12개월 균등 지급 기준입니다. ' +
+  '실제 급여는 회사의 지급 조건과 공제 방식에 따라 달라질 수 있습니다.'
+
+/** 계산기로 조건을 넘길 때 쓰는 쿼리 파라미터 이름 (홈과 폼이 공유) */
+export const PREFILL_PARAMS = {
+  salary: 'salary',
+  nonTaxable: 'nonTaxable',
+  dependents: 'dependents',
+  children: 'children',
+} as const
+
+// ── 프리필 방어 ────────────────────────────────────────────
+/** 계산기 폼의 기본값 — 쿼리가 없거나 잘못됐을 때 돌아갈 자리 */
+export const PREFILL_FALLBACK = {
+  annualSalary: '',
+  nonTaxable: '',
+  dependents: '1',
+  children: '0',
+} as const
+
+/** 프리필로 받아들일 연봉 범위 (계산기 폼의 최소 입력과 맞춘다) */
+export const PREFILL_MIN_SALARY = 1_000_000
+export const PREFILL_MAX_SALARY = 10_000_000_000
+export const PREFILL_MAX_DEPENDENTS = 10
+
+export interface PrefillValues {
+  annualSalary: string
+  nonTaxable: string
+  dependents: string
+  children: string
+}
+
+/**
+ * 쿼리값을 0 이상 정수로 읽는다. 형식이 조금이라도 어긋나면 null.
+ *
+ * ⚠️ 숫자가 아닌 문자를 "제거"하면 안 된다. `-3`에서 부호만 지우면 3이 되어
+ *    음수 입력이 조용히 양수로 바뀐다(값의 부호가 뒤집힌다). 형식이 맞지 않으면
+ *    보정하지 말고 거부해서 기본값으로 떨어뜨린다.
+ */
+function toInt(raw: string | null): number | null {
+  if (raw === null) return null
+  const trimmed = raw.trim()
+  // ASCII 숫자만 허용한다. 부호·소수점·지수 표기·전각 숫자는 모두 거부.
+  if (!/^\d+$/.test(trimmed)) return null
+  const n = Number(trimmed)
+  return Number.isSafeInteger(n) ? n : null
+}
+
+/**
+ * 쿼리스트링을 계산기 폼 초기값으로 변환한다.
+ *
+ * ⚠️ 잘못된 값을 최소·최대로 억지 보정하지 않는다. 범위를 벗어나면 **기본값으로
+ *    되돌린다.** `dependents=99`를 10으로 바꾸면 사용자가 요청하지 않은 조건으로
+ *    계산되기 때문이다. 어떤 입력에도 NaN이나 빈 화면이 생기지 않아야 한다.
+ *
+ * @returns 연봉이 유효하지 않으면 null (프리필 자체를 하지 않는다)
+ */
+export function resolvePrefill(get: (key: string) => string | null): PrefillValues | null {
+  const salary = toInt(get(PREFILL_PARAMS.salary))
+  // 연봉이 없거나 범위를 벗어나면 프리필하지 않는다 (계산기 기본 화면 그대로)
+  if (salary === null || salary < PREFILL_MIN_SALARY || salary > PREFILL_MAX_SALARY) return null
+
+  // 부양가족: 1~10 범위를 벗어나면 기본값 1
+  const depRaw = toInt(get(PREFILL_PARAMS.dependents))
+  const dependents =
+    depRaw !== null && depRaw >= 1 && depRaw <= PREFILL_MAX_DEPENDENTS
+      ? depRaw
+      : Number(PREFILL_FALLBACK.dependents)
+
+  // 비과세: 연봉의 월 환산액을 넘으면 논리적으로 불가능하므로 기본값
+  const monthlyGross = Math.floor(salary / 12)
+  const ntRaw = toInt(get(PREFILL_PARAMS.nonTaxable))
+  const nonTaxable = ntRaw !== null && ntRaw <= monthlyGross ? ntRaw : null
+
+  // 자녀: 부양가족 수를 넘거나 음수면 기본값 0 (본인 제외이므로 상한은 dependents-1)
+  const chRaw = toInt(get(PREFILL_PARAMS.children))
+  const children = chRaw !== null && chRaw <= Math.max(0, dependents - 1) ? chRaw : 0
+
+  return {
+    annualSalary: salary.toLocaleString('ko-KR'),
+    nonTaxable: nonTaxable === null ? PREFILL_FALLBACK.nonTaxable : nonTaxable.toLocaleString('ko-KR'),
+    dependents: String(dependents),
+    children: String(children),
+  }
+}
+
+/** 빠른 표 행 → 실수령액 계산기 링크. 전제를 그대로 넘겨 결과가 일치하게 한다. */
+export function buildQuickRowHref(annualSalary: number): string {
+  const p = new URLSearchParams({
+    [PREFILL_PARAMS.salary]: String(annualSalary),
+    [PREFILL_PARAMS.nonTaxable]: String(HOME_SALARY_ASSUMPTION.nonTaxable),
+    [PREFILL_PARAMS.dependents]: String(HOME_SALARY_ASSUMPTION.dependents),
+    [PREFILL_PARAMS.children]: String(HOME_SALARY_ASSUMPTION.childCount8to20),
+  })
+  return `${ROUTES.SALARY_CALCULATOR}?${p.toString()}`
+}
 
 export interface SalaryQuickRow {
   /** 연봉 (만원) */

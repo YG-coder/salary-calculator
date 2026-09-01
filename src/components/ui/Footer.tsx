@@ -32,6 +32,20 @@ export default function Footer() {
           ))}
         </div>
 
+        {/* 인컴랩 계산기 — 급여 밖 세금 계산이 필요한 이용자를 위한 안내.
+            홈 CTA 대신 여기 한 번만 둔다. 계산기 페이지의 문맥 링크와는 별개다. */}
+        <div className="border-t border-slate-100 pt-4 pb-4">
+          <p className="text-xs font-semibold text-slate-500">인컴랩 계산기</p>
+          <a
+            href="https://taxsim.kr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block text-xs text-slate-500 hover:text-brand-600 transition-colors"
+          >
+            세금계산기 — 부가세·종합소득세·양도세 계산 ↗
+          </a>
+        </div>
+
         <div className="border-t border-slate-100 pt-4 flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold text-slate-700">

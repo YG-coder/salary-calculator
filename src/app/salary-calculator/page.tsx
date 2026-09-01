@@ -4,6 +4,7 @@
  */
 
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
 import AdSlot from '@/components/ui/AdSlot'
@@ -11,12 +12,18 @@ import CalculatorForm from '@/components/calculator/CalculatorForm'
 import ContentSection from '@/components/calculator/ContentSection'
 import FaqSection from '@/components/calculator/FaqSection'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
-import { SITE_NAME, TAX_YEAR } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
 import { buildWebAppJsonLd, buildFaqJsonLd } from '@/lib/jsonld'
+
+const PATH = '/salary-calculator'
 
 export const metadata: Metadata = {
   title: `연봉 실수령액 계산기 ${TAX_YEAR} | ${SITE_NAME}`,
   description: `${TAX_YEAR}년 기준 연봉 실수령액을 빠르게 계산하세요. 4대보험(국민연금·건강보험·고용보험) 및 소득세·지방소득세 자동 반영.`,
+  // ⚠️ 홈의 연봉별 표에서 ?salary=...&nonTaxable=... 형태로 들어오므로 쿼리가 붙은
+  //    URL이 별도 페이지로 색인되지 않도록 기본 주소를 canonical로 고정한다.
+  //    SITE_URL은 metadataBase를 통해 프로젝트 표준인 퓨니코드로 출력된다.
+  alternates: { canonical: `${SITE_URL}${PATH}` },
 }
 
 const RELATED = [
@@ -85,7 +92,9 @@ export default function Page() {
         <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
 
         <div className="mt-6">
-          <CalculatorForm />
+          <Suspense fallback={<div className="card p-6 text-sm text-slate-400">계산기를 불러오는 중…</div>}>
+            <CalculatorForm />
+          </Suspense>
         </div>
 
         <div className="mt-10">
