@@ -100,13 +100,15 @@ describe('② ⚠️ /salary/[amount] 로 링크하지 않는다 (sitemap 제외
     expect(detailSource).toContain('<SalaryAmountLinks currentAmountMan={parsed} />')
   })
 
-  it('대표 연봉은 과도하지 않은 8개이며 중복 없이 오름차순이다', () => {
-    expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN).toHaveLength(8)
-    expect(new Set(REPRESENTATIVE_SALARY_AMOUNTS_MAN).size).toBe(8)
+  it('대표 연봉은 2,000만~1억 1,500만원을 500만원 간격으로 제공한다', () => {
+    expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN).toHaveLength(20)
+    expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN[0]).toBe(2000)
+    expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN.at(-1)).toBe(11500)
+    expect(new Set(REPRESENTATIVE_SALARY_AMOUNTS_MAN).size).toBe(20)
     for (let i = 1; i < REPRESENTATIVE_SALARY_AMOUNTS_MAN.length; i++) {
-      expect(REPRESENTATIVE_SALARY_AMOUNTS_MAN[i]).toBeGreaterThan(
-        REPRESENTATIVE_SALARY_AMOUNTS_MAN[i - 1],
-      )
+      expect(
+        REPRESENTATIVE_SALARY_AMOUNTS_MAN[i] - REPRESENTATIVE_SALARY_AMOUNTS_MAN[i - 1],
+      ).toBe(500)
     }
   })
 

@@ -1,8 +1,9 @@
 import Link from 'next/link'
 
-export const REPRESENTATIVE_SALARY_AMOUNTS_MAN = [
-  3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
-] as const
+export const REPRESENTATIVE_SALARY_AMOUNTS_MAN = Array.from(
+  { length: 20 },
+  (_, index) => 2000 + index * 500,
+)
 
 type SalaryAmountLinksProps = {
   currentAmountMan?: number
