@@ -111,10 +111,6 @@ export default async function SalaryDetailPage({ params }: PageProps) {
     { label: '지방소득세', desc: '소득세의 10%', value: result.breakdown.localTax },
   ]
 
-  const relatedAmounts = [3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000].filter(
-    (value) => value !== parsed,
-  )
-
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <nav className="mb-6 text-sm text-slate-400">
@@ -317,30 +313,25 @@ export default async function SalaryDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* 다른 연봉 보기 */}
+      {/* 현재 구간에서 바로 이어지는 이전·다음 연봉만 제공한다. */}
       <section className="mb-8 border-t border-slate-200 pt-6">
-        <h2 className="text-lg font-bold text-slate-900">다른 연봉 실수령액 보기</h2>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {relatedAmounts.map((value) => (
-            <Link
-              key={value}
-              href={`/salary/${value}`}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
-            >
-              연봉 {value.toLocaleString()}만원
-            </Link>
-          ))}
-        </div>
-        <div className="mt-5 flex justify-between text-sm">
+        <h2 className="text-sm font-semibold text-slate-500">이전·다음 연봉</h2>
+        <div className="mt-3 flex justify-between gap-4 text-sm">
           {prevAmountMan !== null ? (
-            <Link href={`/salary/${prevAmountMan}`} className="text-brand-600 hover:underline">
+            <Link
+              href={`/salary/${prevAmountMan}`}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold text-brand-700 hover:border-brand-200 hover:bg-brand-50"
+            >
               ← 연봉 {prevAmountMan.toLocaleString()}만원
             </Link>
           ) : (
             <span />
           )}
           {nextAmountMan !== null ? (
-            <Link href={`/salary/${nextAmountMan}`} className="text-brand-600 hover:underline">
+            <Link
+              href={`/salary/${nextAmountMan}`}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-right font-semibold text-brand-700 hover:border-brand-200 hover:bg-brand-50"
+            >
               연봉 {nextAmountMan.toLocaleString()}만원 →
             </Link>
           ) : (

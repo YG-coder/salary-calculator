@@ -74,6 +74,14 @@ describe('① 연봉별 빠른 표가 계산 엔진과 일치한다', () => {
 describe('② ⚠️ /salary/[amount] 로 링크하지 않는다 (sitemap 제외 보류 사항)', () => {
   const homeSource = readFileSync(resolve(process.cwd(), 'src/app/page.tsx'), 'utf8')
   const dataSource = readFileSync(resolve(process.cwd(), 'src/lib/homeData.ts'), 'utf8')
+  const calculatorSource = readFileSync(
+    resolve(process.cwd(), 'src/app/salary-calculator/page.tsx'),
+    'utf8',
+  )
+  const detailSource = readFileSync(
+    resolve(process.cwd(), 'src/app/salary/[amount]/page.tsx'),
+    'utf8',
+  )
 
   it('홈 소스에 /salary/ 링크가 없다', () => {
     // href="/salary/3000" 같은 패턴을 금지한다 (/salary-calculator 등은 허용)
@@ -84,6 +92,17 @@ describe('② ⚠️ /salary/[amount] 로 링크하지 않는다 (sitemap 제외
   it('홈 데이터 계층에도 /salary/ 경로 생성이 없다', () => {
     expect(dataSource).not.toMatch(/\/salary\/\$\{/)
     expect(dataSource).not.toMatch(/["'`]\/salary\/\d/)
+  })
+
+  it('실수령액 계산기에서 연봉별 상세 페이지를 대량 링크하지 않는다', () => {
+    expect(calculatorSource).not.toMatch(/href=\{`\/salary\/\$\{/)
+    expect(calculatorSource).not.toContain('연봉별 실수령액 자세히 보기')
+  })
+
+  it('연봉 상세 페이지에는 이전·다음 링크만 남긴다', () => {
+    expect(detailSource).not.toContain('relatedAmounts')
+    expect(detailSource).not.toContain('다른 연봉 실수령액 보기')
+    expect(detailSource.match(/href=\{`\/salary\/\$\{/g)).toHaveLength(2)
   })
 
   it('빠른 표 데이터에 링크 필드가 없다', () => {
