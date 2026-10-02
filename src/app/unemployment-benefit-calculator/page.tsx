@@ -12,7 +12,6 @@ import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/compone
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
-import AdSlot from '@/components/ui/AdSlot'
 
 function formatNum(v: string) {
   const n = v.replace(/[^0-9]/g, '')
@@ -61,8 +60,6 @@ export default function UnemploymentBenefitCalculatorPage() {
       <p className="text-gray-500 mb-6">
         {TAX_YEAR}년 기준 · 최저시급 {MIN_HOURLY_WAGE_2026.toLocaleString()}원 적용
       </p>
-
-      <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
 
       <div className="mt-6 space-y-6">
         <InputCard title="고용 정보 입력">
@@ -296,10 +293,6 @@ export default function UnemploymentBenefitCalculatorPage() {
 
         <RelatedCalculators items={RELATED} />
 
-        <div className="mt-10">
-          <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
-        </div>
-
         {/* ── 가이드 콘텐츠 ─────────────────────────────────── */}
         <GuideSection
           title="실업급여란?"
@@ -489,10 +482,6 @@ export default function UnemploymentBenefitCalculatorPage() {
             },
           ]}
         />
-
-        <div className="mt-10">
-          <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
-        </div>
       </div>
     </main>
   )

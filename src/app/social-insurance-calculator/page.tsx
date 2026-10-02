@@ -18,7 +18,6 @@ import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/compone
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
-import AdSlot from '@/components/ui/AdSlot'
 
 function formatNum(v: string) {
   const n = v.replace(/[^0-9]/g, '')
@@ -72,8 +71,6 @@ export default function SocialInsuranceCalculatorPage() {
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">4대보험 계산기</h1>
       <p className="text-gray-500 mb-6">{TAX_YEAR}년 기준 · 국민연금·건강보험·고용보험·산재보험 계산</p>
-
-      <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
 
       <div className="mt-6 space-y-6">
         <InputCard title="급여 정보 입력">
@@ -208,10 +205,6 @@ export default function SocialInsuranceCalculatorPage() {
             <Disclaimer year={TAX_YEAR} />
           </div>
         )}
-
-        <div className="mt-10">
-          <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
-        </div>
 
         {/* ── 가이드 콘텐츠 ─────────────────────────────────── */}
         <GuideSection
@@ -389,8 +382,6 @@ export default function SocialInsuranceCalculatorPage() {
         />
 
         <RelatedCalculators items={RELATED} />
-
-        <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
       </div>
     </main>
   )

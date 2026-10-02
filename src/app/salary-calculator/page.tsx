@@ -6,7 +6,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Script from 'next/script'
-import AdSlot from '@/components/ui/AdSlot'
 import CalculatorForm from '@/components/calculator/CalculatorForm'
 import ContentSection from '@/components/calculator/ContentSection'
 import FaqSection from '@/components/calculator/FaqSection'
@@ -89,16 +88,10 @@ export default function Page() {
           {TAX_YEAR}년 기준 · 4대보험 + 소득세 자동 계산
         </p>
 
-        <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
-
         <div className="mt-6">
           <Suspense fallback={<div className="card p-6 text-sm text-slate-400">계산기를 불러오는 중…</div>}>
             <CalculatorForm />
           </Suspense>
-        </div>
-
-        <div className="mt-10">
-          <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
         </div>
 
         <div className="mt-10">
@@ -128,10 +121,6 @@ export default function Page() {
             세금 계산기 바로가기 →
           </a>
         </section>
-
-        <div className="mt-10">
-          <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
-        </div>
 
         <div className="mt-12">
           <SalaryAmountLinks />

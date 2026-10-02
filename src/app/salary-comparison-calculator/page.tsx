@@ -7,7 +7,6 @@
  */
 
 import type { Metadata } from 'next'
-import AdSlot from '@/components/ui/AdSlot'
 import ComparisonForm from '@/components/calculator/ComparisonForm'
 import ToolPicker from '@/components/calculator/ToolPicker'
 import GuideSection from '@/components/calculator/GuideSection'
@@ -55,18 +54,12 @@ export default function Page() {
         {TAX_YEAR}년 기준 · 두 연봉의 실수령액 차이와 한계 실수령률
       </p>
 
-      <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
-
       <div className="mt-6">
         <ComparisonForm />
       </div>
 
       <div className="mt-10">
         <ToolPicker current="comparison" />
-      </div>
-
-      <div className="mt-10">
-        <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
       </div>
 
       <div className="mt-10">
@@ -216,8 +209,6 @@ export default function Page() {
       />
 
       <RelatedCalculators items={RELATED} title="함께 사용하면 좋은 계산기" />
-
-      <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
     </main>
   )
 }

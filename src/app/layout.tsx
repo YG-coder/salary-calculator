@@ -1,16 +1,13 @@
 /**
  * src/app/layout.tsx
- * 애드센스 + SEO + OG + 인증 최종 완성
+ * SEO + OG + 인증
  */
 
 import type { Metadata, Viewport } from 'next'
-import Script from 'next/script'
 import { SITE_URL, SITE_NAME } from '@/lib/constants'
 import Header from '@/components/ui/Header'
 import Footer from '@/components/ui/Footer'
 import './globals.css'
-
-const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -102,16 +99,6 @@ export default function RootLayout({
       <main className="flex-1">{children}</main>
 
       <Footer />
-
-      {ADSENSE_CLIENT && (
-          <Script
-              id="adsense-script"
-              async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-              crossOrigin="anonymous"
-              strategy="afterInteractive"
-          />
-      )}
       </body>
       </html>
   )

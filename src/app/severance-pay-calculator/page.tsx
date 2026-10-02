@@ -12,7 +12,6 @@ import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/compone
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
-import AdSlot from '@/components/ui/AdSlot'
 
 function formatNum(v: string) {
   const n = v.replace(/[^0-9]/g, '')
@@ -66,8 +65,6 @@ export default function SeverancePayCalculatorPage() {
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">퇴직금 계산기</h1>
       <p className="text-gray-500 mb-6">{TAX_YEAR}년 기준 · 근로자퇴직급여보장법 기준</p>
-
-      <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
 
       <div className="mt-6 space-y-6">
         <InputCard title="퇴직금 정보 입력">
@@ -225,10 +222,6 @@ export default function SeverancePayCalculatorPage() {
             <Disclaimer year={TAX_YEAR} extra="상여금·연차수당 포함 여부, 특수 근로형태 등에 따라 실제 금액이 달라질 수 있습니다." />
           </div>
         )}
-
-        <div className="mt-10">
-          <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
-        </div>
 
         {/* ── 가이드 콘텐츠 ─────────────────────────────────── */}
         <GuideSection
@@ -399,8 +392,6 @@ export default function SeverancePayCalculatorPage() {
         />
 
         <RelatedCalculators items={RELATED} />
-
-        <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
       </div>
     </main>
   )

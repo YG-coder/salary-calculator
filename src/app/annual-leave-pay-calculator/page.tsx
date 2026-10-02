@@ -45,7 +45,6 @@ import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/compone
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
-import AdSlot from '@/components/ui/AdSlot'
 
 // 입력 정규화는 전부 src/lib/annualLeaveInput.ts (테스트 대상)에 있습니다.
 
@@ -139,8 +138,6 @@ export default function AnnualLeavePayCalculatorPage() {
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">연차수당 계산기</h1>
       <p className="text-gray-500 mb-6">{TAX_YEAR}년 기준 · 미사용 연차수당 계산</p>
-
-      <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
 
       <div className="mt-6 space-y-6">
         <InputCard title="연차 정보 입력">
@@ -382,10 +379,6 @@ export default function AnnualLeavePayCalculatorPage() {
           </div>
         )}
 
-        <div className="mt-10">
-          <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
-        </div>
-
         {/* ── 가이드 콘텐츠 ─────────────────────────────────── */}
         <GuideSection
           title="연차수당이란?"
@@ -604,8 +597,6 @@ export default function AnnualLeavePayCalculatorPage() {
         />
 
         <RelatedCalculators items={RELATED} />
-
-        <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
       </div>
     </main>
   )

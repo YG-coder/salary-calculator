@@ -8,7 +8,6 @@
  */
 
 import type { Metadata } from 'next'
-import AdSlot from '@/components/ui/AdSlot'
 import BonusForm from '@/components/calculator/BonusForm'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
@@ -52,14 +51,8 @@ export default function Page() {
         {TAX_YEAR}년 기준 · 성과급·명절상여에서 떼는 세금과 실수령액
       </p>
 
-      <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
-
       <div className="mt-6">
         <BonusForm />
-      </div>
-
-      <div className="mt-10">
-        <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
       </div>
 
       <div className="mt-10">
@@ -212,8 +205,6 @@ export default function Page() {
       />
 
       <RelatedCalculators items={RELATED} title="함께 사용하면 좋은 계산기" />
-
-      <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
     </main>
   )
 }

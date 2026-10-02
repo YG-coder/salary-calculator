@@ -7,7 +7,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Script from 'next/script'
-import AdSlot from '@/components/ui/AdSlot'
 import ReverseCalculatorForm from '@/components/calculator/ReverseCalculatorForm'
 import ToolPicker from '@/components/calculator/ToolPicker'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
@@ -96,18 +95,12 @@ export default function Page() {
           {TAX_YEAR}년 기준 · 원하는 월 실수령액 → 필요한 최소 연봉
         </p>
 
-        <AdSlot slotId="TOP_HORIZONTAL" format="horizontal" />
-
         <div className="mt-6">
           <ReverseCalculatorForm />
         </div>
 
         <div className="mt-10">
           <ToolPicker current="reverse" />
-        </div>
-
-        <div className="mt-10">
-          <AdSlot slotId="MID_RECTANGLE" format="rectangle" />
         </div>
 
         {/* 가이드 (고유 콘텐츠) */}
@@ -199,10 +192,6 @@ export default function Page() {
         </section>
 
         <RelatedCalculators items={RELATED} title="함께 사용하면 좋은 계산기" />
-
-        <div className="mt-10">
-          <AdSlot slotId="BOTTOM_HORIZONTAL" format="horizontal" />
-        </div>
       </main>
     </>
   )
