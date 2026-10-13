@@ -56,7 +56,7 @@ export function buildFaqJsonLd() {
         name: `${TAX_YEAR}년 국민연금 요율은 얼마인가요?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(pensionRate * 100).toFixed(2)}%이며, ${TAX_YEAR}년 12월 31일의 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
+          text: `${TAX_YEAR}년 기준 국민연금 근로자 부담율은 ${(pensionRate * 100).toFixed(2)}%이며, ${TAX_YEAR}년 7~12월의 기준소득월액 상·하한 범위 내에서 계산됩니다.`,
         },
       },
       {

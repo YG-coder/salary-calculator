@@ -20,6 +20,7 @@
 
 import { TAX_YEAR_AS_OF } from './policyYear'
 import { RATES, getPensionLimits, getPensionRate } from './constants'
+import { calculateNationalPension } from './pension'
 import { HIGH_INCOME_MONTHLY_THRESHOLD } from './incomeTax'
 import { calculateSalary, type SalaryResult } from './salary'
 
@@ -40,10 +41,6 @@ export function isValidSalaryMan(amountMan: number): boolean {
     amountMan <= SALARY_MAX_MAN &&
     amountMan % SALARY_STEP_MAN === 0
   )
-}
-
-function floor10(n: number): number {
-  return Math.floor(n / 10) * 10
 }
 
 function won(n: number): string {
@@ -189,7 +186,7 @@ export function buildSalaryPageData(
     const pensionMax = getPensionLimits(asOfDate).max
     const cappedPension = result.breakdown.nationalPension
     const pensionRate = getPensionRate(asOfDate)
-    const uncappedPension = floor10(Math.floor(monthlyTaxable / 1_000) * 1_000 * pensionRate)
+    const uncappedPension = calculateNationalPension(monthlyTaxable, asOfDate).uncappedAmount
     const monthlyDifference = uncappedPension - cappedPension
     const isEntry = prevResult !== null && !prevResult.flags.pensionCapped
 

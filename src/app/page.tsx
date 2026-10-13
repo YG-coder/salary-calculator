@@ -107,7 +107,7 @@ export default function Home() {
       <section className="mt-12">
         <h2 className="text-xl font-black text-slate-900">{TAX_YEAR}년 주요 기준</h2>
         <p className="mt-1 text-sm text-slate-500">
-          급여 계산과 연봉별 표는 {TAX_YEAR}년 12월 31일 기준입니다. 연도 중 바뀐 상·하한과 자녀공제도 이 날짜를 적용합니다.
+          급여 계산과 연봉별 표는 {TAX_YEAR}년 7~12월 기준입니다. 하반기 국민연금 상·하한과 개정된 자녀공제를 적용합니다.
         </p>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {keyFigures.map((f) => (

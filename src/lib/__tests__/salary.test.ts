@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { calculateSalary } from '../salary'
 import { calculateSocialInsurance, calculatePayrollTax } from '../calculators'
 import { calculateEmployerCost } from '../employerCost'
+import { calculateNationalPension } from '../pension'
 
 describe('국민연금 천원 미만 절사 고정값', () => {
+  it('상한 없는 설명용 금액도 같은 천원·10원 절사 규칙을 적용한다', () => {
+    expect(calculateNationalPension(6_591_999)).toEqual({ amount: 313_020, uncappedAmount: 313_070, capped: true })
+  })
   it.each([
     [0, 19_470],
     [410_999, 19_470],

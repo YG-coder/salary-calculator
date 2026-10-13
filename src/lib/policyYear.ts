@@ -1,7 +1,7 @@
 /** 계산기·정적 페이지·빌드 검사가 공유하는 정책 기준. */
 export const TAX_YEAR = 2026
 export const TAX_YEAR_AS_OF = new Date(`${TAX_YEAR}-12-31T12:00:00+09:00`)
-export const TAX_YEAR_AS_OF_LABEL = `${TAX_YEAR}년 12월 31일 기준`
+export const TAX_YEAR_AS_OF_LABEL = `${TAX_YEAR}년 7~12월 기준`
 
 const koreanYearFormatter = new Intl.DateTimeFormat('en', { timeZone: 'Asia/Seoul', year: 'numeric' })
 const yearStart = new Date(`${TAX_YEAR}-01-01T00:00:00+09:00`).getTime()
