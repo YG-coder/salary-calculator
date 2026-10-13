@@ -13,7 +13,7 @@
 
 import { TAX_YEAR_AS_OF } from './policyYear'
 import { calcSimplifiedWithholdingTax } from './incomeTax'
-import { RATES } from './constants'
+import { calculateEmployeeEmploymentInsurance, calculateLocalTax } from './insurancePremiums'
 import {
   MAX_BONUS_PERIOD_MONTHS,
   MIN_BONUS_PERIOD_MONTHS,
@@ -178,10 +178,10 @@ export function calculateBonusWithholding(
 
   // 기납부세액이 더 크면 추가 징수 세액은 0 (환급은 연말정산에서 처리)
   const incomeTax = Math.max(0, floor10(grossTaxForPeriod - prepaidTax))
-  const localTax = floor10(incomeTax * RATES.localTax)
+  const localTax = calculateLocalTax(incomeTax)
 
   // ⚠️ 4대보험 중 고용보험만 상여금에 비례해 그달에 부과된다 (보험료징수법 제2조③·제13조②)
-  const employmentInsurance = floor10(bonusAmount * RATES.employment)
+  const employmentInsurance = calculateEmployeeEmploymentInsurance(bonusAmount)
 
   const totalDeduction = incomeTax + localTax + employmentInsurance
   const netBonus = Math.max(0, bonusAmount - totalDeduction)

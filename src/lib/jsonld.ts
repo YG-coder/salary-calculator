@@ -64,7 +64,7 @@ export function buildFaqJsonLd() {
         name: '건강보험료와 장기요양보험료는 어떻게 계산되나요?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `건강보험 근로자 부담율은 ${(RATES.healthInsurance * 100).toFixed(3)}%, 장기요양보험료는 건강보험료의 ${(RATES.longTermCare * 100).toFixed(2)}%가 추가로 부과됩니다.`,
+          text: `건강보험 근로자 부담율은 ${(RATES.healthInsurance * 100).toFixed(3)}%, 장기요양보험료는 건강보험료의 약 ${(RATES.longTermCare * 100).toFixed(2)}%가 추가로 부과됩니다.`,
         },
       },
       {

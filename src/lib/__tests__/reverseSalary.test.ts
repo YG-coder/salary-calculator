@@ -5,6 +5,15 @@ import { calculateSalary } from '@/lib/salary'
 const AS_OF = new Date('2026-10-14T12:00:00+09:00')
 
 describe('비과세 조건이 성립하는 연봉만 역산한다', () => {
+  it('고액 목표도 정확한 장기요양 비율을 적용한 뒤 목표를 충족한다', () => {
+    const input = { targetMonthlyNet: 24_000_000, nonTaxable: 200_000, dependents: 1 }
+    const reverse = calculateReverseSalary(input, AS_OF)
+    expect(reverse.requiredAnnualSalary).toBe(489_280_000)
+    expect(reverse.result.monthlyNet).toBe(24_000_433)
+    const previous = calculateSalary({ annualSalary: 489_270_000, nonTaxable: 200_000, dependents: 1 }, AS_OF)
+    expect(previous.monthlyNet).toBe(23_999_990)
+    expect(reverse.result.monthlyNet).toBeGreaterThanOrEqual(input.targetMonthlyNet)
+  })
   it('기존 정상 조건의 최소 연봉은 유지한다', () => {
     const reverse = calculateReverseSalary({ targetMonthlyNet: 3_000_000, nonTaxable: 200_000, dependents: 1 }, AS_OF)
     expect(reverse.requiredAnnualSalary).toBe(40_960_000)

@@ -12,6 +12,9 @@ export { SITE }
 export { TAX_YEAR, TAX_YEAR_AS_OF, TAX_YEAR_AS_OF_LABEL } from './policyYear'
 
 // ── 4대보험 근로자 부담 요율 ────────────────────────────────
+const HEALTH_INSURANCE_TOTAL_RATE = 0.0719
+const LONG_TERM_CARE_INCOME_RATE = 0.009448
+
 export const RATES = {
   /**
    * @deprecated 2026년 정적 콘텐츠 호환용입니다. 계산·표시에는
@@ -23,15 +26,18 @@ export const RATES = {
    * 건강보험 근로자 부담율
    * 2026년 고시: 3.595% (사업주 동일, 합계 7.19%)
    */
-  healthInsurance: 0.03595,
+  healthInsurance: HEALTH_INSURANCE_TOTAL_RATE / 2,
+  /** 가입자·사용자 부담을 합친 법정 건강보험 요율 */
+  healthInsuranceTotal: HEALTH_INSURANCE_TOTAL_RATE,
 
   /**
-   * 장기요양보험율 (건강보험료 대비)
-   * 2026년 고시: 건강보험료의 13.14% (2025년 12.95% → 2026년 13.14%)
-   * 실효 보험료 비율: 3.595% × 13.14% ≒ 0.4724%
-   * 출처: 보건복지부 2025.11.4 장기요양위원회 의결
+   * 화면 참고용 건강보험료 대비 비율 (약 13.14%).
+   * 실제 계산은 소득 대비 법정 요율 0.9448% / 건강보험 전체 요율 7.19%의
+   * 정확한 분수를 사용한다. 출처: 국민건강보험공단 2026년도 보험료율 안내.
    */
-  longTermCare: 0.1314,
+  longTermCare: LONG_TERM_CARE_INCOME_RATE / HEALTH_INSURANCE_TOTAL_RATE,
+  /** 노인장기요양보험법 시행령 제4조: 100만분의 9,448 */
+  longTermCareIncome: LONG_TERM_CARE_INCOME_RATE,
 
   /**
    * 고용보험 근로자 부담율
@@ -42,6 +48,9 @@ export const RATES = {
   /** 지방소득세율 (소득세 대비) */
   localTax: 0.1,
 } as const
+
+/** 화면에 표시하는 공단의 장기요양 산식. 계산은 반올림 전의 법정 요율로 수행한다. */
+export const LONG_TERM_CARE_RATIO_LABEL = `${(RATES.longTermCareIncome * 100).toFixed(4)}% ÷ ${(RATES.healthInsuranceTotal * 100).toFixed(2)}%`
 
 // ── 국민연금 사업장가입자 부담률 (연도별) ──────────────────────
 // 국민연금법 부칙 <법률 제20903호, 2025.4.2> 제4조에 따라

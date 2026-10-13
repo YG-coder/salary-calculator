@@ -11,6 +11,7 @@ import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
 import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
 import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
+import { percentageToRate } from '@/lib/rateMath'
 import { calculateEmployerCost, type EmployerCostResult } from '@/lib/employerCost'
 import {
   EMPLOYER_EMPLOYMENT_RATES,
@@ -68,7 +69,7 @@ export default function EmployerCostForm() {
         dependents: dep,
         childCount8to20: Math.min(Number(children) || 0, Math.max(0, dep - 1)),
         employerEmploymentRate: Number(employmentRate) || DEFAULT_EMPLOYER_EMPLOYMENT_RATE,
-        industrialAccidentRate: rp / 100,
+        industrialAccidentRate: percentageToRate(rp),
       }),
     )
   }, [annualSalary, nonTaxable, dependents, children, employmentRate, industrialRate, setResult])

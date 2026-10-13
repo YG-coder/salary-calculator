@@ -153,7 +153,8 @@ describe('4대보험 — 고용보험만 계산한다 (조사 결론 P5)', () =>
     const r = calculateBonusWithholding(
       { ...BASE, periodType: 'withPeriod', periodMonths: 6 }, AS_OF,
     )
-    expect(r.employmentInsurance).toBe(Math.floor(6_000_000 * RATES.employment / 10) * 10)
+    // 600만원 × 9/1000 = 54,000원. 부동소수점 오류를 정답으로 복제하지 않는다.
+    expect(r.employmentInsurance).toBe(54_000)
   })
 
   it('⚠️ 결과에 국민연금·건강보험·장기요양 항목이 없다', () => {

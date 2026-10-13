@@ -13,8 +13,8 @@
 // ────────────────────────────────────────────────────────────
 
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
-import { RATES } from './constants'
 import { calculateNationalPension } from './pension'
+import { calculateEmployeeEmploymentInsurance, calculateHealthInsurance, calculateLongTermCare, calculateLocalTax } from './insurancePremiums'
 import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
@@ -62,11 +62,6 @@ export interface SalaryResult {
   flags:           SalaryFlags     // 계산 임계점 도달 여부
 }
 
-// ── 유틸: 10원 단위 절사 ──────────────────────────────────────
-function floor10(n: number): number {
-  return Math.floor(n / 10) * 10
-}
-
 // ── 메인 계산 함수 ────────────────────────────────────────────
 // asOfDate: 계산 기준 시점 (기본값: TAX_YEAR_AS_OF)
 // ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경되므로, 이 값에
@@ -90,13 +85,13 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
   const nationalPension = pension.amount
 
   // ── 건강보험 ─────────────────────────────────────────────
-  const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
+  const healthInsurance = calculateHealthInsurance(monthlyTaxable)
 
   // ── 장기요양 ─────────────────────────────────────────────
-  const longTermCare = floor10(healthInsurance * RATES.longTermCare)
+  const longTermCare = calculateLongTermCare(healthInsurance)
 
   // ── 고용보험 ─────────────────────────────────────────────
-  const employment = floor10(monthlyTaxable * RATES.employment)
+  const employment = calculateEmployeeEmploymentInsurance(monthlyTaxable)
 
   // ── 소득세 (근로소득 간이세액표 기준, src/lib/incomeTax.ts) ───
   // asOfDate를 그대로 전달해 자녀세액공제 신/구 금액을 2026.3.1 기준으로 분기합니다.
@@ -110,7 +105,7 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
   )
 
   // ── 지방소득세 ────────────────────────────────────────────
-  const localTax = floor10(incomeTax * RATES.localTax)
+  const localTax = calculateLocalTax(incomeTax)
 
   // ── 합산 ─────────────────────────────────────────────────
   const totalDeduction =

@@ -143,7 +143,7 @@ export default function AboutPage() {
           <div className="flex justify-between gap-3">
             <span className="text-slate-500">장기요양보험</span>
             <span className="font-semibold text-slate-800">
-              건강보험료의 {(RATES.longTermCare * 100).toFixed(2)}%
+              건강보험료의 약 {(RATES.longTermCare * 100).toFixed(2)}%
             </span>
           </div>
           <div className="flex justify-between gap-3">

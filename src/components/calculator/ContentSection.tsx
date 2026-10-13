@@ -11,7 +11,7 @@
  *   수정: 데이터 객체에 monthlyGross 직접 포함
  */
 import Link from 'next/link'
-import { TAX_YEAR, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear } from '@/lib/constants'
+import { TAX_YEAR, LONG_TERM_CARE_RATIO_LABEL, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear } from '@/lib/constants'
 import { calculateSalary, formatKRW } from '@/lib/salary'
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
@@ -51,7 +51,7 @@ export default function ContentSection() {
             소득세·지방소득세를 공제한 후 실제로 통장에 입금되는 금액입니다. 동일한 연봉이라도
             비과세 항목, 부양가족 수, 회사 규모(두루누리 사회보험 지원 여부)에 따라 실수령액이
             크게 달라질 수 있습니다. 실수령 비율은 연봉과 공제 조건에 따라 달라지며,
-            연봉이 높을수록 누진세율 적용으로 실효세율이 높아집니다.
+            연봉이 높아지면 누진세율 적용으로 소득세 부담이 늘며 총 공제율도 달라집니다.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export default function ContentSection() {
               },
               {
                 name: '장기요양보험',
-                desc: `건강보험료의 ${(RATES.longTermCare * 100).toFixed(2)}%입니다. 노인 장기요양 서비스 재원 마련을 위해 건강보험료와 함께 납부하며, 건강보험료가 결정되면 자동으로 산출됩니다.`,
+                desc: `건강보험료에 (${LONG_TERM_CARE_RATIO_LABEL})를 곱합니다. 건강보험료 대비 약 ${(RATES.longTermCare * 100).toFixed(2)}%입니다. 노인 장기요양 서비스 재원 마련을 위해 건강보험료와 함께 납부하며, 건강보험료가 결정되면 자동으로 산출됩니다.`,
               },
               {
                 name: '고용보험',
