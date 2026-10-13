@@ -32,6 +32,7 @@
 //     반영하지 않습니다 (간이세액표 자체가 원천징수 단계용 근사이기 때문).
 // ────────────────────────────────────────────────────────────
 
+import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
 import {
   SIMPLIFIED_TAX_TABLE_2026,
   SIMPLIFIED_TAX_TABLE_2026_AT_10M,
@@ -151,14 +152,15 @@ export interface SimplifiedWithholdingInput {
  * 월 원천징수 소득세를 계산합니다. 반환값은 10원 단위로 절사된 월 세액(원)입니다.
  *
  * @param input 계산 입력값
- * @param asOfDate 원천징수 시점 (기본값: 호출 시점의 현재 날짜). 2026.3.1을 기준으로
+ * @param asOfDate 원천징수 시점 (기본값: TAX_YEAR_AS_OF). 2026.3.1을 기준으로
  *   자녀세액공제 금액이 신/구로 나뉩니다. 조견표 자체는 신구 버전이 동일하여
  *   시점과 무관하게 SIMPLIFIED_TAX_TABLE_2026 하나만 사용합니다.
  */
 export function calcSimplifiedWithholdingTax(
   input: SimplifiedWithholdingInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): number {
+  assertCalculationDate(asOfDate)
   const dependents = Math.max(1, Math.floor(input.dependents))
   // 부양가족 수(dependents)에는 본인이 포함되므로(별표2 제2호: 본인·배우자도 각각
   // 1명으로 산정), 자녀가 될 수 있는 인원은 최대 dependents-1명입니다.

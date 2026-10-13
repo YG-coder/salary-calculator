@@ -19,7 +19,7 @@ import {
   SALARY_AMOUNTS_MAN,
   type SalaryEvent,
 } from '@/lib/salaryPageData'
-import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/constants'
 
 type PageProps = {
   params: Promise<{ amount: string }>
@@ -124,7 +124,7 @@ export default async function SalaryDetailPage({ params }: PageProps) {
 
       <section className="mb-8">
         <p className="mb-3 inline-flex rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
-          {TAX_YEAR}년 기준 · 부양가족 1명 · 비과세 없음
+          {TAX_YEAR_AS_OF_LABEL} · 부양가족 1명 · 비과세 없음
         </p>
         <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
           연봉 {parsed.toLocaleString()}만원 실수령액

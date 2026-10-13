@@ -12,7 +12,9 @@
 //         (소득세법 시행령 별표2) 산식으로 교체 (src/lib/incomeTax.ts)
 // ────────────────────────────────────────────────────────────
 
-import { RATES, getPensionLimits, getPensionRate } from './constants'
+import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
+import { RATES } from './constants'
+import { calculateNationalPension } from './pension'
 import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
@@ -23,8 +25,6 @@ export interface SalaryInput {
   dependents:   number  // 부양가족 수 (본인 포함, 최소 1)
   /**
    * 공제대상가족 중 8세 이상 20세 이하 자녀 수 (선택, 기본값 0)
-   * ⚠️ 조건: 현재 UI(CalculatorForm)는 이 값을 입력받지 않으므로 0으로 가정합니다.
-   * 실제로 해당 자녀가 있는 경우 원천징수 세액은 이 계산값보다 낮을 수 있습니다.
    * (근거: 소득세법 시행령 별표2 제3호 — 자녀 1명당 월 세액에서 정액 차감)
    */
   childCount8to20?: number
@@ -47,7 +47,7 @@ export interface SalaryBreakdown {
  * 값은 모두 이 계산에서 실제로 일어난 사실이며 추정이 아닙니다.
  */
 export interface SalaryFlags {
-  /** 월 과세소득이 국민연금 기준소득월액 상한을 초과하여 국민연금이 상한액으로 고정됨 */
+  /** 천원 미만 절사한 월 과세소득이 국민연금 기준소득월액 상한을 초과함 */
   pensionCapped: boolean
   /** 월 과세소득이 간이세액표 조견표 상한(1천만원)을 초과하여 고소득 전용 산식으로 소득세를 계산함 */
   usedHighIncomeTaxFormula: boolean
@@ -68,13 +68,14 @@ function floor10(n: number): number {
 }
 
 // ── 메인 계산 함수 ────────────────────────────────────────────
-// asOfDate: 계산 기준 시점 (기본값: 호출 시점의 현재 날짜)
+// asOfDate: 계산 기준 시점 (기본값: TAX_YEAR_AS_OF)
 // ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경되므로, 이 값에
 // 따라 2026년 1~6월과 7월 이후에 서로 다른 상·하한이 적용됩니다.
 // (getPensionLimits() 참고 — src/lib/constants.ts)
 // ⚠️ 조건: 소득세 자녀세액공제 금액도 2026.3.1 시행일을 기준으로 신/구가 나뉘므로
 // asOfDate를 calcSimplifiedWithholdingTax()에도 그대로 전달합니다.
-export function calculateSalary(input: SalaryInput, asOfDate: Date = new Date()): SalaryResult {
+export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS_OF): SalaryResult {
+  assertCalculationDate(asOfDate)
   const { annualSalary, nonTaxable, dependents, childCount8to20 = 0 } = input
 
   // 월 세전 급여
@@ -85,12 +86,8 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = new Date())
 
   // ── 국민연금 ─────────────────────────────────────────────
   // 상·하한은 계산 기준 시점(asOfDate)에 맞는 구간 값을 조회해서 사용합니다.
-  const pensionLimits = getPensionLimits(asOfDate)
-  const pensionBase = Math.min(
-    Math.max(monthlyTaxable, pensionLimits.min),
-    pensionLimits.max,
-  )
-  const nationalPension = floor10(pensionBase * getPensionRate(asOfDate))
+  const pension = calculateNationalPension(monthlyTaxable, asOfDate)
+  const nationalPension = pension.amount
 
   // ── 건강보험 ─────────────────────────────────────────────
   const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
@@ -135,8 +132,8 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = new Date())
       totalDeduction,
     },
     flags: {
-      // 상한 초과 시에만 true. pensionBase가 상한으로 클램프된 경우와 동치입니다.
-      pensionCapped: monthlyTaxable > pensionLimits.max,
+      // 상한 초과 시에만 true. 천원 미만 절사한 소득월액이 상한을 초과한 경우입니다.
+      pensionCapped: pension.capped,
       usedHighIncomeTaxFormula: isHighIncomeMonthly(monthlyTaxable),
     },
   }

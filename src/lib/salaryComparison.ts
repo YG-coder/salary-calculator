@@ -8,6 +8,7 @@
 //    바뀌어도 이 파일은 손댈 필요가 없어야 합니다.
 // ────────────────────────────────────────────────────────────
 
+import { TAX_YEAR_AS_OF } from './policyYear'
 import {
   calculateSalary,
   type SalaryInput,
@@ -114,7 +115,7 @@ function toCommonInput(annualSalary: number, input: SalaryComparisonInput): Sala
 
 export function compareSalaries(
   input: SalaryComparisonInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): SalaryComparisonResult {
   const salaryA = toSafeNonNegative(input.annualSalaryA)
   const salaryB = toSafeNonNegative(input.annualSalaryB)

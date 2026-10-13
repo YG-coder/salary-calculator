@@ -11,7 +11,7 @@ import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
 import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { calculateSocialInsurance, type SocialInsuranceResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
-import { TAX_YEAR, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
+import { TAX_YEAR, TAX_YEAR_AS_OF_LABEL, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
 import {
   EMPLOYER_EMPLOYMENT_RATES,
   DEFAULT_EMPLOYER_EMPLOYMENT_RATE,
@@ -77,7 +77,7 @@ export default function SocialInsuranceCalculatorPage() {
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">4대보험 계산기</h1>
-      <p className="text-gray-500 mb-6">{TAX_YEAR}년 기준 · 국민연금·건강보험·고용보험·산재보험 계산</p>
+      <p className="text-gray-500 mb-6">{TAX_YEAR_AS_OF_LABEL} · 국민연금·건강보험·고용보험·산재보험 계산</p>
 
       <div className="mt-6 space-y-6">
         <InputCard title="급여 정보 입력">

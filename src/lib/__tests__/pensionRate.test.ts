@@ -48,14 +48,14 @@ describe('공통 급여 엔진의 국민연금 요율 적용', () => {
     expect(calculateSalary(input, at(2026)).breakdown.nationalPension).toBe(142_500)
   })
 
-  it('2027년부터 5.00%를 자동 적용한다', () => {
-    expect(calculateSalary(input, at(2027)).breakdown.nationalPension).toBe(150_000)
+  it('다음 해 보험·세금 자료가 준비되지 않으면 혼합 계산하지 않는다', () => {
+    expect(() => calculateSalary(input, at(2027))).toThrow('2026년 정책 데이터')
   })
 
   it('사회보험 계산기의 근로자·사용자 부담에 같은 연도별 요율을 적용한다', () => {
-    const result = calculateSocialInsurance({ monthlyGross: 3_000_000 }, at(2033))
-    expect(result.nationalPension).toBe(195_000)
-    expect(result.employerPension).toBe(195_000)
+    const result = calculateSocialInsurance({ monthlyGross: 3_000_000 }, at(2026))
+    expect(result.nationalPension).toBe(142_500)
+    expect(result.employerPension).toBe(142_500)
   })
 })
 

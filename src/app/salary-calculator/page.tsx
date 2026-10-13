@@ -11,7 +11,7 @@ import ContentSection from '@/components/calculator/ContentSection'
 import FaqSection from '@/components/calculator/FaqSection'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import SalaryAmountLinks from '@/components/calculator/SalaryAmountLinks'
-import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/constants'
 import { buildWebAppJsonLd, buildFaqJsonLd } from '@/lib/jsonld'
 
 const PATH = '/salary-calculator'
@@ -85,7 +85,7 @@ export default function Page() {
         <h1 className="text-3xl font-bold mb-4">연봉 실수령액 계산기</h1>
 
         <p className="text-gray-500 mb-6">
-          {TAX_YEAR}년 기준 · 4대보험 + 소득세 자동 계산
+          {TAX_YEAR_AS_OF_LABEL} · 4대보험 + 소득세 자동 계산
         </p>
 
         <div className="mt-6">

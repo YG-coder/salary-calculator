@@ -1,7 +1,9 @@
 // src/lib/calculators.ts
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
-import { RATES, getPensionLimits, getPensionRate, MIN_HOURLY_WAGE_2026 } from './constants'
+import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
+import { RATES, MIN_HOURLY_WAGE_2026 } from './constants'
+import { calculateNationalPension } from './pension'
 import { DEFAULT_EMPLOYER_EMPLOYMENT_RATE } from './policy/socialInsurance'
 import {
   ANNUAL_LEAVE_BASE_DAYS,
@@ -53,13 +55,14 @@ export interface SocialInsuranceResult {
   industrialAccidentRate: number
 }
 
-// asOfDate: 계산 기준 시점 (기본값: 호출 시점의 현재 날짜)
+// asOfDate: 계산 기준 시점 (기본값: TAX_YEAR_AS_OF)
 // ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경되므로, 2026년
 // 1~6월과 7월 이후에 서로 다른 상·하한이 적용됩니다. (getPensionLimits() 참고)
 export function calculateSocialInsurance(
   input: SocialInsuranceInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): SocialInsuranceResult {
+  assertCalculationDate(asOfDate)
   const {
     monthlyGross,
     nonTaxable = 0,
@@ -69,9 +72,7 @@ export function calculateSocialInsurance(
   const monthlyTaxable = Math.max(0, monthlyGross - nonTaxable)
 
   // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
-  const pensionLimits = getPensionLimits(asOfDate)
-  const pensionBase = Math.min(Math.max(monthlyTaxable, pensionLimits.min), pensionLimits.max)
-  const nationalPension = floor10(pensionBase * getPensionRate(asOfDate))
+  const nationalPension = calculateNationalPension(monthlyTaxable, asOfDate).amount
 
   // 건강보험
   const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
@@ -139,7 +140,7 @@ export interface PayrollTaxResult {
   monthlyNet: number
 }
 
-// asOfDate: 계산 기준 시점 (기본값: 호출 시점의 현재 날짜)
+// asOfDate: 계산 기준 시점 (기본값: TAX_YEAR_AS_OF)
 // ⚠️ 조건: 국민연금 기준소득월액 상·하한은 매년 7월 1일 자로 변경되므로, 2026년
 // 1~6월과 7월 이후에 서로 다른 상·하한이 적용됩니다. (getPensionLimits() 참고)
 // ⚠️ 조건: 소득세는 종합소득세 누진세율 월할 근사가 아니라, 근로소득 간이세액표
@@ -147,7 +148,7 @@ export interface PayrollTaxResult {
 // (src/lib/incomeTax.ts 참고 — 남아있는 근사 요소는 해당 파일 상단 주석 참고)
 export function calculatePayrollTax(
   input: PayrollTaxInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): PayrollTaxResult {
   const { monthlyGross, nonTaxable = 0, dependents = 1, childCount8to20 = 0 } = input
   const salaryResult = calculateSalary(

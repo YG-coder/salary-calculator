@@ -8,7 +8,8 @@ describe('비과세 조건이 성립하는 연봉만 역산한다', () => {
   it('기존 정상 조건의 최소 연봉은 유지한다', () => {
     const reverse = calculateReverseSalary({ targetMonthlyNet: 3_000_000, nonTaxable: 200_000, dependents: 1 }, AS_OF)
     expect(reverse.requiredAnnualSalary).toBe(40_960_000)
-    expect(reverse.result.monthlyNet).toBe(3_000_513)
+    // 기준소득월액 3,213,333 → 3,213,000 절사로 국민연금 20원 감소.
+    expect(reverse.result.monthlyNet).toBe(3_000_533)
   })
 
   it('비과세가 목표보다 커도 허용하되 월 세전 급여는 비과세 이상이어야 한다', () => {

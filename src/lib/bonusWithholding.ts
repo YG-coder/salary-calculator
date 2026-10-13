@@ -11,6 +11,7 @@
 //    지급 보수에 비례하므로 별도로 제공한다.
 // ────────────────────────────────────────────────────────────
 
+import { TAX_YEAR_AS_OF } from './policyYear'
 import { calcSimplifiedWithholdingTax } from './incomeTax'
 import { RATES } from './constants'
 import {
@@ -139,7 +140,7 @@ export function resolveImplicitPeriod(
 
 export function calculateBonusWithholding(
   input: BonusWithholdingInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): BonusWithholdingResult {
   const bonusAmount = toSafeNonNegative(input.bonusAmount, MAX_BONUS_AMOUNT)
   const monthlyPay = toSafeNonNegative(input.monthlyPay, MAX_MONTHLY_PAY)
