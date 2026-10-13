@@ -7,6 +7,8 @@
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
+import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
+import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { calculateSocialInsurance, type SocialInsuranceResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
@@ -57,7 +59,7 @@ export default function SocialInsuranceCalculatorPage() {
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
-    if (!gross || gross < 100_000) return
+    if (!gross || gross < 100_000 || validateNonTaxableInput(nonTaxable, gross).error) return
     const industrialRatePercent = parseIndustrialAccidentRatePercent(industrialAccidentRate)
     if (industrialRatePercent === null) return
     setResult(calculateSocialInsurance({
@@ -69,7 +71,8 @@ export default function SocialInsuranceCalculatorPage() {
   }, [monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate, setResult])
 
   const industrialRatePercent = parseIndustrialAccidentRatePercent(industrialAccidentRate)
-  const isValid = parseNum(monthlyGross) >= 100_000 && industrialRatePercent !== null
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, parseNum(monthlyGross))
+  const isValid = parseNum(monthlyGross) >= 100_000 && industrialRatePercent !== null && !nonTaxableValidation.error
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -95,13 +98,16 @@ export default function SocialInsuranceCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
             <div className="relative">
-              <input type="text" inputMode="numeric" placeholder="예: 200,000" value={nonTaxable}
+              <input id="nonTaxable" type="text" inputMode="numeric" placeholder="예: 200,000" value={nonTaxable}
+                aria-invalid={Boolean(nonTaxableValidation.error)}
+                aria-describedby="non-taxable-feedback"
                 onChange={(e) => setNonTaxable(formatNum(e.target.value))} className="input-field pr-8" />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">세전 급여에서 차감한 금액을 보험료 산정 기준으로 사용합니다</p>
+            <NonTaxableNotice validation={nonTaxableValidation} />
           </div>
 
           <div>

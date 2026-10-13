@@ -9,8 +9,10 @@ import Link from 'next/link'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
+import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
+import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { formatKRW } from '@/lib/salary'
-import { calculateReverseSalary, type ReverseSalaryResult } from '@/lib/reverseSalary'
+import { calculateReverseSalary, MAX_REVERSE_ANNUAL_SALARY, type ReverseSalaryResult } from '@/lib/reverseSalary'
 import ResultCard from './ResultCard'
 
 function formatNumberInput(value: string): string {
@@ -51,10 +53,11 @@ export default function ReverseCalculatorForm() {
 
   const targetNum = parseNumberInput(targetNet)
   const nonTaxableNum = parseNumberInput(nonTaxable)
-  const isValid = targetNum >= MIN_TARGET && targetNum <= MAX_TARGET
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(MAX_REVERSE_ANNUAL_SALARY / 12), '월 비과세 금액이 역산 계산 범위의 월 세전 급여 상한을 초과합니다.')
+  const isValid = targetNum >= MIN_TARGET && targetNum <= MAX_TARGET && !nonTaxableValidation.error
 
   const handleCalculate = useCallback(() => {
-    if (targetNum < MIN_TARGET || targetNum > MAX_TARGET) return
+    if (targetNum < MIN_TARGET || targetNum > MAX_TARGET || validateNonTaxableInput(nonTaxable, Math.floor(MAX_REVERSE_ANNUAL_SALARY / 12)).error) return
     setReverse(
       calculateReverseSalary({
         targetMonthlyNet: targetNum,
@@ -64,7 +67,7 @@ export default function ReverseCalculatorForm() {
       }),
     )
     setHasCalculated(true)
-  }, [targetNum, nonTaxableNum, dependents, children, setReverse])
+  }, [targetNum, nonTaxableNum, nonTaxable, dependents, children, setReverse])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCalculate()
@@ -122,6 +125,8 @@ export default function ReverseCalculatorForm() {
               inputMode="numeric"
               placeholder="예: 200,000"
               value={nonTaxable}
+                aria-invalid={Boolean(nonTaxableValidation.error)}
+                aria-describedby="non-taxable-feedback"
               onChange={(e) => setNonTaxable(formatNumberInput(e.target.value))}
               onKeyDown={handleKeyDown}
               className="input-field pr-8"
@@ -134,6 +139,7 @@ export default function ReverseCalculatorForm() {
           <p className="hint">
             식대 등 월 비과세 금액 — 4대보험·소득세 산정에서 제외됩니다
           </p>
+          <NonTaxableNotice validation={nonTaxableValidation} />
         </div>
 
         {/* 공제대상가족 수 */}

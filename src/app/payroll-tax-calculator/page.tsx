@@ -7,6 +7,8 @@
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
+import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
+import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { calculatePayrollTax, type PayrollTaxResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, getPensionRate } from '@/lib/constants'
@@ -40,7 +42,7 @@ export default function PayrollTaxCalculatorPage() {
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
-    if (!gross || gross < 100_000) return
+    if (!gross || gross < 100_000 || validateNonTaxableInput(nonTaxable, gross).error) return
     setResult(calculatePayrollTax({
       monthlyGross: gross,
       nonTaxable: parseNum(nonTaxable),
@@ -50,7 +52,8 @@ export default function PayrollTaxCalculatorPage() {
   }, [monthlyGross, nonTaxable, dependents, children, setResult])
 
   const grossNum = parseNum(monthlyGross)
-  const isValid = grossNum >= 100_000
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, grossNum)
+  const isValid = grossNum >= 100_000 && !nonTaxableValidation.error
   const referenceRows = [2_000_000, 3_000_000, 4_000_000, 5_000_000, 7_000_000, 10_000_000].map((gross) => {
     const calculated = calculatePayrollTax({ monthlyGross: gross, nonTaxable: 0, dependents: 1 })
     const insurance = calculated.nationalPension + calculated.healthInsurance + calculated.longTermCare + calculated.employment
@@ -84,12 +87,14 @@ export default function PayrollTaxCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
             <div className="relative">
-              <input
+              <input id="nonTaxable"
                 type="text" inputMode="numeric"
                 placeholder="예: 200,000"
                 value={nonTaxable}
+                aria-invalid={Boolean(nonTaxableValidation.error)}
+                aria-describedby="non-taxable-feedback"
                 onChange={(e) => setNonTaxable(formatNum(e.target.value))}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-12"
@@ -97,6 +102,7 @@ export default function PayrollTaxCalculatorPage() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원/월</span>
             </div>
             <p className="hint">식대 등 비과세 항목 (4대보험·소득세 계산에서 제외)</p>
+            <NonTaxableNotice validation={nonTaxableValidation} />
           </div>
 
           <div>

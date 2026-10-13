@@ -9,6 +9,8 @@
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
+import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
+import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { useSearchParams } from 'next/navigation'
 import { calculateSalary, formatKRW, type SalaryInput, type SalaryResult } from '@/lib/salary'
 import ResultCard from './ResultCard'
@@ -50,7 +52,7 @@ export default function CalculatorForm() {
 
   const handleCalculate = useCallback(() => {
     const salary = parseNumberInput(annualSalary)
-    if (!salary || salary < 1_000_000) return
+    if (!salary || salary < 1_000_000 || validateNonTaxableInput(nonTaxable, Math.floor(salary / 12)).error) return
 
     const input: SalaryInput = {
       annualSalary: salary,
@@ -79,7 +81,8 @@ export default function CalculatorForm() {
 
   const salaryNum     = parseNumberInput(annualSalary)
   const nonTaxableNum = parseNumberInput(nonTaxable)
-  const isValid       = salaryNum >= 1_000_000
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(salaryNum / 12))
+  const isValid       = salaryNum >= 1_000_000 && !nonTaxableValidation.error
 
   return (
     <div className="space-y-6">
@@ -124,6 +127,8 @@ export default function CalculatorForm() {
               inputMode="numeric"
               placeholder="예: 200,000"
               value={nonTaxable}
+              aria-invalid={Boolean(nonTaxableValidation.error)}
+              aria-describedby="non-taxable-feedback"
               onChange={(e) => setNonTaxable(formatNumberInput(e.target.value))}
               onKeyDown={handleKeyDown}
               className="input-field pr-8"
@@ -136,6 +141,7 @@ export default function CalculatorForm() {
           <p className="hint">
             식대 등 월 비과세 금액 — 4대보험·소득세 산정에서 제외됩니다
           </p>
+          <NonTaxableNotice validation={nonTaxableValidation} />
         </div>
 
         {/* 공제대상가족 수 */}

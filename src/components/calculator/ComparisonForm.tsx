@@ -7,6 +7,8 @@
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
+import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
+import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import {
   compareSalaries,
   formatRate,
@@ -45,12 +47,13 @@ export default function ComparisonForm() {
 
   const a = parseNumberInput(salaryA, MAX_SALARY)
   const b = parseNumberInput(salaryB, MAX_SALARY)
-  const isValid = a >= MIN_SALARY && b >= MIN_SALARY
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(Math.min(a, b) / 12), '월 비과세 금액은 연봉 A와 B 각각의 월 세전 급여를 초과할 수 없습니다.')
+  const isValid = a >= MIN_SALARY && b >= MIN_SALARY && !nonTaxableValidation.error
 
   const handleCalculate = useCallback(() => {
     const sa = parseNumberInput(salaryA, MAX_SALARY)
     const sb = parseNumberInput(salaryB, MAX_SALARY)
-    if (sa < MIN_SALARY || sb < MIN_SALARY) return
+    if (sa < MIN_SALARY || sb < MIN_SALARY || validateNonTaxableInput(nonTaxable, Math.floor(Math.min(sa, sb) / 12)).error) return
     const dep = Math.max(1, Number(dependents) || 1)
     setResult(
       compareSalaries({
@@ -122,6 +125,8 @@ export default function ComparisonForm() {
                 id="nonTaxable" type="text" inputMode="numeric" autoComplete="off"
                 placeholder="예: 200,000"
                 value={nonTaxable}
+                aria-invalid={Boolean(nonTaxableValidation.error)}
+                aria-describedby="non-taxable-feedback"
                 onChange={(e) => setNonTaxable(formatNumberInput(e.target.value, MAX_NON_TAXABLE))}
                 onKeyDown={handleKeyDown}
                 className="input-field pr-12"
@@ -129,6 +134,7 @@ export default function ComparisonForm() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원/월</span>
             </div>
             <p className="hint">식대 등 월 비과세 금액 — 4대보험·소득세 산정에서 제외됩니다</p>
+            <NonTaxableNotice validation={nonTaxableValidation} />
           </div>
 
           <div>

@@ -9,6 +9,8 @@
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
+import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
+import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { calculateEmployerCost, type EmployerCostResult } from '@/lib/employerCost'
 import {
   EMPLOYER_EMPLOYMENT_RATES,
@@ -51,12 +53,13 @@ export default function EmployerCostForm() {
   const salaryNum = parseAmount(annualSalary, MAX_SALARY)
   const ratePercent = parseIndustrialAccidentRatePercent(industrialRate)
   const hasIndustrialRate = industrialRate.trim() !== '' && ratePercent !== null
-  const isValid = salaryNum >= 1_000_000 && hasIndustrialRate
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(salaryNum / 12))
+  const isValid = salaryNum >= 1_000_000 && hasIndustrialRate && !nonTaxableValidation.error
 
   const handleCalc = useCallback(() => {
     const s = parseAmount(annualSalary, MAX_SALARY)
     const rp = parseIndustrialAccidentRatePercent(industrialRate)
-    if (s < 1_000_000 || industrialRate.trim() === '' || rp === null) return
+    if (s < 1_000_000 || industrialRate.trim() === '' || rp === null || validateNonTaxableInput(nonTaxable, Math.floor(s / 12)).error) return
     const dep = Math.max(1, Number(dependents) || 1)
     setResult(
       calculateEmployerCost({
@@ -95,12 +98,15 @@ export default function EmployerCostForm() {
           <div className="relative">
             <input id="nonTaxable" type="text" inputMode="numeric" autoComplete="off"
               placeholder="예: 200,000" value={nonTaxable}
+                aria-invalid={Boolean(nonTaxableValidation.error)}
+                aria-describedby="non-taxable-feedback"
               onChange={(e) => setNonTaxable(formatAmount(e.target.value, MAX_NON_TAXABLE))}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-12" />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원/월</span>
           </div>
           <p className="hint">식대 등 — 4대보험·소득세 산정에서 제외됩니다</p>
+          <NonTaxableNotice validation={nonTaxableValidation} />
         </div>
 
         <div>
