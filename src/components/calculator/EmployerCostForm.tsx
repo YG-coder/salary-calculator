@@ -7,6 +7,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateEmployerCost, type EmployerCostResult } from '@/lib/employerCost'
 import {
   EMPLOYER_EMPLOYMENT_RATES,
@@ -42,7 +44,9 @@ export default function EmployerCostForm() {
   const [children, setChildren] = useState('0')
   const [employmentRate, setEmploymentRate] = useState(String(DEFAULT_EMPLOYER_EMPLOYMENT_RATE))
   const [industrialRate, setIndustrialRate] = useState('')
-  const [result, setResult] = useState<EmployerCostResult | null>(null)
+  const calculationInputs = { annualSalary, nonTaxable, dependents, children, employmentRate, industrialRate }
+  const { result, setResult, isStale } =
+    useCalculationResult<EmployerCostResult, typeof calculationInputs>(calculationInputs)
 
   const salaryNum = parseAmount(annualSalary, MAX_SALARY)
   const ratePercent = parseIndustrialAccidentRatePercent(industrialRate)
@@ -64,7 +68,7 @@ export default function EmployerCostForm() {
         industrialAccidentRate: rp / 100,
       }),
     )
-  }, [annualSalary, nonTaxable, dependents, children, employmentRate, industrialRate])
+  }, [annualSalary, nonTaxable, dependents, children, employmentRate, industrialRate, setResult])
 
   return (
     <div className="space-y-6">
@@ -102,7 +106,7 @@ export default function EmployerCostForm() {
         <div>
           <label htmlFor="employmentRate" className="label">사업장 규모 (사업주 고용보험료율)</label>
           <select id="employmentRate" value={employmentRate}
-            onChange={(e) => { setEmploymentRate(e.target.value); setResult(null) }}
+            onChange={(e) => { setEmploymentRate(e.target.value) }}
             className="input-field">
             {EMPLOYER_EMPLOYMENT_RATES.map((o) => (
               <option key={o.rate} value={o.rate}>{o.label} · {o.rateLabel}</option>
@@ -124,7 +128,6 @@ export default function EmployerCostForm() {
               value={industrialRate}
               onChange={(e) => {
                 setIndustrialRate(sanitizeIndustrialAccidentRateInput(e.target.value))
-                setResult(null)
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-8" />
@@ -150,7 +153,6 @@ export default function EmployerCostForm() {
                   onClick={() => {
                     setDependents(String(n))
                     setChildren((c) => String(Math.min(Number(c) || 0, n - 1)))
-                    setResult(null)
                   }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     dependents === String(n)
@@ -165,7 +167,7 @@ export default function EmployerCostForm() {
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button"
-                  onClick={() => { setChildren(String(n)); setResult(null) }}
+                  onClick={() => { setChildren(String(n)) }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     children === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white'
@@ -186,6 +188,8 @@ export default function EmployerCostForm() {
           </p>
         )}
       </div>
+
+      <CalculationNotice isStale={isStale} />
 
       {result && <EmployerCostResultView r={result} />}
     </div>

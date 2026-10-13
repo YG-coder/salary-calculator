@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateSeverancePay, type SeverancePayResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR } from '@/lib/constants'
@@ -36,7 +38,9 @@ export default function SeverancePayCalculatorPage() {
   const [annualLeaveAllowance, setAnnualLeaveAllowance] = useState('')
   const [ordinaryDailyWage, setOrdinaryDailyWage] = useState('')
   const [weeklyHours, setWeeklyHours] = useState('40')
-  const [result, setResult] = useState<SeverancePayResult | null>(null)
+  const calculationInputs = { month1, month2, month3, startDate, endDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours }
+  const { result, setResult, isStale } =
+    useCalculationResult<SeverancePayResult, typeof calculationInputs>(calculationInputs)
 
   const handleCalc = useCallback(() => {
     const m1 = parseNum(month1)
@@ -56,7 +60,7 @@ export default function SeverancePayCalculatorPage() {
       ordinaryDailyWage: parseNum(ordinaryDailyWage),
       weeklyHours: parseNum(weeklyHours),
     }))
-  }, [month1, month2, month3, startDate, endDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours])
+  }, [month1, month2, month3, startDate, endDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours, setResult])
 
   const isValid = parseNum(month1) > 0 && parseNum(month2) > 0 && parseNum(month3) > 0 &&
     parseNum(weeklyHours) > 0 && !!startDate && !!endDate && new Date(endDate) > new Date(startDate)
@@ -181,6 +185,8 @@ export default function SeverancePayCalculatorPage() {
             퇴직금 계산하기
           </button>
         </InputCard>
+
+        <CalculationNotice isStale={isStale} />
 
         {result && (
           <div className="space-y-4 animate-slide-up">

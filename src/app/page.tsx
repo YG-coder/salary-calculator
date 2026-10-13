@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SITE_NAME, TAX_YEAR } from '@/lib/constants'
 import {
+  CALCULATORS,
   buildSalaryQuickRows,
   buildKeyFigures,
   HOME_SALARY_ASSUMPTION_TEXT,
@@ -37,97 +38,6 @@ export const metadata: Metadata = {
   title: `${TAX_YEAR}년 연봉 실수령액 계산기 | ${SITE_NAME}`,
   description: `연봉을 입력하면 4대보험과 소득세를 반영한 월 실수령액을 계산합니다. ${TAX_YEAR}년 기준 연봉별 실수령액 표와 퇴직금·연차수당·상여금·기업 총 인건비 계산기를 함께 제공합니다.`,
 }
-
-export const CALCULATORS = [
-  {
-    href: '/salary-calculator',
-    emoji: '💰',
-    title: '실수령액 계산기',
-    description: '연봉 입력만으로 4대보험·소득세 자동 계산',
-    badge: '가장 많이 사용',
-    highlight: true,
-  },
-  {
-    href: '/payroll-tax-calculator',
-    emoji: '🧾',
-    title: '급여 세금 간편 계산',
-    description: '월급에서 공제되는 세금을 빠르게 확인',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/salary-comparison-calculator',
-    emoji: '📊',
-    title: '연봉 비교 계산기',
-    description: '두 연봉의 실수령액·공제액 차이를 한눈에 비교',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/bonus-withholding-calculator',
-    emoji: '🎁',
-    title: '상여금 원천징수 계산기',
-    description: '성과급·명절상여에서 떼는 세금과 실수령액',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/target-salary-calculator',
-    emoji: '🎯',
-    title: '목표 실수령액 역산 계산기',
-    description: '원하는 실수령액을 받으려면 연봉이 얼마여야 하는지 역산',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/social-insurance-calculator',
-    emoji: '🏥',
-    title: '4대보험 계산기',
-    description: '국민연금·건강보험·고용보험·산재보험 계산',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/employer-cost-calculator',
-    emoji: '🏢',
-    title: '기업 총 인건비 계산기',
-    description: '연봉 외에 회사가 추가로 부담하는 4대보험',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/severance-pay-calculator',
-    emoji: '📦',
-    title: '퇴직금 계산기',
-    description: '근속기간과 평균임금으로 퇴직금 산출',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/annual-leave-pay-calculator',
-    emoji: '🏖️',
-    title: '연차수당 계산기',
-    description: '미사용 연차 일수에 따른 수당 계산',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/weekly-holiday-pay-calculator',
-    emoji: '📅',
-    title: '주휴수당 계산기',
-    description: '주 15시간 이상 근무 시 주휴수당 계산',
-    badge: null,
-    highlight: false,
-  },
-  {
-    href: '/unemployment-benefit-calculator',
-    emoji: '🛡️',
-    title: '실업급여 계산기',
-    description: '퇴직 후 받을 수 있는 실업급여 예상액 확인',
-    badge: null,
-    highlight: false,
-  },
-]
 
 export default function Home() {
   const quickRows = buildSalaryQuickRows()

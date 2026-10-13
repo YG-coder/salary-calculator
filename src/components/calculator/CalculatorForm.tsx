@@ -7,6 +7,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { useSearchParams } from 'next/navigation'
 import { calculateSalary, formatKRW, type SalaryInput, type SalaryResult } from '@/lib/salary'
 import ResultCard from './ResultCard'
@@ -41,7 +43,9 @@ export default function CalculatorForm() {
   const [nonTaxable, setNonTaxable] = useState(prefill?.nonTaxable ?? PREFILL_FALLBACK.nonTaxable)
   const [dependents, setDependents] = useState(prefill?.dependents ?? PREFILL_FALLBACK.dependents)
   const [children, setChildren] = useState(prefill?.children ?? PREFILL_FALLBACK.children)
-  const [result, setResult] = useState<SalaryResult | null>(null)
+  const calculationInputs = { annualSalary, nonTaxable, dependents, children }
+  const { result, setResult, isStale, submittedInput } =
+    useCalculationResult<SalaryResult, typeof calculationInputs>(calculationInputs)
   const [hasCalculated, setHasCalculated] = useState(false)
 
   const handleCalculate = useCallback(() => {
@@ -58,7 +62,7 @@ export default function CalculatorForm() {
 
     setResult(calculateSalary(input))
     setHasCalculated(true)
-  }, [annualSalary, nonTaxable, dependents, children])
+  }, [annualSalary, nonTaxable, dependents, children, setResult])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCalculate()
@@ -224,9 +228,11 @@ export default function CalculatorForm() {
       </div>
 
       {/* 결과 카드 */}
+      <CalculationNotice isStale={isStale} />
+
       {result && (
         <div className="animate-slide-up">
-          <ResultCard result={result} annualSalary={salaryNum} />
+          <ResultCard result={result} annualSalary={parseNumberInput(submittedInput?.annualSalary ?? '')} />
         </div>
       )}
     </div>

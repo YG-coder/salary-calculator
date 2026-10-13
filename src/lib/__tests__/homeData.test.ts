@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
+  CALCULATORS,
   buildSalaryQuickRows,
   buildKeyFigures,
   HOME_SALARY_SAMPLES_MAN,
@@ -23,7 +24,6 @@ import {
   SITUATION_GROUPS,
   HOME_GUIDES,
 } from '@/lib/homeData'
-import { CALCULATORS } from '@/app/page'
 import { calculateSalary } from '@/lib/salary'
 import {
   RATES, TAX_YEAR, TAX_YEAR_AS_OF, MIN_HOURLY_WAGE_2026, getPensionRateForYear,

@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import {
   compareSalaries,
   formatRate,
@@ -37,7 +39,9 @@ export default function ComparisonForm() {
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
   const [children, setChildren] = useState('0')
-  const [result, setResult] = useState<SalaryComparisonResult | null>(null)
+  const calculationInputs = { salaryA, salaryB, nonTaxable, dependents, children }
+  const { result, setResult, isStale } =
+    useCalculationResult<SalaryComparisonResult, typeof calculationInputs>(calculationInputs)
 
   const a = parseNumberInput(salaryA, MAX_SALARY)
   const b = parseNumberInput(salaryB, MAX_SALARY)
@@ -57,7 +61,7 @@ export default function ComparisonForm() {
         childCount8to20: Math.min(Number(children) || 0, Math.max(0, dep - 1)),
       }),
     )
-  }, [salaryA, salaryB, nonTaxable, dependents, children])
+  }, [salaryA, salaryB, nonTaxable, dependents, children, setResult])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCalculate()
@@ -193,6 +197,8 @@ export default function ComparisonForm() {
           </button>
         </div>
       </div>
+
+      <CalculationNotice isStale={isStale} />
 
       {result && <ComparisonResult result={result} />}
     </div>

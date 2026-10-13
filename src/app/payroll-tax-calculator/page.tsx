@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculatePayrollTax, type PayrollTaxResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, getPensionRate } from '@/lib/constants'
@@ -32,7 +34,9 @@ export default function PayrollTaxCalculatorPage() {
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
   const [children, setChildren] = useState('0')
-  const [result, setResult] = useState<PayrollTaxResult | null>(null)
+  const calculationInputs = { monthlyGross, nonTaxable, dependents, children }
+  const { result, setResult, isStale, submittedInput } =
+    useCalculationResult<PayrollTaxResult, typeof calculationInputs>(calculationInputs)
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
@@ -43,7 +47,7 @@ export default function PayrollTaxCalculatorPage() {
       dependents: Math.max(1, Number(dependents) || 1),
       childCount8to20: Math.min(Number(children) || 0, Math.max(0, (Number(dependents) || 1) - 1)),
     }))
-  }, [monthlyGross, nonTaxable, dependents, children])
+  }, [monthlyGross, nonTaxable, dependents, children, setResult])
 
   const grossNum = parseNum(monthlyGross)
   const isValid = grossNum >= 100_000
@@ -138,12 +142,14 @@ export default function PayrollTaxCalculatorPage() {
           </button>
         </InputCard>
 
+        <CalculationNotice isStale={isStale} />
+
         {result && (
           <div className="space-y-4 animate-slide-up">
             <ResultHighlight
               label="월 실수령액"
               value={formatKRW(result.monthlyNet)}
-              subtitle={`월 세전 ${formatKRW(grossNum)} → 공제 ${formatKRW(result.totalDeduction)}`}
+              subtitle={`월 세전 ${formatKRW(parseNum(submittedInput?.monthlyGross ?? ''))} → 공제 ${formatKRW(result.totalDeduction)}`}
             />
 
             <BreakdownCard

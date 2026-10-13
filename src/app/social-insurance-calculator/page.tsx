@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateSocialInsurance, type SocialInsuranceResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
@@ -49,7 +51,9 @@ export default function SocialInsuranceCalculatorPage() {
   const [nonTaxable, setNonTaxable] = useState('')
   const [employerEmploymentRate, setEmployerEmploymentRate] = useState(String(DEFAULT_EMPLOYER_EMPLOYMENT_RATE))
   const [industrialAccidentRate, setIndustrialAccidentRate] = useState('')
-  const [result, setResult] = useState<SocialInsuranceResult | null>(null)
+  const calculationInputs = { monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate }
+  const { result, setResult, isStale } =
+    useCalculationResult<SocialInsuranceResult, typeof calculationInputs>(calculationInputs)
 
   const handleCalc = useCallback(() => {
     const gross = parseNum(monthlyGross)
@@ -62,7 +66,7 @@ export default function SocialInsuranceCalculatorPage() {
       employerEmploymentRate: Number(employerEmploymentRate),
       industrialAccidentRate: industrialRatePercent / 100,
     }))
-  }, [monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate])
+  }, [monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate, setResult])
 
   const industrialRatePercent = parseIndustrialAccidentRatePercent(industrialAccidentRate)
   const isValid = parseNum(monthlyGross) >= 100_000 && industrialRatePercent !== null
@@ -106,7 +110,6 @@ export default function SocialInsuranceCalculatorPage() {
               value={employerEmploymentRate}
               onChange={(e) => {
                 setEmployerEmploymentRate(e.target.value)
-                setResult(null)
               }}
               className="input-field"
             >
@@ -128,7 +131,6 @@ export default function SocialInsuranceCalculatorPage() {
                 autoComplete="off" placeholder="예: 0.7" value={industrialAccidentRate}
                 onChange={(e) => {
                   setIndustrialAccidentRate(sanitizeIndustrialAccidentRateInput(e.target.value))
-                  setResult(null)
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-8" />
@@ -150,6 +152,8 @@ export default function SocialInsuranceCalculatorPage() {
             4대보험 계산하기
           </button>
         </InputCard>
+
+        <CalculationNotice isStale={isStale} />
 
         {result && (
           <div className="space-y-4 animate-slide-up">
