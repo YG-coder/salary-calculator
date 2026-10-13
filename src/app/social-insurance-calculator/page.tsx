@@ -9,6 +9,7 @@ import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
 import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
 import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
+import { percentageToRate } from '@/lib/rateMath'
 import { calculateSocialInsurance, type SocialInsuranceResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, TAX_YEAR_AS_OF_LABEL, RATES, PENSION_LIMITS, getPensionRate } from '@/lib/constants'
@@ -66,7 +67,7 @@ export default function SocialInsuranceCalculatorPage() {
       monthlyGross: gross,
       nonTaxable: parseNum(nonTaxable),
       employerEmploymentRate: Number(employerEmploymentRate),
-      industrialAccidentRate: industrialRatePercent / 100,
+      industrialAccidentRate: percentageToRate(industrialRatePercent),
     }))
   }, [monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate, setResult])
 
@@ -186,7 +187,7 @@ export default function SocialInsuranceCalculatorPage() {
               items={[
                 { label: `국민연금 (${(pensionRate * 100).toFixed(2)}%)`, value: formatKRW(result.nationalPension) },
                 { label: `건강보험 (${(RATES.healthInsurance * 100).toFixed(3)}%)`, value: formatKRW(result.healthInsurance) },
-                { label: `장기요양 (건보료×${(RATES.longTermCare * 100).toFixed(2)}%)`, value: formatKRW(result.longTermCare) },
+                { label: `장기요양 (건보료×약 ${(RATES.longTermCare * 100).toFixed(2)}%)`, value: formatKRW(result.longTermCare) },
                 { label: `고용보험 (${(RATES.employment * 100).toFixed(1)}%)`, value: formatKRW(result.employment) },
                 { label: '근로자 합계', value: formatKRW(result.totalEmployee), highlight: true, color: 'text-brand-700' },
               ]}
@@ -261,7 +262,7 @@ export default function SocialInsuranceCalculatorPage() {
                   </p>
                   <p>
                     장기요양보험은 노인 장기요양 서비스 재원 마련을 위해 건강보험료에 부가
-                    부과되는 보험으로, 건강보험료의 {(RATES.longTermCare * 100).toFixed(2)}%가
+                    부과되는 보험으로, 건강보험료의 약 {(RATES.longTermCare * 100).toFixed(2)}%가
                     추가됩니다. 만 65세 이상이거나 노인성 질병이 있는 64세 이하 가입자가
                     요양 등급을 받으면 방문요양·요양원 입소 등의 서비스를 이용할 수 있습니다.
                   </p>
@@ -310,7 +311,7 @@ export default function SocialInsuranceCalculatorPage() {
             items: [
               { label: '국민연금', value: `근로자 ${(pensionRate * 100).toFixed(2)}% + 사업주 ${(pensionRate * 100).toFixed(2)}% = 합계 ${(pensionRate * 200).toFixed(1)}%` },
               { label: '건강보험', value: `근로자 ${(RATES.healthInsurance * 100).toFixed(3)}% + 사업주 동일 = 합계 7.19%` },
-              { label: '장기요양', value: `건강보험료 × ${(RATES.longTermCare * 100).toFixed(2)}% (근로자·사업주 절반씩)` },
+              { label: '장기요양', value: `건강보험료 × 약 ${(RATES.longTermCare * 100).toFixed(2)}% (근로자·사업주 절반씩)` },
               { label: '고용보험(실업급여)', value: `근로자 ${(RATES.employment * 100).toFixed(1)}% + 사업주 0.9%` },
               { label: '고용안정·직업능력', value: '사업주 0.25~0.85% (규모별)' },
               { label: '산재보험', value: '사업주 전액 부담 (사업장의 실제 업종별 요율 입력)' },

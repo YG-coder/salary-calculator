@@ -38,7 +38,7 @@ export default function FaqSection() {
     },
     {
       q: '건강보험료와 장기요양보험료는 어떻게 계산되나요?',
-      a: `건강보험 근로자 부담율은 ${(RATES.healthInsurance * 100).toFixed(3)}%이며, 장기요양보험료는 건강보험료의 ${(RATES.longTermCare * 100).toFixed(2)}%가 추가로 부과됩니다. 연봉 5,000만원 기준 건강보험 월 약 14만원, 장기요양 약 1.8만원 수준입니다.`,
+      a: `건강보험 근로자 부담율은 ${(RATES.healthInsurance * 100).toFixed(3)}%이며, 장기요양보험료는 건강보험료의 약 ${(RATES.longTermCare * 100).toFixed(2)}%가 추가로 부과됩니다. 연봉 5,000만원 기준 건강보험 월 약 14만원, 장기요양 약 1.8만원 수준입니다.`,
     },
     {
       q: '고용보험은 왜 공제되나요?',

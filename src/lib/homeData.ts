@@ -295,7 +295,7 @@ export function buildKeyFigures(year: number = TAX_YEAR): KeyFigure[] {
     {
       label: '건강보험',
       value: `${(RATES.healthInsurance * 100).toFixed(3)}%`,
-      note: `근로자·사업주 각각 · 장기요양은 건강보험료의 ${(RATES.longTermCare * 100).toFixed(2)}%`,
+      note: `근로자·사업주 각각 · 장기요양은 건강보험료의 약 ${(RATES.longTermCare * 100).toFixed(2)}%`,
     },
     {
       label: '고용보험 (근로자)',

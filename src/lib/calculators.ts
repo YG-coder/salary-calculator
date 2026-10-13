@@ -2,9 +2,10 @@
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
-import { RATES, MIN_HOURLY_WAGE_2026 } from './constants'
+import { MIN_HOURLY_WAGE_2026 } from './constants'
 import { calculateNationalPension } from './pension'
-import { calculateEmployeeEmploymentInsurance } from './employmentInsurance'
+import { calculateEmployeeEmploymentInsurance, calculateHealthInsurance, calculateLongTermCare } from './insurancePremiums'
+import { applyRateFloor10 } from './rateMath'
 import { DEFAULT_EMPLOYER_EMPLOYMENT_RATE } from './policy/socialInsurance'
 import {
   ANNUAL_LEAVE_BASE_DAYS,
@@ -16,10 +17,6 @@ import {
 } from './policy/annualLeave'
 import { calculateSalary } from './salary'
 import { getAverageWagePeriod, getSeveranceTenure } from './severanceDates'
-
-function floor10(n: number): number {
-  return Math.floor(n / 10) * 10
-}
 
 // ── 4대보험 계산 ──────────────────────────────────────────────
 export interface SocialInsuranceInput {
@@ -76,10 +73,10 @@ export function calculateSocialInsurance(
   const nationalPension = calculateNationalPension(monthlyTaxable, asOfDate).amount
 
   // 건강보험
-  const healthInsurance = floor10(monthlyTaxable * RATES.healthInsurance)
+  const healthInsurance = calculateHealthInsurance(monthlyTaxable)
 
-  // 장기요양 (건강보험료 × 13.14%)
-  const longTermCare = floor10(healthInsurance * RATES.longTermCare)
+  // 장기요양: 공단의 법정 요율 비율을 반올림 없이 적용한다.
+  const longTermCare = calculateLongTermCare(healthInsurance)
 
   // 고용보험 (근로자 0.9%)
   const employment = calculateEmployeeEmploymentInsurance(monthlyTaxable)
@@ -89,7 +86,7 @@ export function calculateSocialInsurance(
     Number.isFinite(industrialAccidentRate) && industrialAccidentRate > 0
       ? industrialAccidentRate
       : 0
-  const industrialAccident = floor10(monthlyTaxable * safeIndustrialRate)
+  const industrialAccident = applyRateFloor10(monthlyTaxable, safeIndustrialRate)
 
   const totalEmployee = nationalPension + healthInsurance + longTermCare + employment
 
@@ -97,7 +94,7 @@ export function calculateSocialInsurance(
   const employerPension    = nationalPension                           // 법정 동일 요율
   const employerHealth     = healthInsurance                           // 동일 요율 (3.595%)
   const employerLongTerm   = longTermCare                              // 동일 요율
-  const employerEmployment = floor10(monthlyTaxable * employerEmploymentRate)
+  const employerEmployment = applyRateFloor10(monthlyTaxable, employerEmploymentRate)
   const totalEmployer =
     employerPension + employerHealth + employerLongTerm + employerEmployment + industrialAccident
 

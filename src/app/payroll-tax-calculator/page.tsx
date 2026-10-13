@@ -163,7 +163,7 @@ export default function PayrollTaxCalculatorPage() {
               items={[
                 { label: `국민연금 (${(pensionRate * 100).toFixed(2)}%)`, value: formatKRW(result.nationalPension) },
                 { label: '건강보험 (3.595%)', value: formatKRW(result.healthInsurance) },
-                { label: '장기요양 (건보료×13.14%)', value: formatKRW(result.longTermCare) },
+                { label: '장기요양 (건보료 기준)', value: formatKRW(result.longTermCare) },
                 { label: '고용보험 (0.9%)', value: formatKRW(result.employment) },
                 { label: '소득세', value: formatKRW(result.incomeTax) },
                 { label: '지방소득세 (소득세×10%)', value: formatKRW(result.localTax) },

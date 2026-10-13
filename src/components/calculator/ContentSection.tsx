@@ -11,7 +11,7 @@
  *   수정: 데이터 객체에 monthlyGross 직접 포함
  */
 import Link from 'next/link'
-import { TAX_YEAR, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear } from '@/lib/constants'
+import { TAX_YEAR, LONG_TERM_CARE_RATIO_LABEL, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear } from '@/lib/constants'
 import { calculateSalary, formatKRW } from '@/lib/salary'
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
@@ -71,7 +71,7 @@ export default function ContentSection() {
               },
               {
                 name: '장기요양보험',
-                desc: `건강보험료의 ${(RATES.longTermCare * 100).toFixed(2)}%입니다. 노인 장기요양 서비스 재원 마련을 위해 건강보험료와 함께 납부하며, 건강보험료가 결정되면 자동으로 산출됩니다.`,
+                desc: `건강보험료에 (${LONG_TERM_CARE_RATIO_LABEL})를 곱합니다. 건강보험료 대비 약 ${(RATES.longTermCare * 100).toFixed(2)}%입니다. 노인 장기요양 서비스 재원 마련을 위해 건강보험료와 함께 납부하며, 건강보험료가 결정되면 자동으로 산출됩니다.`,
               },
               {
                 name: '고용보험',
