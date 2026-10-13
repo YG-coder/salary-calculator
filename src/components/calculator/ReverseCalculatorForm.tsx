@@ -7,6 +7,8 @@
 
 import Link from 'next/link'
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { formatKRW } from '@/lib/salary'
 import { calculateReverseSalary, type ReverseSalaryResult } from '@/lib/reverseSalary'
 import ResultCard from './ResultCard'
@@ -32,7 +34,9 @@ export default function ReverseCalculatorForm() {
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
   const [children, setChildren] = useState('0')
-  const [reverse, setReverse] = useState<ReverseSalaryResult | null>(null)
+  const calculationInputs = { targetNet, nonTaxable, dependents, children }
+  const { result: reverse, setResult: setReverse, isStale, submittedInput } =
+    useCalculationResult<ReverseSalaryResult, typeof calculationInputs>(calculationInputs)
   const [hasCalculated, setHasCalculated] = useState(false)
 
   const dependentsNum = Number(dependents) || 1
@@ -60,7 +64,7 @@ export default function ReverseCalculatorForm() {
       }),
     )
     setHasCalculated(true)
-  }, [targetNum, nonTaxableNum, dependents, children])
+  }, [targetNum, nonTaxableNum, dependents, children, setReverse])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCalculate()
@@ -205,6 +209,8 @@ export default function ReverseCalculatorForm() {
       </div>
 
       {/* 결과 */}
+      <CalculationNotice isStale={isStale} />
+
       {reverse && (
         <div className="animate-slide-up space-y-4">
           {/* 필요 연봉 하이라이트 */}
@@ -230,7 +236,7 @@ export default function ReverseCalculatorForm() {
 
           {reverse.reachable ? (
             <div className="card p-5 text-sm leading-6 text-slate-600">
-              목표 월 실수령 {formatKRW(targetNum)}을 받으려면 세전 연봉이 최소{' '}
+              목표 월 실수령 {formatKRW(parseNumberInput(submittedInput?.targetNet ?? ''))}을 받으려면 세전 연봉이 최소{' '}
               <strong className="text-slate-900">
                 {formatKRW(reverse.requiredAnnualSalary)}
               </strong>{' '}

@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import {
   calculateAnnualLeavePay,
   calculateAnnualLeaveDays,
@@ -87,7 +89,9 @@ export default function AnnualLeavePayCalculatorPage() {
   const [tenureCategory, setTenureCategory] = useState<AnnualLeaveTenureCategory>('over1')
   const [workingYears, setWorkingYears] = useState('1')
   const [attendanceMonths, setAttendanceMonths] = useState('6')
-  const [result, setResult] = useState<AnnualLeavePayResult | null>(null)
+  const calculationInputs = { mode, dailyWage, unusedDays, monthlyWage, tenureCategory, workingYears, attendanceMonths }
+  const { result, setResult, isStale } =
+    useCalculationResult<AnnualLeavePayResult, typeof calculationInputs>(calculationInputs)
   // ⚠️ 결과 카드는 "계산 버튼을 누른 시점"의 값만 보여준다. 입력을 바꾸면 결과 카드
   //    일부만 갱신되어 한 카드 안에 서로 다른 근속 구분이 섞이는 문제가 있었다.
   const [submittedDays, setSubmittedDays] = useState(0)
@@ -128,7 +132,7 @@ export default function AnnualLeavePayCalculatorPage() {
     )
     setSubmittedCategory(tenureCategory)
     setSubmittedYears(years)
-  }, [computedDailyWage, unusedDays, tenureCategory, workingYears, attendanceMonths])
+  }, [computedDailyWage, unusedDays, tenureCategory, workingYears, attendanceMonths, setResult])
 
   const isValid = computedDailyWage > 0 && parseDays(unusedDays) > 0
   const submittedExceeds =
@@ -313,6 +317,8 @@ export default function AnnualLeavePayCalculatorPage() {
             연차수당 계산하기
           </button>
         </InputCard>
+
+        <CalculationNotice isStale={isStale} />
 
         {result && (
           <div className="space-y-4 animate-slide-up">

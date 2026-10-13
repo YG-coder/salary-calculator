@@ -12,6 +12,7 @@ import {
   type AnnualLeaveTenureCategory,
 } from './policy/annualLeave'
 import { calculateSalary } from './salary'
+import { getAverageWagePeriod, getSeveranceTenure } from './severanceDates'
 
 function floor10(n: number): number {
   return Math.floor(n / 10) * 10
@@ -186,7 +187,7 @@ export interface SeverancePayInput {
   month2Pay: number     // 2개월 전
   month3Pay: number     // 1개월 전 (최근)
   startDate: string     // 입사일 (YYYY-MM-DD)
-  endDate: string       // 퇴직일 (YYYY-MM-DD)
+  endDate: string       // 퇴직일: 마지막 근무일의 다음 날, 재직기간에 미포함 (YYYY-MM-DD)
   annualBonus?: number           // 연간 상여금 (원, 선택)
   annualLeaveAllowance?: number  // 연차수당 (원, 선택)
   ordinaryDailyWage?: number     // 1일 통상임금 (평균임금 하한 비교용, 선택)
@@ -204,24 +205,6 @@ export interface SeverancePayResult {
   usedOrdinaryWage: boolean
 }
 
-function daysBetween(start: string, end: string): number {
-  const s = new Date(start)
-  const e = new Date(end)
-  return Math.floor((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24))
-}
-
-// 퇴직일 이전 3개월의 실제 달력 일수. 월말은 대상 월의 마지막 날로 보정한다.
-function averageWagePeriodDays(endDate: string): number {
-  const end = new Date(`${endDate}T00:00:00Z`)
-  if (!Number.isFinite(end.getTime())) return 0
-  const targetMonth = end.getUTCMonth() - 3
-  const targetYear = end.getUTCFullYear() + Math.floor(targetMonth / 12)
-  const normalizedMonth = ((targetMonth % 12) + 12) % 12
-  const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate()
-  const start = new Date(Date.UTC(targetYear, normalizedMonth, Math.min(end.getUTCDate(), lastDay)))
-  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-}
-
 export function calculateSeverancePay(input: SeverancePayInput): SeverancePayResult {
   const {
     month1Pay, month2Pay, month3Pay,
@@ -232,8 +215,8 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
     weeklyHours = 40,
   } = input
 
-  const workingDays = daysBetween(startDate, endDate)
-  const ineligibleReason = workingDays < 365
+  const { workingDays, hasCompletedOneYear } = getSeveranceTenure(startDate, endDate)
+  const ineligibleReason = !hasCompletedOneYear
     ? 'UNDER_ONE_YEAR' as const
     : weeklyHours < 15
       ? 'UNDER_15_HOURS' as const
@@ -246,7 +229,7 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
     (annualBonus / 12) * 3 +
     (annualLeaveAllowance / 12) * 3
 
-  const threeMonthDays = averageWagePeriodDays(endDate)
+  const threeMonthDays = getAverageWagePeriod(endDate)?.days ?? 0
   const calculatedAverageDailyWage = threeMonthDays > 0 ? threeMonthTotal / threeMonthDays : 0
   const averageDailyWage = Math.max(calculatedAverageDailyWage, ordinaryDailyWage)
   const usedOrdinaryWage = ordinaryDailyWage > calculatedAverageDailyWage

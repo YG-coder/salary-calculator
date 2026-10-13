@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateUnemploymentBenefit, type UnemploymentBenefitResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, MIN_HOURLY_WAGE_2026 } from '@/lib/constants'
@@ -38,7 +40,9 @@ export default function UnemploymentBenefitCalculatorPage() {
   const [employmentMonths, setEmploymentMonths] = useState('')
   const [age, setAge]                           = useState('40')
   const [isDisabled, setIsDisabled]             = useState(false)
-  const [result, setResult]                     = useState<UnemploymentBenefitResult | null>(null)
+  const calculationInputs = { dailyWage, monthlyWage, useMonthly, employmentMonths, age, isDisabled }
+  const { result, setResult, isStale } =
+    useCalculationResult<UnemploymentBenefitResult, typeof calculationInputs>(calculationInputs)
 
   const computedDailyWage = useMonthly
     ? Math.floor(parseNum(monthlyWage) / 30)
@@ -50,7 +54,7 @@ export default function UnemploymentBenefitCalculatorPage() {
     const a  = Number(age) || 40
     if (!dw || !em) return
     setResult(calculateUnemploymentBenefit({ dailyWage: dw, employmentMonths: em, age: a, isDisabled }))
-  }, [computedDailyWage, employmentMonths, age, isDisabled])
+  }, [computedDailyWage, employmentMonths, age, isDisabled, setResult])
 
   const isValid = computedDailyWage > 0 && parseNum(employmentMonths) > 0
 
@@ -175,7 +179,6 @@ export default function UnemploymentBenefitCalculatorPage() {
                   type="button"
                   onClick={() => {
                     setIsDisabled(option.value)
-                    setResult(null)
                   }}
                   className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     isDisabled === option.value
@@ -197,6 +200,8 @@ export default function UnemploymentBenefitCalculatorPage() {
             실업급여 계산하기
           </button>
         </InputCard>
+
+        <CalculationNotice isStale={isStale} />
 
         {result && (
           <div className="space-y-4 animate-slide-up">

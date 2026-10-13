@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest'
 import { CALCULATOR_ROUTES, ROUTES } from '@/lib/routes'
 import { NAV_ITEMS, MORE_ITEMS } from '@/components/ui/Header'
 import { CALC_LINKS } from '@/components/ui/Footer'
-import { CALCULATORS } from '@/app/page'
+import { CALCULATORS } from '@/lib/homeData'
 import { SALARY_TOOLS } from '@/components/calculator/ToolPicker'
 
 const headerHrefs = [...NAV_ITEMS, ...MORE_ITEMS].map((i) => i.href)

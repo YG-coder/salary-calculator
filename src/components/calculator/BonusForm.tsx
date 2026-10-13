@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import {
   calculateBonusWithholding,
   type BonusWithholdingResult,
@@ -59,7 +61,9 @@ export default function BonusForm() {
   const [children, setChildren] = useState('0')
   const [usePrepaidInput, setUsePrepaidInput] = useState(false)
   const [prepaidTax, setPrepaidTax] = useState('')
-  const [result, setResult] = useState<BonusWithholdingResult | null>(null)
+  const calculationInputs = { bonus, monthlyPay, periodType, periodMonths, paymentMonth, hasPrevBonus, prevBonusMonth, dependents, children, usePrepaidInput, prepaidTax }
+  const { result, setResult, isStale } =
+    useCalculationResult<BonusWithholdingResult, typeof calculationInputs>(calculationInputs)
   const [submittedBonus, setSubmittedBonus] = useState(0)
 
   const bonusNum = parseAmount(bonus, MAX_BONUS_AMOUNT)
@@ -90,7 +94,7 @@ export default function BonusForm() {
     )
     setSubmittedBonus(b)
   }, [bonus, monthlyPay, periodType, periodMonths, paymentMonth, hasPrevBonus,
-      prevBonusMonth, dependents, children, usePrepaidInput, prepaidTax])
+      prevBonusMonth, dependents, children, usePrepaidInput, prepaidTax, setResult])
 
   return (
     <div className="space-y-6">
@@ -131,7 +135,7 @@ export default function BonusForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {PERIOD_OPTIONS.map((o) => (
               <button key={o.value} type="button"
-                onClick={() => { setPeriodType(o.value); setResult(null) }}
+                onClick={() => { setPeriodType(o.value) }}
                 className={`py-2.5 px-2 rounded-xl text-sm font-semibold border transition-all ${
                   periodType === o.value
                     ? 'bg-brand-600 border-brand-600 text-white'
@@ -148,7 +152,7 @@ export default function BonusForm() {
           <div>
             <label htmlFor="periodMonths" className="label">지급대상기간 월수</label>
             <select id="periodMonths" value={periodMonths}
-              onChange={(e) => { setPeriodMonths(e.target.value); setResult(null) }}
+              onChange={(e) => { setPeriodMonths(e.target.value) }}
               className="input-field">
               {MONTHS.map((m) => <option key={m} value={m}>{m}개월</option>)}
             </select>
@@ -167,7 +171,6 @@ export default function BonusForm() {
                   setPaymentMonth(e.target.value)
                   if (next <= 1) setHasPrevBonus(false)
                   if (Number(prevBonusMonth) >= next) setPrevBonusMonth(String(Math.max(1, next - 1)))
-                  setResult(null)
                 }}
                 className="input-field">
                 {MONTHS.map((m) => <option key={m} value={m}>{m}월</option>)}
@@ -178,14 +181,14 @@ export default function BonusForm() {
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
                 <input type="checkbox" checked={hasPrevBonus} disabled={paymentMonthNum <= 1}
-                  onChange={(e) => { setHasPrevBonus(e.target.checked); setResult(null) }}
+                  onChange={(e) => { setHasPrevBonus(e.target.checked) }}
                   className="h-4 w-4 rounded border-slate-300" />
                 올해 이미 받은 상여가 있습니다
               </label>
               {hasPrevBonus && (
                 <div className="mt-2">
                   <select value={prevBonusMonth}
-                    onChange={(e) => { setPrevBonusMonth(e.target.value); setResult(null) }}
+                    onChange={(e) => { setPrevBonusMonth(e.target.value) }}
                     className="input-field">
                     {previousMonthOptions.map((m) => (
                       <option key={m} value={m}>직전 상여 {m}월 수령</option>
@@ -210,7 +213,6 @@ export default function BonusForm() {
                   onClick={() => {
                     setDependents(String(n))
                     setChildren((c) => String(Math.min(Number(c) || 0, n - 1)))
-                    setResult(null)
                   }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     dependents === String(n)
@@ -225,7 +227,7 @@ export default function BonusForm() {
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button"
-                  onClick={() => { setChildren(String(n)); setResult(null) }}
+                  onClick={() => { setChildren(String(n)) }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     children === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white'
@@ -239,7 +241,7 @@ export default function BonusForm() {
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <input type="checkbox" checked={usePrepaidInput}
-              onChange={(e) => { setUsePrepaidInput(e.target.checked); setResult(null) }}
+              onChange={(e) => { setUsePrepaidInput(e.target.checked) }}
               className="h-4 w-4 rounded border-slate-300" />
             기납부세액을 직접 입력합니다
           </label>
@@ -269,6 +271,8 @@ export default function BonusForm() {
           </p>
         )}
       </div>
+
+      <CalculationNotice isStale={isStale} />
 
       {result && <BonusResult r={result} bonus={submittedBonus} />}
     </div>

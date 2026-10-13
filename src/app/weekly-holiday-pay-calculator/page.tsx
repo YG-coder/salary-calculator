@@ -5,6 +5,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useCalculationResult } from '@/hooks/useCalculationResult'
+import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateWeeklyHolidayPay, type WeeklyHolidayPayResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, MIN_HOURLY_WAGE_2026 } from '@/lib/constants'
@@ -44,23 +46,24 @@ export default function WeeklyHolidayPayCalculatorPage() {
   const [weeklyHours, setWeeklyHours] = useState('')
   const [hourlyWage, setHourlyWage] = useState('')
   const [fullAttendance, setFullAttendance] = useState<boolean | null>(null)
-  const [result, setResult] = useState<WeeklyHolidayPayResult | null>(null)
+  const calculationInputs = { weeklyHours, hourlyWage, fullAttendance }
+  const { result, setResult, isStale, submittedInput } =
+    useCalculationResult<WeeklyHolidayPayResult, typeof calculationInputs>(calculationInputs)
 
   const hoursInputComplete = weeklyHours !== '' && weeklyHours !== '-' && !weeklyHours.endsWith('.')
   const parsedWeeklyHours = hoursInputComplete ? Number(weeklyHours) : Number.NaN
   const hasValidWeeklyHours = Number.isFinite(parsedWeeklyHours) && parsedWeeklyHours > 0
-
-  const clearResult = () => setResult(null)
 
   const handleCalc = useCallback(() => {
     const wh = parsedWeeklyHours
     const hw = parseNum(hourlyWage) || MIN_HOURLY_WAGE
     if (!hasValidWeeklyHours || fullAttendance === null) return
     setResult(calculateWeeklyHolidayPay({ weeklyHours: wh, hourlyWage: hw, fullAttendance }))
-  }, [parsedWeeklyHours, hourlyWage, hasValidWeeklyHours, fullAttendance])
+  }, [parsedWeeklyHours, hourlyWage, hasValidWeeklyHours, fullAttendance, setResult])
 
   const wh = hasValidWeeklyHours ? parsedWeeklyHours : 0
-  const hw = parseNum(hourlyWage) || MIN_HOURLY_WAGE
+  const submittedHours = Number(submittedInput?.weeklyHours ?? 0)
+  const submittedHourlyWage = parseNum(submittedInput?.hourlyWage ?? '') || MIN_HOURLY_WAGE
   const isValid = hasValidWeeklyHours && fullAttendance !== null
 
   // 월 주휴수당 예상 (주 4.345주)
@@ -84,7 +87,6 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 value={weeklyHours}
                 onChange={(e) => {
                   setWeeklyHours(sanitizeHoursInput(e.target.value))
-                  clearResult()
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-10"
@@ -123,7 +125,6 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 value={hourlyWage}
                 onChange={(e) => {
                   setHourlyWage(formatNum(e.target.value))
-                  clearResult()
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-10"
@@ -147,7 +148,6 @@ export default function WeeklyHolidayPayCalculatorPage() {
                   type="button"
                   onClick={() => {
                     setFullAttendance(option.value)
-                    clearResult()
                   }}
                   className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     fullAttendance === option.value
@@ -170,6 +170,8 @@ export default function WeeklyHolidayPayCalculatorPage() {
           </button>
         </InputCard>
 
+        <CalculationNotice isStale={isStale} />
+
         {result && (
           <div className="space-y-4 animate-slide-up">
             {result.isEligible ? (
@@ -184,7 +186,7 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 <p className="text-base font-bold text-red-700 mb-1">주휴수당 미발생</p>
                 <p className="text-sm text-red-600">
                   {result.ineligibleReason === 'UNDER_15_HOURS'
-                    ? `주 ${wh}시간 근무 → 주 15시간 미만으로 주휴수당이 발생하지 않습니다.`
+                    ? `주 ${submittedHours}시간 근무 → 주 15시간 미만으로 주휴수당이 발생하지 않습니다.`
                     : '소정근로일 미개근으로 그 주의 주휴수당이 발생하지 않습니다.'}
                 </p>
               </div>
@@ -194,8 +196,8 @@ export default function WeeklyHolidayPayCalculatorPage() {
               <BreakdownCard
                 title="계산 내역"
                 items={[
-                  { label: '주 소정근로시간', value: `${wh}시간` },
-                  { label: '시간당 임금', value: formatKRW(hw) },
+                  { label: '주 소정근로시간', value: `${submittedHours}시간` },
+                  { label: '시간당 임금', value: formatKRW(submittedHourlyWage) },
                   { label: '주휴시간 (주 소정근로 ÷ 5, 최대 8시간)', value: `${result.weeklyHolidayHours}시간` },
                   { label: '주 주휴수당', value: formatKRW(result.weeklyHolidayPay), highlight: true, color: 'text-brand-700' },
                   { label: '월 예상 주휴수당 (×4.345주)', value: formatKRW(monthlyEstimate ?? 0) },
