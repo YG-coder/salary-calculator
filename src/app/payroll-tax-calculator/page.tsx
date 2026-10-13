@@ -52,7 +52,7 @@ export default function PayrollTaxCalculatorPage() {
   }, [monthlyGross, nonTaxable, dependents, children, setResult])
 
   const grossNum = parseNum(monthlyGross)
-  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, grossNum)
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, grossNum >= 100_000 ? grossNum : null)
   const isValid = grossNum >= 100_000 && !nonTaxableValidation.error
   const referenceRows = [2_000_000, 3_000_000, 4_000_000, 5_000_000, 7_000_000, 10_000_000].map((gross) => {
     const calculated = calculatePayrollTax({ monthlyGross: gross, nonTaxable: 0, dependents: 1 })

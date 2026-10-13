@@ -71,7 +71,7 @@ export default function SocialInsuranceCalculatorPage() {
   }, [monthlyGross, nonTaxable, employerEmploymentRate, industrialAccidentRate, setResult])
 
   const industrialRatePercent = parseIndustrialAccidentRatePercent(industrialAccidentRate)
-  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, parseNum(monthlyGross))
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, parseNum(monthlyGross) >= 100_000 ? parseNum(monthlyGross) : null)
   const isValid = parseNum(monthlyGross) >= 100_000 && industrialRatePercent !== null && !nonTaxableValidation.error
 
   return (

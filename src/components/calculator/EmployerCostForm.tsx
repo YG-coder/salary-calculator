@@ -53,7 +53,7 @@ export default function EmployerCostForm() {
   const salaryNum = parseAmount(annualSalary, MAX_SALARY)
   const ratePercent = parseIndustrialAccidentRatePercent(industrialRate)
   const hasIndustrialRate = industrialRate.trim() !== '' && ratePercent !== null
-  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(salaryNum / 12))
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, salaryNum >= 1_000_000 ? Math.floor(salaryNum / 12) : null)
   const isValid = salaryNum >= 1_000_000 && hasIndustrialRate && !nonTaxableValidation.error
 
   const handleCalc = useCallback(() => {

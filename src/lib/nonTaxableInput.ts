@@ -6,10 +6,10 @@ export interface NonTaxableValidation {
   warning: string | null
 }
 
-/** 월 비과세 입력 검증. 식대 한도는 전체 비과세 한도로 사용하지 않는다. */
+/** 월급 입력이 준비되지 않은 경우(null)는 금액 형식만 검증한다. */
 export function validateNonTaxableInput(
   raw: string,
-  monthlyGross: number,
+  monthlyGross: number | null,
   exceedsGrossMessage = NON_TAXABLE_EXCEEDS_GROSS,
 ): NonTaxableValidation {
   const digits = raw.trim().replace(/,/g, '')
@@ -17,10 +17,10 @@ export function validateNonTaxableInput(
   if (!Number.isSafeInteger(amount) || amount < 0) {
     return { error: '월 비과세 금액을 유효한 원 단위 금액으로 입력해 주세요.', warning: null }
   }
-  if (!Number.isSafeInteger(monthlyGross) || monthlyGross < 0) {
+  if (monthlyGross !== null && (!Number.isSafeInteger(monthlyGross) || monthlyGross < 0)) {
     return { error: '월 세전 급여를 올바른 금액으로 입력해 주세요.', warning: null }
   }
-  if (amount > monthlyGross) return { error: exceedsGrossMessage, warning: null }
+  if (monthlyGross !== null && amount > monthlyGross) return { error: exceedsGrossMessage, warning: null }
 
   return {
     error: null,

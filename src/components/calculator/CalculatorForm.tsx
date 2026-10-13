@@ -81,7 +81,7 @@ export default function CalculatorForm() {
 
   const salaryNum     = parseNumberInput(annualSalary)
   const nonTaxableNum = parseNumberInput(nonTaxable)
-  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(salaryNum / 12))
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, salaryNum >= 1_000_000 ? Math.floor(salaryNum / 12) : null)
   const isValid       = salaryNum >= 1_000_000 && !nonTaxableValidation.error
 
   return (

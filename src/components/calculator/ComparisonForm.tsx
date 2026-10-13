@@ -47,7 +47,7 @@ export default function ComparisonForm() {
 
   const a = parseNumberInput(salaryA, MAX_SALARY)
   const b = parseNumberInput(salaryB, MAX_SALARY)
-  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, Math.floor(Math.min(a, b) / 12), '월 비과세 금액은 연봉 A와 B 각각의 월 세전 급여를 초과할 수 없습니다.')
+  const nonTaxableValidation = validateNonTaxableInput(nonTaxable, a >= MIN_SALARY && b >= MIN_SALARY ? Math.floor(Math.min(a, b) / 12) : null, '월 비과세 금액은 연봉 A와 B 각각의 월 세전 급여를 초과할 수 없습니다.')
   const isValid = a >= MIN_SALARY && b >= MIN_SALARY && !nonTaxableValidation.error
 
   const handleCalculate = useCallback(() => {
