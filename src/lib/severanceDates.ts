@@ -38,3 +38,34 @@ export function getSeveranceTenure(startDate: string, retirementDate: string) {
     hasCompletedOneYear: end >= anniversary,
   }
 }
+
+/**
+ * 평균임금의 직전 3개월. 고용노동부 계산기 실행값·공개 코드 대조(2026-10-14).
+ * 3개월 전이 2월이고 대응일이 없으면 3월 1일부터 센다.
+ * 다른 월은 해당 월 말일로 보정한다(예: 12/31 퇴직 → 9/30 시작).
+ * 출처: https://1350.moel.go.kr/home/hp/retirementpaycal/js/retire_cal.js
+ * endDate는 재직기간에서 제외되는 퇴직일이다.
+ */
+export function getAverageWagePeriod(endDate: string) {
+  const end = parseCalendarDate(endDate)
+  if (end === null) return null
+
+  const start = new Date(end)
+  start.setUTCDate(1)
+  start.setUTCMonth(start.getUTCMonth() - 3)
+  const monthEnd = new Date(start)
+  monthEnd.setUTCMonth(monthEnd.getUTCMonth() + 1)
+  monthEnd.setUTCDate(0)
+  const targetDay = end.getUTCDate()
+  if (start.getUTCMonth() === 1 && targetDay > monthEnd.getUTCDate()) {
+    start.setUTCMonth(start.getUTCMonth() + 1)
+  } else {
+    start.setUTCDate(Math.min(targetDay, monthEnd.getUTCDate()))
+  }
+
+  return {
+    startDate: start.toISOString().slice(0, 10),
+    endDate,
+    days: Math.round((end.getTime() - start.getTime()) / DAY_MS),
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { calculateSeverancePay, type SeverancePayInput } from '@/lib/calculators'
-import { getRetirementDate, getSeveranceTenure } from '@/lib/severanceDates'
+import { getAverageWagePeriod, getRetirementDate, getSeveranceTenure } from '@/lib/severanceDates'
 
 const BASE: SeverancePayInput = {
   month1Pay: 3_000_000,
@@ -87,8 +87,8 @@ describe('퇴직금 금액 및 평균임금 회귀', () => {
   it.each([
     ['2025-05-01', 89],
     ['2024-05-01', 90],
-    ['2025-05-31', 92],
-    ['2024-05-31', 92],
+    ['2025-05-31', 91],
+    ['2024-05-31', 91],
   ])('퇴직일 %s의 직전 3개월은 %i일', (endDate, days) => {
     const result = calculateSeverancePay({ ...BASE, startDate: '2020-01-01', endDate })
     expect(result.averageWagePeriodDays).toBe(days)
@@ -106,5 +106,28 @@ describe('퇴직금 금액 및 평균임금 회귀', () => {
     const result = calculateSeverancePay({ ...BASE, weeklyHours })
     expect(result.isEligible).toBe(eligible)
     expect(result.ineligibleReason).toBe(eligible ? null : 'UNDER_15_HOURS')
+  })
+})
+
+describe('고용노동부 계산기의 산정 기간과 대조', () => {
+  // 2026-10-14 공식 화면에서 평균임금계산 기간보기로 확인한 독립 기준값.
+  // https://1350.moel.go.kr/home/hp/retirementpaycal/retirementpaycal.jsp
+  // 공개 코드에서도 평년 5/29~31, 윤년 5/30~31의 2월 제외 분기를 확인했다.
+  it.each([
+    ['2025-05-28', '2025-02-28', 89],
+    ['2025-05-29', '2025-03-01', 89],
+    ['2025-05-30', '2025-03-01', 90],
+    ['2025-05-31', '2025-03-01', 91],
+    ['2025-12-31', '2025-09-30', 92],
+    ['2024-05-29', '2024-02-29', 90],
+    ['2024-05-30', '2024-03-01', 90],
+    ['2024-05-31', '2024-03-01', 91],
+  ])('퇴직일 %s → 시작일 %s, %i일', (endDate, startDate, days) => {
+    expect(getAverageWagePeriod(endDate)).toEqual({ startDate, endDate, days })
+    expect(calculateSeverancePay({ ...BASE, startDate: '2020-01-01', endDate }).averageWagePeriodDays).toBe(days)
+  })
+
+  it.each(['', 'invalid', '2025-02-30'])('잘못된 퇴직일 %s로 산정 기간을 만들지 않는다', (value) => {
+    expect(getAverageWagePeriod(value)).toBeNull()
   })
 })

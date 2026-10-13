@@ -12,7 +12,7 @@ import {
   type AnnualLeaveTenureCategory,
 } from './policy/annualLeave'
 import { calculateSalary } from './salary'
-import { getSeveranceTenure } from './severanceDates'
+import { getAverageWagePeriod, getSeveranceTenure } from './severanceDates'
 
 function floor10(n: number): number {
   return Math.floor(n / 10) * 10
@@ -205,18 +205,6 @@ export interface SeverancePayResult {
   usedOrdinaryWage: boolean
 }
 
-// 퇴직일 이전 3개월의 실제 달력 일수. 월말은 대상 월의 마지막 날로 보정한다.
-function averageWagePeriodDays(endDate: string): number {
-  const end = new Date(`${endDate}T00:00:00Z`)
-  if (!Number.isFinite(end.getTime())) return 0
-  const targetMonth = end.getUTCMonth() - 3
-  const targetYear = end.getUTCFullYear() + Math.floor(targetMonth / 12)
-  const normalizedMonth = ((targetMonth % 12) + 12) % 12
-  const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate()
-  const start = new Date(Date.UTC(targetYear, normalizedMonth, Math.min(end.getUTCDate(), lastDay)))
-  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-}
-
 export function calculateSeverancePay(input: SeverancePayInput): SeverancePayResult {
   const {
     month1Pay, month2Pay, month3Pay,
@@ -241,7 +229,7 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
     (annualBonus / 12) * 3 +
     (annualLeaveAllowance / 12) * 3
 
-  const threeMonthDays = averageWagePeriodDays(endDate)
+  const threeMonthDays = getAverageWagePeriod(endDate)?.days ?? 0
   const calculatedAverageDailyWage = threeMonthDays > 0 ? threeMonthTotal / threeMonthDays : 0
   const averageDailyWage = Math.max(calculatedAverageDailyWage, ordinaryDailyWage)
   const usedOrdinaryWage = ordinaryDailyWage > calculatedAverageDailyWage
