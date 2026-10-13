@@ -28,7 +28,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
   const pensionRate = getPensionRate()
   const { monthlyGross, monthlyNet, annualNet, annualDeduction, breakdown } = result
 
-  const effectiveRate =
+  const totalDeductionRate =
     annualSalary > 0
       ? ((annualDeduction / annualSalary) * 100).toFixed(1)
       : '0'
@@ -97,10 +97,13 @@ export default function ResultCard({ result, annualSalary }: Props) {
         <div className="mt-4 pt-4 border-t border-white/20 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sky-100">
           <span>월 세전 {formatKRW(monthlyGross)}</span>
           <span className="hidden sm:inline w-px h-3 bg-sky-400/60" />
-          <span>실효세율 {effectiveRate}%</span>
+          <span>총 공제율 {totalDeductionRate}%</span>
           <span className="hidden sm:inline w-px h-3 bg-sky-400/60" />
           <span>월 공제 {formatKRW(breakdown.totalDeduction)}</span>
         </div>
+        <p className="mt-2 text-xs text-sky-100">
+          총 공제율은 연 총 공제액을 비과세를 포함한 세전 연봉으로 나눈 값입니다.
+        </p>
       </div>
 
       {/* 연 실수령 + 연 공제 */}

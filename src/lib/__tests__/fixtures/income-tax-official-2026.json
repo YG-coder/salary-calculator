@@ -1,0 +1,192 @@
+{
+  "source": {
+    "title": "소득세법 시행령 별표 2 <개정 2026. 2. 27.>",
+    "lawUrl": "https://www.law.go.kr/lsBylInfoPLinkR.do?bylBrNo=00&bylCls=BE&bylNo=0002&lsiSeq=290841",
+    "pdfUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=169798151",
+    "ntsExampleUrl": "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7862&mi=6426",
+    "sha256": "f284aa58f948f0819d56ffab3139dc49b51305463ceaded85f1547de3c3359ab",
+    "verifiedAt": "2026-10-14",
+    "notes": "PDF 13페이지 표와 1페이지 자녀공제를 이미지로 대조. 국세청 사례 페이지의 3500~3520천원 구간 1~6명 값도 일치. 해당 국세청 페이지의 자녀공제 설명은 개정 전 금액이므로 자녀공제는 최신 법령 별표 적용."
+  },
+  "rows": [
+    {
+      "minMonthly": 770000,
+      "maxMonthlyExclusive": 775000,
+      "taxByFamily": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pdfPage": 2
+    },
+    {
+      "minMonthly": 1060000,
+      "maxMonthlyExclusive": 1065000,
+      "taxByFamily": [
+        1040,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pdfPage": 4
+    },
+    {
+      "minMonthly": 1500000,
+      "maxMonthlyExclusive": 1510000,
+      "taxByFamily": [
+        8920,
+        4420,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pdfPage": 7
+    },
+    {
+      "minMonthly": 2830000,
+      "maxMonthlyExclusive": 2840000,
+      "taxByFamily": [
+        59370,
+        41870,
+        26170,
+        20920,
+        16770,
+        13400,
+        10020,
+        6650,
+        3270,
+        0,
+        0
+      ],
+      "pdfPage": 13
+    },
+    {
+      "minMonthly": 2840000,
+      "maxMonthlyExclusive": 2850000,
+      "taxByFamily": [
+        60230,
+        42730,
+        26500,
+        21250,
+        16980,
+        13610,
+        10230,
+        6860,
+        3480,
+        0,
+        0
+      ],
+      "pdfPage": 13
+    },
+    {
+      "minMonthly": 3000000,
+      "maxMonthlyExclusive": 3020000,
+      "taxByFamily": [
+        74350,
+        56850,
+        31940,
+        26690,
+        21440,
+        17100,
+        13730,
+        10350,
+        6980,
+        3600,
+        0
+      ],
+      "pdfPage": 13
+    },
+    {
+      "minMonthly": 3500000,
+      "maxMonthlyExclusive": 3520000,
+      "taxByFamily": [
+        127220,
+        102220,
+        62460,
+        49340,
+        37630,
+        32380,
+        27130,
+        21880,
+        17390,
+        14010,
+        10640
+      ],
+      "pdfPage": 14
+    },
+    {
+      "minMonthly": 5000000,
+      "maxMonthlyExclusive": 5020000,
+      "taxByFamily": [
+        335470,
+        306710,
+        237850,
+        219100,
+        200350,
+        181600,
+        162850,
+        144100,
+        125350,
+        106600,
+        87850
+      ],
+      "pdfPage": 17
+    },
+    {
+      "minMonthly": 9980000,
+      "maxMonthlyExclusive": 10000000,
+      "taxByFamily": [
+        1503990,
+        1428170,
+        1198650,
+        1168650,
+        1138650,
+        1108650,
+        1078650,
+        1048650,
+        1018650,
+        988650,
+        958650
+      ],
+      "pdfPage": 27
+    }
+  ],
+  "at10m": {
+    "monthlyTaxable": 10000000,
+    "taxByFamily": [
+      1507400,
+      1431570,
+      1200840,
+      1170840,
+      1140840,
+      1110840,
+      1080840,
+      1050840,
+      1020840,
+      990840,
+      960840
+    ],
+    "pdfPage": 27
+  }
+}

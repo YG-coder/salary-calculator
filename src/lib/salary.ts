@@ -15,6 +15,7 @@
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
 import { RATES } from './constants'
 import { calculateNationalPension } from './pension'
+import { calculateEmployeeEmploymentInsurance } from './employmentInsurance'
 import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
@@ -96,7 +97,7 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
   const longTermCare = floor10(healthInsurance * RATES.longTermCare)
 
   // ── 고용보험 ─────────────────────────────────────────────
-  const employment = floor10(monthlyTaxable * RATES.employment)
+  const employment = calculateEmployeeEmploymentInsurance(monthlyTaxable)
 
   // ── 소득세 (근로소득 간이세액표 기준, src/lib/incomeTax.ts) ───
   // asOfDate를 그대로 전달해 자녀세액공제 신/구 금액을 2026.3.1 기준으로 분기합니다.

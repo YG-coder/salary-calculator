@@ -4,6 +4,7 @@
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
 import { RATES, MIN_HOURLY_WAGE_2026 } from './constants'
 import { calculateNationalPension } from './pension'
+import { calculateEmployeeEmploymentInsurance } from './employmentInsurance'
 import { DEFAULT_EMPLOYER_EMPLOYMENT_RATE } from './policy/socialInsurance'
 import {
   ANNUAL_LEAVE_BASE_DAYS,
@@ -81,7 +82,7 @@ export function calculateSocialInsurance(
   const longTermCare = floor10(healthInsurance * RATES.longTermCare)
 
   // 고용보험 (근로자 0.9%)
-  const employment = floor10(monthlyTaxable * RATES.employment)
+  const employment = calculateEmployeeEmploymentInsurance(monthlyTaxable)
 
   // 산재보험 (사업주 전액 부담, 업종별 고용노동부령 — 호출부가 요율을 넘긴다)
   const safeIndustrialRate =
