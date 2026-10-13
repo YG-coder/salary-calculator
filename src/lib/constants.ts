@@ -1,16 +1,15 @@
 // src/lib/constants.ts
 // ────────────────────────────────────────────────────────────
 // 2026년 기준 보험료율 및 세율 상수
-// 매년 고시되는 요율이 변경되면 이 파일만 수정하세요.
+// 정책 연도는 policyYear.ts, 요율·상하한은 이 파일, 간이세액표는 data/에서 갱신합니다.
 // ────────────────────────────────────────────────────────────
 
 import { SITE } from '@/lib/site'
+import { TAX_YEAR_AS_OF, getKoreanYear } from './policyYear'
 
 export { SITE }
 
-export const TAX_YEAR = 2026
-/** TAX_YEAR 기준 정적 콘텐츠 계산일. 한국시간 연말 정오로 고정해 빌드 시각의 영향을 없앱니다. */
-export const TAX_YEAR_AS_OF = new Date(`${TAX_YEAR}-12-31T12:00:00+09:00`)
+export { TAX_YEAR, TAX_YEAR_AS_OF, TAX_YEAR_AS_OF_LABEL } from './policyYear'
 
 // ── 4대보험 근로자 부담 요율 ────────────────────────────────
 export const RATES = {
@@ -70,12 +69,10 @@ export const PENSION_RATE_PERIODS: readonly PensionRatePeriod[] = [
 ] as const
 
 /** 계산 기준일에 적용되는 사업장가입자 근로자·사용자 각각의 국민연금 부담률을 반환합니다. */
-export function getPensionRate(date: Date = new Date()): number {
+export function getPensionRate(date: Date = TAX_YEAR_AS_OF): number {
   // Vercel 서버는 UTC이므로 Date#getFullYear()를 쓰면 한국시간 1월 1일 00:00~08:59에
   // 전년도 요율을 반환할 수 있습니다. 법정 시행일은 대한민국 표준시 기준입니다.
-  const year = Number(
-    new Intl.DateTimeFormat('en', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(date),
-  )
+  const year = getKoreanYear(date)
   return getPensionRateForYear(year)
 }
 
@@ -101,6 +98,8 @@ export function getPensionRateForYear(year: number): number {
 export interface PensionLimitPeriod {
   /** 이 값의 적용이 시작되는 날짜 (YYYY-MM-DD, 해당일 포함) */
   effectiveFrom: string
+  /** 적용 종료일의 다음 날 (해당일 제외) */
+  effectiveUntil: string
   /** 기준소득월액 하한 (원) */
   min: number
   /** 기준소득월액 상한 (원) */
@@ -115,33 +114,34 @@ export interface PensionLimitPeriod {
  * (과거 시점 계산 재현 및 상/하반기 비교 안내에 필요합니다).
  */
 export const PENSION_LIMIT_PERIODS: readonly PensionLimitPeriod[] = [
-  { effectiveFrom: '2025-07-01', min: 400_000, max: 6_370_000, label: '2025.7.1~2026.6.30' },
-  { effectiveFrom: '2026-07-01', min: 410_000, max: 6_590_000, label: '2026.7.1~2027.6.30' },
+  { effectiveFrom: '2025-07-01', effectiveUntil: '2026-07-01', min: 400_000, max: 6_370_000, label: '2025.7.1~2026.6.30' },
+  { effectiveFrom: '2026-07-01', effectiveUntil: '2027-07-01', min: 410_000, max: 6_590_000, label: '2026.7.1~2027.6.30' },
 ] as const
+
+const pensionLimitIntervals = PENSION_LIMIT_PERIODS.map(period => ({
+  ...period,
+  start: new Date(`${period.effectiveFrom}T00:00:00+09:00`).getTime(),
+  end: new Date(`${period.effectiveUntil}T00:00:00+09:00`).getTime(),
+}))
 
 /**
  * 특정 시점(date)에 적용되는 국민연금 기준소득월액 상·하한을 반환합니다.
- * date를 생략하면 함수 호출 시점(new Date())을 기준으로 판단합니다.
+ * date를 생략하면 TAX_YEAR_AS_OF로 고정합니다. 미고시 기간은 계산하지 않습니다.
  *
  * ⚠️ 계산 로직에서는 반드시 이 함수를 사용하세요. "2026년이니까 X원" 처럼
  * 연도만으로 판단하면 2026년 1~6월 계산에 7월 이후 값이 잘못 적용됩니다.
  */
-export function getPensionLimits(date: Date = new Date()): { min: number; max: number; label: string } {
-  let matched: PensionLimitPeriod = PENSION_LIMIT_PERIODS[0]
-  for (const period of PENSION_LIMIT_PERIODS) {
-    if (date >= new Date(`${period.effectiveFrom}T00:00:00+09:00`)) {
-      matched = period
-    }
-  }
+export function getPensionLimits(date: Date = TAX_YEAR_AS_OF): { min: number; max: number; label: string } {
+  const time = date.getTime()
+  const matched = pensionLimitIntervals.find(period => time >= period.start && time < period.end)
+  if (!matched) throw new RangeError('해당 기준일의 국민연금 상·하한 데이터가 없습니다. 고시값을 갱신해 주세요.')
   return { min: matched.min, max: matched.max, label: matched.label }
 }
 
 /**
- * @deprecated 값이 적용 시점에 따라 달라지므로 실수령액 계산 로직에서는 이 상수 대신
- * getPensionLimits(date)를 사용하세요. 이 상수는 모듈 로드 시점(빌드/서버 기동 시각)
- * 기준 값으로 고정되므로, 안내 문구 등 "현재 시점 참고용" 정적 표시에만 사용합니다.
+ * 화면 안내용 TAX_YEAR_AS_OF의 상·하한. 계산 시 명시한 기준일은 getPensionLimits로 조회합니다.
  */
-export const PENSION_LIMITS = getPensionLimits()
+export const PENSION_LIMITS = getPensionLimits(TAX_YEAR_AS_OF)
 
 // ── 소득세 누진세율 구간 [과세표준 상한, 세율, 누진공제액] ─────
 // ℹ️ 참고: 매월 원천징수 소득세 계산(src/lib/incomeTax.ts)은 이 브라켓을 직접

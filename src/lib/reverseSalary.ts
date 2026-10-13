@@ -18,6 +18,7 @@
 //      (화면의 모든 숫자가 하나의 연봉에서 나오도록 정합성을 맞춘다.)
 // ────────────────────────────────────────────────────────────
 
+import { TAX_YEAR_AS_OF } from './policyYear'
 import { calculateSalary, type SalaryInput, type SalaryResult } from './salary'
 
 export interface ReverseSalaryInput {
@@ -64,7 +65,7 @@ function nearestSalaryPage(annualSalary: number): number {
 
 export function calculateReverseSalary(
   input: ReverseSalaryInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): ReverseSalaryResult {
   const nonTaxable = input.nonTaxable ?? 0
   const dependents = input.dependents ?? 1

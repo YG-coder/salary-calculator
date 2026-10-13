@@ -12,6 +12,7 @@
 //    설계 근거: docs/employer-cost-policy.md
 // ────────────────────────────────────────────────────────────
 
+import { TAX_YEAR_AS_OF } from './policyYear'
 import { calculateSalary, type SalaryBreakdown } from './salary'
 import { calculateSocialInsurance } from './calculators'
 
@@ -83,7 +84,7 @@ function toSafeNonNegative(value: number, max = Number.MAX_SAFE_INTEGER): number
 
 export function calculateEmployerCost(
   input: EmployerCostInput,
-  asOfDate: Date = new Date(),
+  asOfDate: Date = TAX_YEAR_AS_OF,
 ): EmployerCostResult {
   const annualSalary = toSafeNonNegative(input.annualSalary)
   const nonTaxable = toSafeNonNegative(input.nonTaxable ?? 0)

@@ -12,7 +12,7 @@ import EmployerCostForm from '@/components/calculator/EmployerCostForm'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
-import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/constants'
 
 const PATH = '/employer-cost-calculator'
 
@@ -46,7 +46,7 @@ export default function Page() {
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">기업 총 인건비 계산기</h1>
       <p className="text-gray-500 mb-6">
-        {TAX_YEAR}년 기준 · 연봉 외에 회사가 추가로 부담하는 금액
+        {TAX_YEAR_AS_OF_LABEL} · 연봉 외에 회사가 추가로 부담하는 금액
       </p>
 
       <div className="mt-6">

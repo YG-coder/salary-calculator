@@ -12,7 +12,7 @@ import BonusForm from '@/components/calculator/BonusForm'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
-import { SITE_URL, SITE_NAME, TAX_YEAR } from '@/lib/constants'
+import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/constants'
 import { MAX_BONUS_PERIOD_MONTHS } from '@/lib/policy/bonus'
 
 const PATH = '/bonus-withholding-calculator'
@@ -48,7 +48,7 @@ export default function Page() {
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">상여금 원천징수 계산기</h1>
       <p className="text-gray-500 mb-6">
-        {TAX_YEAR}년 기준 · 성과급·명절상여에서 떼는 세금과 실수령액
+        {TAX_YEAR_AS_OF_LABEL} · 성과급·명절상여에서 떼는 세금과 실수령액
       </p>
 
       <div className="mt-6">
