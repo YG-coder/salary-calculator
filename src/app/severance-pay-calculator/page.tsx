@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateSeverancePay, type SeverancePayResult } from '@/lib/calculators'
+import { getRetirementDate, getSeveranceTenure } from '@/lib/severanceDates'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR } from '@/lib/constants'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
@@ -33,37 +34,39 @@ export default function SeverancePayCalculatorPage() {
   const [month2, setMonth2] = useState('')
   const [month3, setMonth3] = useState('')
   const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [lastWorkingDate, setLastWorkingDate] = useState('')
   const [bonus, setBonus] = useState('')
   const [annualLeaveAllowance, setAnnualLeaveAllowance] = useState('')
   const [ordinaryDailyWage, setOrdinaryDailyWage] = useState('')
   const [weeklyHours, setWeeklyHours] = useState('40')
-  const calculationInputs = { month1, month2, month3, startDate, endDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours }
-  const { result, setResult, isStale } =
+  const calculationInputs = { month1, month2, month3, startDate, lastWorkingDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours }
+  const { result, setResult, isStale, submittedInput } =
     useCalculationResult<SeverancePayResult, typeof calculationInputs>(calculationInputs)
+  const retirementDate = getRetirementDate(lastWorkingDate)
+  const validDateRange = retirementDate !== null &&
+    getSeveranceTenure(startDate, retirementDate).workingDays > 0
 
   const handleCalc = useCallback(() => {
     const m1 = parseNum(month1)
     const m2 = parseNum(month2)
     const m3 = parseNum(month3)
-    if (!m1 || !m2 || !m3 || !startDate || !endDate) return
-    if (new Date(endDate) <= new Date(startDate)) return
+    if (!m1 || !m2 || !m3 || !retirementDate || !validDateRange) return
 
     setResult(calculateSeverancePay({
       month1Pay: m1,
       month2Pay: m2,
       month3Pay: m3,
       startDate,
-      endDate,
+      endDate: retirementDate,
       annualBonus: parseNum(bonus),
       annualLeaveAllowance: parseNum(annualLeaveAllowance),
       ordinaryDailyWage: parseNum(ordinaryDailyWage),
       weeklyHours: parseNum(weeklyHours),
     }))
-  }, [month1, month2, month3, startDate, endDate, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours, setResult])
+  }, [month1, month2, month3, startDate, retirementDate, validDateRange, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours, setResult])
 
   const isValid = parseNum(month1) > 0 && parseNum(month2) > 0 && parseNum(month3) > 0 &&
-    parseNum(weeklyHours) > 0 && !!startDate && !!endDate && new Date(endDate) > new Date(startDate)
+    parseNum(weeklyHours) > 0 && validDateRange
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -75,8 +78,9 @@ export default function SeverancePayCalculatorPage() {
           {/* 재직 기간 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">입사일 <span className="text-red-400">*</span></label>
+              <label htmlFor="startDate" className="label">입사일 <span className="text-red-400">*</span></label>
               <input
+                id="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -84,15 +88,22 @@ export default function SeverancePayCalculatorPage() {
               />
             </div>
             <div>
-              <label className="label">퇴직일 <span className="text-red-400">*</span></label>
+              <label htmlFor="lastWorkingDate" className="label">마지막 근무일 <span className="text-red-400">*</span></label>
               <input
+                id="lastWorkingDate"
                 type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                value={lastWorkingDate}
+                onChange={(e) => setLastWorkingDate(e.target.value)}
+                aria-describedby="last-working-date-hint"
                 className="input-field"
               />
             </div>
           </div>
+          <p id="last-working-date-hint" className="hint">
+            주말·휴일을 포함해 근로관계가 유지된 마지막 날을 입력하세요.
+            퇴직일은 그 다음 날로 계산합니다.
+            {retirementDate && <span className="block">계산에 사용하는 퇴직일: {retirementDate}</span>}
+          </p>
 
           {/* 최근 3개월 급여 */}
           <div>
@@ -202,7 +213,7 @@ export default function SeverancePayCalculatorPage() {
                 <p className="text-base font-bold text-red-700 mb-1">퇴직금 지급 요건 미충족</p>
                 <p className="text-sm text-red-600">
                   {result.ineligibleReason === 'UNDER_ONE_YEAR'
-                    ? `재직일수 ${result.workingDays}일 · 퇴직금은 1년(365일) 이상 재직 시 지급됩니다.`
+                    ? `재직일수 ${result.workingDays}일 · 퇴직금은 달력 기준으로 1년 이상 계속 근무해야 지급됩니다. 윤년에는 1년이 366일일 수 있습니다.`
                     : '4주 평균 주 소정근로시간이 15시간 미만이면 법정 퇴직금 대상이 아닙니다.'}
                 </p>
               </div>
@@ -213,6 +224,7 @@ export default function SeverancePayCalculatorPage() {
                 title="계산 내역"
                 items={[
                   { label: '재직일수', value: `${result.workingDays.toLocaleString()}일` },
+                  { label: '계산에 사용한 퇴직일', value: getRetirementDate(submittedInput?.lastWorkingDate ?? '') ?? '' },
                   { label: '평균임금 산정기간', value: `퇴직 전 3개월 · ${result.averageWagePeriodDays}일` },
                   { label: '산정 평균임금', value: formatKRW(Math.round(result.calculatedAverageDailyWage)) },
                   { label: '1일 평균임금', value: formatKRW(Math.round(result.averageDailyWage)) },
@@ -249,7 +261,8 @@ export default function SeverancePayCalculatorPage() {
                 <>
                   <p>
                     퇴직금을 받으려면 다음 두 가지 요건을 모두 충족해야 합니다.
-                    첫째, 계속근로기간이 1년(365일) 이상이어야 합니다. 수습기간, 인턴 기간도
+                    첫째, 계속근로기간이 달력 기준으로 1년 이상이어야 합니다. 윤년에는
+                    1년이 366일일 수 있습니다. 수습기간, 인턴 기간도
                     실제로 근로를 제공했다면 계속근로기간에 포함됩니다. 둘째, 4주 평균 1주
                     소정근로시간이 15시간 이상이어야 합니다. 따라서 주 15시간 미만 단시간
                     근로자는 1년 이상 근무하더라도 법정 퇴직금 지급 대상이 아닙니다.
@@ -342,6 +355,14 @@ export default function SeverancePayCalculatorPage() {
             ],
           }}
           legalBasis={[
+            {
+              label: '고용노동부 퇴직금 계산기 — 퇴직일은 마지막 근무일의 다음 날',
+              href: 'https://1350.moel.go.kr/home/hp/retirementpaycal/retirementpaycal.jsp',
+            },
+            {
+              label: '민법 제160조 — 연 단위 기간은 달력으로 계산',
+              href: 'https://www.law.go.kr/LSW/lsLinkProc.do?efYd=20240101&joNo=016000&lsNm=%EB%AF%BC%EB%B2%95&mode=11',
+            },
             { label: '근로자퇴직급여 보장법 제8조 (퇴직금제도의 설정)' },
             { label: '근로자퇴직급여 보장법 제9조 (퇴직금의 지급)' },
             { label: '근로기준법 제2조 제2항 (평균임금 보호조항)' },

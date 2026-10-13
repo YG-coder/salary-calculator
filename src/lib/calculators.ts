@@ -12,6 +12,7 @@ import {
   type AnnualLeaveTenureCategory,
 } from './policy/annualLeave'
 import { calculateSalary } from './salary'
+import { getSeveranceTenure } from './severanceDates'
 
 function floor10(n: number): number {
   return Math.floor(n / 10) * 10
@@ -186,7 +187,7 @@ export interface SeverancePayInput {
   month2Pay: number     // 2개월 전
   month3Pay: number     // 1개월 전 (최근)
   startDate: string     // 입사일 (YYYY-MM-DD)
-  endDate: string       // 퇴직일 (YYYY-MM-DD)
+  endDate: string       // 퇴직일: 마지막 근무일의 다음 날, 재직기간에 미포함 (YYYY-MM-DD)
   annualBonus?: number           // 연간 상여금 (원, 선택)
   annualLeaveAllowance?: number  // 연차수당 (원, 선택)
   ordinaryDailyWage?: number     // 1일 통상임금 (평균임금 하한 비교용, 선택)
@@ -202,12 +203,6 @@ export interface SeverancePayResult {
   isEligible: boolean       // 지급 요건 충족 여부 (1년 이상)
   ineligibleReason: 'UNDER_ONE_YEAR' | 'UNDER_15_HOURS' | null
   usedOrdinaryWage: boolean
-}
-
-function daysBetween(start: string, end: string): number {
-  const s = new Date(start)
-  const e = new Date(end)
-  return Math.floor((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24))
 }
 
 // 퇴직일 이전 3개월의 실제 달력 일수. 월말은 대상 월의 마지막 날로 보정한다.
@@ -232,8 +227,8 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
     weeklyHours = 40,
   } = input
 
-  const workingDays = daysBetween(startDate, endDate)
-  const ineligibleReason = workingDays < 365
+  const { workingDays, hasCompletedOneYear } = getSeveranceTenure(startDate, endDate)
+  const ineligibleReason = !hasCompletedOneYear
     ? 'UNDER_ONE_YEAR' as const
     : weeklyHours < 15
       ? 'UNDER_15_HOURS' as const
