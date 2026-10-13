@@ -4,11 +4,11 @@
 //
 // 목표를 만족하는 최소 연봉을 만원 단위 그리드에서 직접 찾는다. 간이세액표의
 // 계단 구조 때문에 실수령액 함수가 일부 구간에서 비단조이므로, 단조성을 전제하는
-// 이분탐색은 사용하지 않고 0원부터 선형 스캔하여 최초로 목표 이상이 되는 연봉을
+// 이분탐색은 사용하지 않고 비과세 조건이 성립하는 연봉부터 스캔하여 최초로 목표 이상이 되는 연봉을
 // 반환한다.
 //
 // 절차:
-//   1. 만원 그리드를 0부터 선형 스캔하여 net >= target인 최소 연봉을 찾는다.
+//   1. 월 비과세가 월 세전 이하인 첫 만원 그리드부터 스캔해 최소 연봉을 찾는다.
 //      net(gross)은 만원 그리드에서도 단조 비감소가 아니다(간이세액표 계단 함수
 //      때문에 특정 경계에서 연봉이 올라도 실수령이 감소하는 지점이 있다 — 전수
 //      스캔으로 확인). 그러나 "최초로 목표 이상이 되는 연봉"은 정의상 최소값이므로
@@ -50,7 +50,8 @@ export interface ReverseSalaryResult {
   reachable: boolean
 }
 
-const HI_BOUND = 500_000_000 // 연 5억 (최소 입력 기준 월 실수령 약 2,400만원까지 도달 가능; 선형 스캔 상한)
+export const MAX_REVERSE_ANNUAL_SALARY = 500_000_000
+const HI_BOUND = MAX_REVERSE_ANNUAL_SALARY // 연 5억 (선형 스캔 상한)
 const NEAREST_PAGE_STEP = 500 // /salary 페이지 간격 (만원)
 const NEAREST_PAGE_MIN = 2000
 const NEAREST_PAGE_MAX = 15000
@@ -94,7 +95,8 @@ export function calculateReverseSalary(
     }
   }
 
-  // 만원 그리드를 0부터 선형 스캔하여 net >= target인 최소 연봉을 찾는다.
+  // 비과세가 월급보다 큰 연봉은 실제 입력으로 성립하지 않으므로 검색하지 않는다.
+  // 유효한 첫 만원 그리드부터 검색해 비단조 구간에서도 최소 연봉을 보장한다.
   //
   // ⚠️ net(gross)은 만원 그리드에서도 단조 비감소가 아니다. 간이세액표가 계단
   // 함수라 특정 경계에서 세액이 급증해 연봉이 올라도 실수령이 감소하는 지점이
@@ -102,8 +104,9 @@ export function calculateReverseSalary(
   // 단조성을 전제하는 이분탐색은 부적합하며, 선형 스캔으로 "목표 이상을 만족하는
   // 최소 연봉"을 정확히 찾는다(정의상 최소값이므로 비단조성과 무관하게 정확).
   const GRID = 10_000
+  const firstValidAnnualSalary = Math.max(0, Math.ceil(nonTaxable * 12 / GRID) * GRID)
   let requiredAnnualSalary = -1
-  for (let g = 0; g <= HI_BOUND; g += GRID) {
+  for (let g = firstValidAnnualSalary; g <= HI_BOUND; g += GRID) {
     if (netOf(g) >= target) {
       requiredAnnualSalary = g
       break
