@@ -1,3 +1,4 @@
+import { formatAmountInput as formatMoney, parseAmountInput as parseMoney } from './amountInput'
 // src/lib/annualLeaveInput.ts
 // ────────────────────────────────────────────────────────────
 // 연차수당 계산기의 입력 정규화 로직.
@@ -39,23 +40,17 @@ export const MAX_UNUSED_DAYS_INPUT = 9_999
  *    "1.2.3"을 1.23으로 이어붙이면 붙여넣기한 값의 크기가 조용히 바뀐다.
  */
 export function sanitizeDaysInput(v: string): string {
-  const cleaned = v.replace(/[^0-9.]/g, '')
-  const firstDot = cleaned.indexOf('.')
-  const normalized =
-    firstDot === -1
-      ? cleaned
-      : `${cleaned.slice(0, firstDot)}.${cleaned.slice(firstDot + 1).replace(/\./g, '')}`
-
-  // 상한을 넘으면 입력 필드 자체를 상한값으로 되돌린다. 화면에 보이는 값과
-  // 계산에 쓰이는 값이 항상 같아야 하므로 파싱 단계가 아니라 여기서 자른다.
+  // 잘못된 부호·구분자·지수 표기를 다른 수로 바꾸지 않고 화면에 남긴다.
+  const normalized = v.replace(/,/g, '').trim()
+  if (!/^\d*\.?\d*$/.test(normalized)) return v
   const n = Number(normalized)
-  if (Number.isFinite(n) && n > MAX_UNUSED_DAYS_INPUT) return String(MAX_UNUSED_DAYS_INPUT)
-  return normalized
+  return Number.isFinite(n) && n > MAX_UNUSED_DAYS_INPUT ? String(MAX_UNUSED_DAYS_INPUT) : normalized
 }
 
-/** 정규화된 문자열을 0 이상 유한한 숫자로 변환. 변환 불가 시 0. */
 export function parseDays(v: string): number {
-  const n = Number(sanitizeDaysInput(v))
+  const raw = sanitizeDaysInput(v)
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw)) return 0
+  const n = Number(raw)
   return Number.isFinite(n) && n > 0 ? n : 0
 }
 
@@ -81,20 +76,8 @@ export function normalizeMonths(v: string): number {
 }
 
 /** 금액 입력: 숫자만 남기고 천 단위 구분자를 붙인다. */
-export function formatAmountInput(v: string): string {
-  const digits = v.replace(/[^0-9]/g, '')
-  if (!digits) return ''
-  const n = Number(digits)
-  if (!Number.isFinite(n)) return String(MAX_AMOUNT_INPUT)
-  return Math.min(n, MAX_AMOUNT_INPUT).toLocaleString('ko-KR')
-}
-
-/** 금액 입력 문자열을 숫자로. */
-export function parseAmount(v: string): number {
-  const n = Number(v.replace(/[^0-9]/g, ''))
-  if (!Number.isFinite(n) || n <= 0) return 0
-  return Math.min(n, MAX_AMOUNT_INPUT)
-}
+export function formatAmountInput(v: string): string { return formatMoney(v, MAX_AMOUNT_INPUT) }
+export function parseAmount(v: string): number { return parseMoney(v, MAX_AMOUNT_INPUT) }
 
 /** 화면 상태(근속 구분 + 조건별 입력)를 계산 함수용 판별 유니온으로 변환. */
 export function buildTenure(

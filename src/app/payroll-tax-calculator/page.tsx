@@ -1,9 +1,10 @@
+'use client'
+
 /**
  * src/app/payroll-tax-calculator/page.tsx
  * 급여 세금 간편 계산기
  */
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -17,12 +18,8 @@ import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 
-function formatNum(v: string) {
-  const n = v.replace(/[^0-9]/g, '')
-  if (!n) return ''
-  return Number(n).toLocaleString('ko-KR')
-}
-function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
+function formatNum(value: string) { return formatAmountInput(value) }
+function parseNum(value: string) { return parseAmountInput(value) }
 
 const RELATED = [
   { href: '/salary-calculator', emoji: '💰', label: '실수령액 계산기', description: '연봉 기준 월 실수령액 계산' },
@@ -87,7 +84,7 @@ export default function PayrollTaxCalculatorPage() {
           </div>
 
           <div>
-            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
             <div className="relative">
               <input id="nonTaxable"
                 type="text" inputMode="numeric"
@@ -120,7 +117,7 @@ export default function PayrollTaxCalculatorPage() {
                       ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
                   }`}
-                >
+                 aria-pressed={dependents === String(n)}>
                   {n}명
                 </button>
               ))}
@@ -132,7 +129,7 @@ export default function PayrollTaxCalculatorPage() {
             <div className="flex flex-wrap gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button" onClick={() => setChildren(String(n))}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`}>
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
                   {n}명
                 </button>
               ))}

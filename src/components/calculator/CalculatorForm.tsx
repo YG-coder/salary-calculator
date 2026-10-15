@@ -1,11 +1,11 @@
+'use client'
+
 // src/components/calculator/CalculatorForm.tsx
 // 변경사항:
 //   1. 비과세 입력 라벨: "월 비과세" 명시 (이미 월 단위임을 강조)
 //   2. 계산 summary 패널 추가 (입력값 요약 표시)
 //   3. 부양가족 선택 5명+ 처리 개선
-
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -16,15 +16,9 @@ import { calculateSalary, formatKRW, type SalaryInput, type SalaryResult } from 
 import ResultCard from './ResultCard'
 import { resolvePrefill, PREFILL_FALLBACK } from '@/lib/homeData'
 
-function formatNumberInput(value: string): string {
-  const num = value.replace(/[^0-9]/g, '')
-  if (!num) return ''
-  return Number(num).toLocaleString('ko-KR')
-}
+function formatNumberInput(value: string) { return formatAmountInput(value) }
 
-function parseNumberInput(value: string): number {
-  return Number(value.replace(/[^0-9]/g, '')) || 0
-}
+function parseNumberInput(value: string) { return parseAmountInput(value) }
 
 /**
  * 홈의 연봉별 실수령액 표에서 넘어온 조건을 읽는다.
@@ -118,7 +112,7 @@ export default function CalculatorForm() {
         <div>
           <label htmlFor="nonTaxable" className="label">
             월 비과세 금액{' '}
-            <span className="text-xs font-normal text-slate-400">(선택)</span>
+            <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
           </label>
           <div className="relative">
             <input
@@ -161,7 +155,7 @@ export default function CalculatorForm() {
                     ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
                 }`}
-              >
+               aria-pressed={dependents === String(n)}>
                 {n}명
               </button>
             ))}
@@ -174,7 +168,7 @@ export default function CalculatorForm() {
           <div className="flex flex-wrap gap-2">
             {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
               <button key={n} type="button" onClick={() => setChildren(String(n))}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`}>
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
                 {n}명
               </button>
             ))}

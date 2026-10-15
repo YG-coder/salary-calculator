@@ -366,24 +366,24 @@ describe('입력 정규화 (annualLeaveInput)', () => {
     expect(parseDays(input)).toBe(parsed)
   })
 
-  it('⚠️ 구분자가 여러 개면 뒤를 이어붙이지 않고 버린다 (크기 변조 방지)', () => {
+  it('구분자가 여러 개면 원문을 보존하고 계산을 보류한다', () => {
     // "1.2.3"을 1.23으로 이어붙이면 붙여넣기한 값이 조용히 커진다
-    expect(sanitizeDaysInput('1.2.3')).toBe('1.23')
-    expect(parseDays('1.2.3')).toBe(1.23)
+    expect(sanitizeDaysInput('1.2.3')).toBe('1.2.3')
+    expect(parseDays('1.2.3')).toBe(0)
   })
 
-  it('지수 표기는 숫자만 남아 의도치 않은 값이 되지 않도록 0이 아닌 값으로 붙지 않는지 확인', () => {
-    // "1e5" → "15" (e 제거). 크기가 바뀌지만 maxLength 가드와 함께 실사용 영향은 없다.
-    expect(sanitizeDaysInput('1e5')).toBe('15')
+  it('지수 표기를 다른 수로 바꾸지 않는다', () => {
+    // 허용하지 않는 입력은 화면에 그대로 두고 계산하지 않는다.
+    expect(sanitizeDaysInput('1e5')).toBe('1e5')
   })
 
   it('아주 긴 입력은 Infinity가 되어 0으로 떨어진다', () => {
     expect(parseDays('9'.repeat(400))).toBe(0)
   })
 
-  it('음수 부호는 제거되어 음수 일수가 만들어지지 않는다', () => {
-    expect(parseDays('-5')).toBe(5)
-    expect(sanitizeDaysInput('-5')).toBe('5')
+  it('음수는 원문을 보존하고 계산을 보류한다', () => {
+    expect(parseDays('-5')).toBe(0)
+    expect(sanitizeDaysInput('-5')).toBe('-5')
   })
 
   it('normalizeWorkingYears: 1~50 클램프', () => {
@@ -403,10 +403,10 @@ describe('입력 정규화 (annualLeaveInput)', () => {
     expect(normalizeMonths('999')).toBe(11)
   })
 
-  it('parseAmount: 천 단위 구분자와 비숫자를 제거한다', () => {
+  it('parseAmount: 쉼표만 정리하고 빈칸과 오류는 보류한다', () => {
     expect(parseAmount('2,500,000')).toBe(2_500_000)
-    expect(parseAmount('')).toBe(0)
-    expect(parseAmount('abc')).toBe(0)
+    expect(parseAmount('')).toBeNaN()
+    expect(parseAmount('abc')).toBeNaN()
   })
 
   it('buildTenure: 근속 구분을 판별 유니온으로 바르게 변환한다', () => {
@@ -443,9 +443,9 @@ describe('정책 메타데이터가 낡으면 실패한다', () => {
 })
 
 describe('입력 상한 가드 (화면 값과 계산 값의 일치 보장)', () => {
-  it('일당 입력은 10억원에서 잘린다', () => {
-    expect(formatAmountInput('9999999999999999')).toBe((1_000_000_000).toLocaleString('ko-KR'))
-    expect(parseAmount('9999999999999999')).toBe(MAX_AMOUNT_INPUT)
+  it('일당 입력은 10억원 초과 시 원문을 보존하고 보류한다', () => {
+    expect(formatAmountInput('9999999999999999')).toBe('9999999999999999')
+    expect(parseAmount('9999999999999999')).toBeNaN()
   })
 
   it('일수 입력은 9,999일에서 잘린다 (법정 25일은 자르지 않음)', () => {

@@ -1,11 +1,12 @@
+'use client'
+
+import { withParticle } from "@/lib/korean";
 // src/components/calculator/EmployerCostForm.tsx
 // 기업 총 인건비 입력 폼.
 //
 // ⚠️ 산재보험료율은 기본값을 두지 않고 입력을 강제한다. 입력 전에는 계산하지 않는다.
 //    근거: docs/employer-cost-policy.md C-3
-
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -24,18 +25,8 @@ import { formatKRW } from '@/lib/salary'
 const MAX_SALARY = 10_000_000_000
 const MAX_NON_TAXABLE = 100_000_000
 
-function formatAmount(v: string, max: number): string {
-  const digits = v.replace(/[^0-9]/g, '')
-  if (!digits) return ''
-  const n = Number(digits)
-  if (!Number.isFinite(n)) return String(max)
-  return Math.min(n, max).toLocaleString('ko-KR')
-}
-function parseAmount(v: string, max: number): number {
-  const n = Number(v.replace(/[^0-9]/g, ''))
-  if (!Number.isFinite(n) || n <= 0) return 0
-  return Math.min(n, max)
-}
+function formatAmount(value: string, max?: number) { return formatAmountInput(value, max) }
+function parseAmount(value: string, max?: number) { return parseAmountInput(value, max) }
 function formatRate(r: number | null, digits = 1) {
   return r === null || !Number.isFinite(r) ? '—' : `${(r * 100).toFixed(digits)}%`
 }
@@ -94,7 +85,7 @@ export default function EmployerCostForm() {
 
         <div>
           <label htmlFor="nonTaxable" className="label">
-            월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span>
+            월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
           </label>
           <div className="relative">
             <input id="nonTaxable" type="text" inputMode="numeric" autoComplete="off"
@@ -165,12 +156,12 @@ export default function EmployerCostForm() {
                     dependents === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
-                  }`}>{n}명</button>
+                  }`} aria-pressed={dependents === String(n)}>{n}명</button>
               ))}
             </div>
           </div>
           <div>
-            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button"
@@ -179,7 +170,7 @@ export default function EmployerCostForm() {
                     children === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
-                  }`}>{n}명</button>
+                  }`} aria-pressed={children === String(n)}>{n}명</button>
               ))}
             </div>
           </div>
@@ -309,7 +300,7 @@ function EmployerCostResultView({ r }: { r: EmployerCostResult }) {
           </table>
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          계약 연봉 대비 {formatRate(r.employerBurdenRate, 2)}를 회사가 추가로 부담합니다.
+          계약 연봉 대비 {withParticle(formatRate(r.employerBurdenRate, 2), "을/를")} 회사가 추가로 부담합니다.
           총 인건비 중 근로자가 실제로 받는 비율은 {formatRate(r.netToCostRate, 1)}입니다.
         </p>
       </div>

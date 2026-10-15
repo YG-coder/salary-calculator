@@ -1,9 +1,9 @@
+'use client'
+
 /**
  * src/app/annual-leave-pay-calculator/page.tsx
  * 연차수당 계산기
  */
-'use client'
-
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -122,7 +122,7 @@ export default function AnnualLeavePayCalculatorPage() {
   const handleCalc = useCallback(() => {
     const dw = computedDailyWage
     const ud = parseDays(unusedDays)
-    if (!dw || !ud) return
+    if (!(dw > 0) || !(ud > 0)) return
     setResult(calculateAnnualLeavePay({ dailyWage: dw, unusedDays: ud }))
     setSubmittedDays(ud)
     // ⚠️ React Compiler가 수동 메모이제이션을 보존할 수 있도록 원시값만 의존성으로 둔다.
@@ -161,7 +161,7 @@ export default function AnnualLeavePayCalculatorPage() {
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
-                >
+                 aria-pressed={mode === opt.value}>
                   {opt.label}
                 </button>
               ))}
@@ -210,6 +210,7 @@ export default function AnnualLeavePayCalculatorPage() {
               <input
                 type="text" inputMode="decimal"
                 placeholder="예: 10 (반차는 0.5)"
+                aria-invalid={unusedDays.trim() !== '' && parseDays(unusedDays) === 0}
                 value={unusedDays}
                 onChange={(e) => setUnusedDays(sanitizeDaysInput(e.target.value))}
                 className="input-field pr-10"
@@ -239,7 +240,7 @@ export default function AnnualLeavePayCalculatorPage() {
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
-                >
+                 aria-pressed={tenureCategory === opt.value}>
                   {opt.label}
                 </button>
               ))}

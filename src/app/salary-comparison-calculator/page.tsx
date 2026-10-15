@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 /**
  * src/app/salary-comparison-calculator/page.tsx
  * 연봉 비교 계산기 — 두 연봉의 실수령액 차이와 한계 실수령률
@@ -16,7 +17,7 @@ import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/const
 
 const PATH = '/salary-comparison-calculator'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   // ⚠️ layout.tsx의 title.template(`%s | 연봉계산기.kr`)이 사이트명을 자동으로 붙인다.
   //    여기서 SITE_NAME을 또 넣으면 제목에 사이트명이 두 번 들어간다.
   title: `연봉 비교 계산기 ${TAX_YEAR} | 두 연봉의 실수령액 차이`,
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
     description: '두 연봉의 실수령액 차이와 한계 실수령률을 한 번에 비교하세요.',
     images: [`${SITE_URL}/og-image.png`],
   },
-}
+}, "/salary-comparison-calculator")
 
 const RELATED = [
   { href: '/salary-calculator', emoji: '💰', label: '연봉 실수령액 계산기', description: '연봉 하나의 월 실수령액' },

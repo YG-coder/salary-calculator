@@ -1,9 +1,10 @@
+'use client'
+
 /**
  * src/app/unemployment-benefit-calculator/page.tsx
  * 실업급여 계산기
  */
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -15,12 +16,8 @@ import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 
-function formatNum(v: string) {
-  const n = v.replace(/[^0-9]/g, '')
-  if (!n) return ''
-  return Number(n).toLocaleString('ko-KR')
-}
-function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
+function formatNum(value: string) { return formatAmountInput(value) }
+function parseNum(value: string) { return parseAmountInput(value) }
 
 // 2026년 실업급여 상·하한 (calculators.ts와 동일 로직)
 // 하한 66,048원(최저임금×8h×80%), 상한 68,100원(2026년 고시 인상)
@@ -83,7 +80,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
-                >
+                 aria-pressed={useMonthly === opt.value}>
                   {opt.label}
                 </button>
               ))}
@@ -159,7 +156,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
-                >
+                 aria-pressed={age === a}>
                   {a}대
                 </button>
               ))}
@@ -185,7 +182,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
-                >
+                 aria-pressed={isDisabled === option.value}>
                   {option.label}
                 </button>
               ))}

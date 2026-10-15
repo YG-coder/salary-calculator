@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 /**
  * src/app/target-salary-calculator/page.tsx
  * 목표 실수령액 역산 계산기 — "이 실수령을 받으려면 연봉이 얼마여야 하나"
@@ -14,7 +15,7 @@ import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/const
 
 const PATH = '/target-salary-calculator'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: `목표 실수령액 역산 계산기 ${TAX_YEAR} | 필요한 연봉 계산 - ${SITE_NAME}`,
   description: `원하는 월 실수령액을 입력하면 필요한 최소 세전 연봉을 역산합니다. ${TAX_YEAR}년 기준 4대보험·소득세를 반영해 목표 실수령을 받기 위한 연봉을 계산하세요.`,
   alternates: { canonical: `${SITE_URL}${PATH}` },
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
     description: `원하는 월 실수령액으로 필요한 연봉을 역산하세요.`,
     images: [`${SITE_URL}/og-image.png`],
   },
-}
+}, "/target-salary-calculator")
 
 const RELATED = [
   {

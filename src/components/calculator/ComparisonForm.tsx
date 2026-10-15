@@ -1,9 +1,9 @@
+'use client'
+
 // src/components/calculator/ComparisonForm.tsx
 // 연봉 A / B 비교 입력 폼.
 // 연봉만 A·B로 나누고 비과세·공제대상가족·자녀는 공통 조건으로 받는다.
-
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -22,18 +22,8 @@ const MIN_SALARY = 1_000_000
 const MAX_SALARY = 10_000_000_000
 const MAX_NON_TAXABLE = 100_000_000
 
-function formatNumberInput(value: string, max: number): string {
-  const digits = value.replace(/[^0-9]/g, '')
-  if (!digits) return ''
-  const n = Number(digits)
-  if (!Number.isFinite(n)) return String(max)
-  return Math.min(n, max).toLocaleString('ko-KR')
-}
-function parseNumberInput(value: string, max: number): number {
-  const n = Number(value.replace(/[^0-9]/g, ''))
-  if (!Number.isFinite(n) || n <= 0) return 0
-  return Math.min(n, max)
-}
+function formatNumberInput(value: string, max?: number) { return formatAmountInput(value, max) }
+function parseNumberInput(value: string, max?: number) { return parseAmountInput(value, max) }
 
 export default function ComparisonForm() {
   const [salaryA, setSalaryA] = useState('')
@@ -53,7 +43,7 @@ export default function ComparisonForm() {
   const handleCalculate = useCallback(() => {
     const sa = parseNumberInput(salaryA, MAX_SALARY)
     const sb = parseNumberInput(salaryB, MAX_SALARY)
-    if (sa < MIN_SALARY || sb < MIN_SALARY || validateNonTaxableInput(nonTaxable, Math.floor(Math.min(sa, sb) / 12)).error) return
+    if (!(sa >= MIN_SALARY) || !(sb >= MIN_SALARY) || validateNonTaxableInput(nonTaxable, Math.floor(Math.min(sa, sb) / 12)).error) return
     const dep = Math.max(1, Number(dependents) || 1)
     setResult(
       compareSalaries({
@@ -118,7 +108,7 @@ export default function ComparisonForm() {
 
           <div>
             <label htmlFor="nonTaxable" className="label">
-              월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span>
+              월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
             </label>
             <div className="relative">
               <input
@@ -152,7 +142,7 @@ export default function ComparisonForm() {
                       ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
                   }`}
-                >
+                 aria-pressed={dependents === String(n)}>
                   {n}명
                 </button>
               ))}
@@ -161,7 +151,7 @@ export default function ComparisonForm() {
 
           <div>
             <label className="label">
-              그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(선택)</span>
+              그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
             </label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
@@ -173,7 +163,7 @@ export default function ComparisonForm() {
                       ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
                   }`}
-                >
+                 aria-pressed={children === String(n)}>
                   {n}명
                 </button>
               ))}

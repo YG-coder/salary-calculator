@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 /**
  * src/app/page.tsx
  * 연봉계산기 허브 홈 페이지
@@ -34,10 +35,10 @@ function quickRowLabel(annualMan: number): string {
 /** 정책 최근 검토일 — 조사 문서 갱신일과 맞춘다 */
 const POLICY_REVIEWED_AT = '2026년 8월 29일'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: `${TAX_YEAR}년 연봉 실수령액 계산기 | ${SITE_NAME}`,
   description: `연봉을 입력하면 4대보험과 소득세를 반영한 월 실수령액을 계산합니다. ${TAX_YEAR}년 기준 연봉별 실수령액 표와 퇴직금·연차수당·상여금·기업 총 인건비 계산기를 함께 제공합니다.`,
-}
+}, "/")
 
 export default function Home() {
   const quickRows = buildSalaryQuickRows()

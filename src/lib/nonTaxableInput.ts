@@ -13,7 +13,8 @@ export function validateNonTaxableInput(
   exceedsGrossMessage = NON_TAXABLE_EXCEEDS_GROSS,
 ): NonTaxableValidation {
   const digits = raw.trim().replace(/,/g, '')
-  const amount = digits === '' && raw.trim() === '' ? 0 : /^\d+$/.test(digits) ? Number(digits) : Number.NaN
+  if (digits === '') return { error: '월 비과세 금액을 입력해 주세요. 없으면 0을 직접 입력하세요.', warning: null }
+  const amount = /^\d+$/.test(digits) ? Number(digits) : Number.NaN
   if (!Number.isSafeInteger(amount) || amount < 0) {
     return { error: '월 비과세 금액을 유효한 원 단위 금액으로 입력해 주세요.', warning: null }
   }

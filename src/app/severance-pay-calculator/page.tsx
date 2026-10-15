@@ -1,9 +1,10 @@
+'use client'
+
 /**
  * src/app/severance-pay-calculator/page.tsx
  * 퇴직금 계산기
  */
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -16,12 +17,8 @@ import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 
-function formatNum(v: string) {
-  const n = v.replace(/[^0-9]/g, '')
-  if (!n) return ''
-  return Number(n).toLocaleString('ko-KR')
-}
-function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
+function formatNum(value: string) { return formatAmountInput(value) }
+function parseNum(value: string) { return parseAmountInput(value) }
 
 const RELATED = [
   { href: '/unemployment-benefit-calculator', emoji: '🛡️', label: '실업급여 계산기', description: '퇴직 후 받을 수 있는 실업급여' },
@@ -50,7 +47,7 @@ export default function SeverancePayCalculatorPage() {
     const m1 = parseNum(month1)
     const m2 = parseNum(month2)
     const m3 = parseNum(month3)
-    if (!m1 || !m2 || !m3 || !retirementDate || !validDateRange) return
+    if (!(m1 > 0) || !(m2 > 0) || !(m3 > 0) || !retirementDate || !validDateRange || ![bonus, annualLeaveAllowance, ordinaryDailyWage].every(v => parseNum(v) >= 0)) return
 
     setResult(calculateSeverancePay({
       month1Pay: m1,
@@ -66,7 +63,7 @@ export default function SeverancePayCalculatorPage() {
   }, [month1, month2, month3, startDate, retirementDate, validDateRange, bonus, annualLeaveAllowance, ordinaryDailyWage, weeklyHours, setResult])
 
   const isValid = parseNum(month1) > 0 && parseNum(month2) > 0 && parseNum(month3) > 0 &&
-    parseNum(weeklyHours) > 0 && validDateRange
+    parseNum(weeklyHours) > 0 && validDateRange && [bonus, annualLeaveAllowance, ordinaryDailyWage].every(v => parseNum(v) >= 0)
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -75,6 +72,7 @@ export default function SeverancePayCalculatorPage() {
 
       <div className="mt-6 space-y-6">
         <InputCard title="퇴직금 정보 입력">
+          <p className="hint">금액은 모두 입력하고 해당 금액이 없으면 0을 직접 입력하세요. 통상일급을 0으로 입력하면 통상임금과의 비교 없이 평균임금만 사용합니다.</p>
           {/* 재직 기간 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -130,7 +128,7 @@ export default function SeverancePayCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">연간 상여금 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label className="label">연간 상여금 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
             <div className="relative">
               <input
                 type="text" inputMode="numeric"
@@ -145,7 +143,7 @@ export default function SeverancePayCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">직전 1년간 지급된 연차수당 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label className="label">직전 1년간 지급된 연차수당 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
             <div className="relative">
               <input
                 type="text" inputMode="numeric"
@@ -174,7 +172,7 @@ export default function SeverancePayCalculatorPage() {
               <p className="hint">4주 평균 주 15시간 이상 필요</p>
             </div>
             <div>
-              <label className="label">1일 통상임금 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+              <label className="label">1일 통상임금 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
               <div className="relative">
                 <input
                   type="text" inputMode="numeric"

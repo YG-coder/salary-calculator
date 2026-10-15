@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
@@ -7,11 +8,11 @@ import {
     OPERATOR_NAME,
 } from '@/lib/constants'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: '문의하기',
   description: `${SITE_NAME} 계산 오류 제보, 기능 제안 및 개인정보 관련 문의 안내`,
   alternates: { canonical: `${SITE_URL}/contact` },
-}
+}, "/contact")
 
 export default function ContactPage() {
     return (

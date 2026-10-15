@@ -1,3 +1,4 @@
+import { withParticle } from "@/lib/korean";
 // src/lib/salaryPageData.ts
 // ────────────────────────────────────────────────────────────
 // 연봉별 실수령액 페이지(/salary/[amount])의 "그 연봉에서만 참인" 데이터를
@@ -197,20 +198,20 @@ export function buildSalaryPageData(
         ? '이 연봉부터 국민연금이 왜 더 늘지 않나요?'
         : '연봉이 올라도 국민연금은 왜 그대로인가요?',
       answer: isEntry
-        ? `국민연금에 기준소득월액 상한이 있기 때문입니다. 이 연봉의 월 과세소득 ${won(
+        ? `국민연금에 기준소득월액 상한이 있기 때문입니다. 이 연봉의 월 과세소득 ${withParticle(won(
             monthlyTaxable,
-          )}은 상한 ${won(
+          ), "은/는")} 상한 ${withParticle(won(
             pensionMax,
-          )}을 넘어서, 국민연금 본인부담이 상한 기준 월 ${won(
+          ), "을/를")} 넘어서, 국민연금 본인부담이 상한 기준 월 ${won(
             cappedPension,
           )}으로 고정됩니다. 직전 단계(연봉 ${manLabel(
             prevAmountMan ?? 0,
           )})까지는 소득에 비례해 늘었지만, 이 연봉부터는 늘지 않습니다.`
-        : `기준소득월액 상한 때문입니다. 이 연봉의 월 과세소득 ${won(
+        : `기준소득월액 상한 때문입니다. 이 연봉의 월 과세소득 ${withParticle(won(
             monthlyTaxable,
-          )}은 상한 ${won(
+          ), "은/는")} 상한 ${withParticle(won(
             pensionMax,
-          )}을 넘어, 국민연금은 상한 기준 월 ${won(
+          ), "을/를")} 넘어, 국민연금은 상한 기준 월 ${won(
             cappedPension,
           )}으로 고정됩니다. 연봉이 더 올라도 이 금액은 늘지 않습니다.`,
       detail: `월 과세소득에서 천원 미만을 버린 금액에 국민연금 요율(${+(pensionRate * 100).toFixed(3)}%)을 적용하면 월 ${won(
@@ -233,20 +234,20 @@ export function buildSalaryPageData(
         ? '이 연봉의 소득세는 왜 간이세액표에 안 나오나요?'
         : '이 연봉의 소득세는 어떻게 계산되나요?',
       answer: isEntry
-        ? `월 과세소득이 조견표 상한을 넘기 때문입니다. 이 연봉의 월 과세소득 ${won(
+        ? `월 과세소득이 조견표 상한을 넘기 때문입니다. 이 연봉의 월 과세소득 ${withParticle(won(
             monthlyTaxable,
-          )}은 국세청 간이세액표 조견표 상한(월 ${won(
+          ), "은/는")} 국세청 간이세액표 조견표 상한(월 ${won(
             HIGH_INCOME_MONTHLY_THRESHOLD,
-          )})을 초과해, 이 구간의 월 소득세 ${won(
+          )})을 초과해, 이 구간의 월 소득세 ${withParticle(won(
             result.breakdown.incomeTax,
-          )}은 소득세법 시행령 별표2 원문의 고소득자 전용 산식으로 계산됩니다.`
-        : `월 과세소득 ${won(
+          ), "은/는")} 소득세법 시행령 별표2 원문의 고소득자 전용 산식으로 계산됩니다.`
+        : `월 과세소득 ${withParticle(won(
             monthlyTaxable,
-          )}이 간이세액표 조견표 상한(월 ${won(
+          ), "이/가")} 간이세액표 조견표 상한(월 ${won(
             HIGH_INCOME_MONTHLY_THRESHOLD,
-          )})을 넘으므로, 월 소득세 ${won(
+          )})을 넘으므로, 월 소득세 ${withParticle(won(
             result.breakdown.incomeTax,
-          )}은 별표2 원문의 고소득자 전용 산식으로 계산됩니다.`,
+          ), "은/는")} 별표2 원문의 고소득자 전용 산식으로 계산됩니다.`,
       detail: isEntry
         ? '직전 단계까지는 조견표에서 세액을 그대로 조회했지만, 이 연봉부터는 별도 산식이 적용됩니다. 임의 외삽이 아니라 별표2에 명시된 계산식입니다.'
         : '조견표는 월급여 1천만원까지만 제공되므로, 이를 넘는 구간은 별표2에 명시된 고소득 산식을 그대로 적용합니다.',

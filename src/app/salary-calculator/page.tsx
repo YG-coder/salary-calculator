@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 /**
  * src/app/salary-calculator/page.tsx
  * 실수령액 계산기 페이지
@@ -16,14 +17,14 @@ import { buildWebAppJsonLd, buildFaqJsonLd } from '@/lib/jsonld'
 
 const PATH = '/salary-calculator'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: `연봉 실수령액 계산기 ${TAX_YEAR} | ${SITE_NAME}`,
   description: `${TAX_YEAR}년 기준 연봉 실수령액을 빠르게 계산하세요. 4대보험(국민연금·건강보험·고용보험) 및 소득세·지방소득세 자동 반영.`,
   // ⚠️ 홈의 연봉별 표에서 ?salary=...&nonTaxable=... 형태로 들어오므로 쿼리가 붙은
   //    URL이 별도 페이지로 색인되지 않도록 기본 주소를 canonical로 고정한다.
   //    SITE_URL은 metadataBase를 통해 프로젝트 표준인 퓨니코드로 출력된다.
   alternates: { canonical: `${SITE_URL}${PATH}` },
-}
+}, "/salary-calculator")
 
 const RELATED = [
   {

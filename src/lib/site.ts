@@ -1,7 +1,8 @@
-// src/lib/site.ts
+import config from './site.config.json'
 
 export const SITE = {
-    url: 'https://연봉계산기.kr',
+    url: config.url,
+    displayUrl: config.displayUrl,
 
     /** 브랜드명: OG, footer, 구조화 데이터 등에 사용 */
     name: '연봉계산기.kr',

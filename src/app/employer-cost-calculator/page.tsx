@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 /**
  * src/app/employer-cost-calculator/page.tsx
  * 기업 총 인건비 계산기
@@ -16,7 +17,7 @@ import { SITE_URL, SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/const
 
 const PATH = '/employer-cost-calculator'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: `기업 총 인건비 계산기 ${TAX_YEAR} | 연봉 외 사업주 부담 4대보험`,
   description: `연봉 외에 회사가 추가로 부담하는 4대보험을 계산합니다. 국민연금·건강보험·장기요양·고용보험 사업주 부담분과 산재보험을 항목별로 나누고, 근로자 실수령액과 총 인건비를 분리해 보여줍니다.`,
   alternates: { canonical: `${SITE_URL}${PATH}` },
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     description: '연봉 외에 회사가 추가로 부담하는 4대보험을 계산합니다.',
     images: [`${SITE_URL}/og-image.png`],
   },
-}
+}, "/employer-cost-calculator")
 
 const RELATED = [
   { href: '/social-insurance-calculator', emoji: '🏥', label: '4대보험 계산기', description: '4대보험 항목별 상세 계산' },

@@ -1,11 +1,12 @@
+'use client'
+
+import { withParticle } from "@/lib/korean";
 // src/components/calculator/ReverseCalculatorForm.tsx
 // 목표 실수령액 → 필요 연봉 역산 계산기 폼.
 // 순방향 CalculatorForm의 입력 계약·디자인 시스템을 그대로 재사용하고,
 // 결과 상세는 동일한 ResultCard로 렌더한다. (입력 방향만 뒤집음)
-
-'use client'
-
 import Link from 'next/link'
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -15,15 +16,9 @@ import { formatKRW } from '@/lib/salary'
 import { calculateReverseSalary, MAX_REVERSE_ANNUAL_SALARY, type ReverseSalaryResult } from '@/lib/reverseSalary'
 import ResultCard from './ResultCard'
 
-function formatNumberInput(value: string): string {
-  const num = value.replace(/[^0-9]/g, '')
-  if (!num) return ''
-  return Number(num).toLocaleString('ko-KR')
-}
+function formatNumberInput(value: string) { return formatAmountInput(value) }
 
-function parseNumberInput(value: string): number {
-  return Number(value.replace(/[^0-9]/g, '')) || 0
-}
+function parseNumberInput(value: string) { return parseAmountInput(value) }
 
 const MIN_TARGET = 500_000 // 월 50만원
 // HI_BOUND(연 5억)에서 가장 보수적 입력(비과세0·부양1·자녀0)의 월 실수령이
@@ -57,7 +52,7 @@ export default function ReverseCalculatorForm() {
   const isValid = targetNum >= MIN_TARGET && targetNum <= MAX_TARGET && !nonTaxableValidation.error
 
   const handleCalculate = useCallback(() => {
-    if (targetNum < MIN_TARGET || targetNum > MAX_TARGET || validateNonTaxableInput(nonTaxable, Math.floor(MAX_REVERSE_ANNUAL_SALARY / 12)).error) return
+    if (!(targetNum >= MIN_TARGET && targetNum <= MAX_TARGET) || validateNonTaxableInput(nonTaxable, Math.floor(MAX_REVERSE_ANNUAL_SALARY / 12)).error) return
     setReverse(
       calculateReverseSalary({
         targetMonthlyNet: targetNum,
@@ -116,7 +111,7 @@ export default function ReverseCalculatorForm() {
         <div>
           <label htmlFor="nonTaxable" className="label">
             월 비과세 금액{' '}
-            <span className="text-xs font-normal text-slate-400">(선택)</span>
+            <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
           </label>
           <div className="relative">
             <input
@@ -156,7 +151,7 @@ export default function ReverseCalculatorForm() {
                     ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
                 }`}
-              >
+               aria-pressed={dependents === String(n)}>
                 {n}명
               </button>
             ))}
@@ -168,7 +163,7 @@ export default function ReverseCalculatorForm() {
         <div>
           <label className="label">
             공제대상가족 중 8세 이상 20세 이하 자녀 수{' '}
-            <span className="text-xs font-normal text-slate-400">(선택)</span>
+            <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
           </label>
           <div className="flex items-center gap-2">
             {Array.from({ length: maxChildren + 1 }, (_, i) => i).map((n) => (
@@ -181,7 +176,7 @@ export default function ReverseCalculatorForm() {
                     ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
                 }`}
-              >
+               aria-pressed={children === String(n)}>
                 {n}명
               </button>
             ))}
@@ -242,7 +237,7 @@ export default function ReverseCalculatorForm() {
 
           {reverse.reachable ? (
             <div className="card p-5 text-sm leading-6 text-slate-600">
-              목표 월 실수령 {formatKRW(parseNumberInput(submittedInput?.targetNet ?? ''))}을 받으려면 세전 연봉이 최소{' '}
+              목표 월 실수령 {withParticle(formatKRW(parseNumberInput(submittedInput?.targetNet ?? '')), "을/를")} 받으려면 세전 연봉이 최소{' '}
               <strong className="text-slate-900">
                 {formatKRW(reverse.requiredAnnualSalary)}
               </strong>{' '}

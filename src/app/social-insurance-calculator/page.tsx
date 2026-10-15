@@ -1,9 +1,10 @@
+'use client'
+
 /**
  * src/app/social-insurance-calculator/page.tsx
  * 4대보험 계산기
  */
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -24,12 +25,8 @@ import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 
-function formatNum(v: string) {
-  const n = v.replace(/[^0-9]/g, '')
-  if (!n) return ''
-  return Number(n).toLocaleString('ko-KR')
-}
-function parseNum(v: string) { return Number(v.replace(/[^0-9]/g, '')) || 0 }
+function formatNum(value: string) { return formatAmountInput(value) }
+function parseNum(value: string) { return parseAmountInput(value) }
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
@@ -99,7 +96,7 @@ export default function SocialInsuranceCalculatorPage() {
           </div>
 
           <div>
-            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
             <div className="relative">
               <input id="nonTaxable" type="text" inputMode="numeric" placeholder="예: 200,000" value={nonTaxable}
                 aria-invalid={Boolean(nonTaxableValidation.error)}

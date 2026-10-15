@@ -1,9 +1,9 @@
+'use client'
+
 // src/components/calculator/BonusForm.tsx
 // 상여금 원천징수 입력 폼.
 // ⚠️ 4대보험 전체를 계산하지 않는다. 근거: docs/bonus-tax-policy.md P5
-
-'use client'
-
+import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
 import { useState, useCallback } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
@@ -18,18 +18,8 @@ import {
 } from '@/lib/policy/bonus'
 import { formatKRW } from '@/lib/salary'
 
-function formatAmount(v: string, max: number): string {
-  const digits = v.replace(/[^0-9]/g, '')
-  if (!digits) return ''
-  const n = Number(digits)
-  if (!Number.isFinite(n)) return String(max)
-  return Math.min(n, max).toLocaleString('ko-KR')
-}
-function parseAmount(v: string, max: number): number {
-  const n = Number(v.replace(/[^0-9]/g, ''))
-  if (!Number.isFinite(n) || n <= 0) return 0
-  return Math.min(n, max)
-}
+function formatAmount(value: string, max?: number) { return formatAmountInput(value, max) }
+function parseAmount(value: string, max?: number) { return parseAmountInput(value, max) }
 function formatRate(r: number | null) {
   return r === null || !Number.isFinite(r) ? '—' : `${(r * 100).toFixed(1)}%`
 }
@@ -68,13 +58,13 @@ export default function BonusForm() {
 
   const bonusNum = parseAmount(bonus, MAX_BONUS_AMOUNT)
   const payNum = parseAmount(monthlyPay, MAX_MONTHLY_PAY)
-  const isValid = bonusNum > 0
+  const isValid = bonusNum > 0 && payNum >= 0 && (!usePrepaidInput || parseAmount(prepaidTax, MAX_PREPAID_TAX) >= 0)
   const paymentMonthNum = Number(paymentMonth) || 1
   const previousMonthOptions = MONTHS.filter((month) => month < paymentMonthNum)
 
   const handleCalc = useCallback(() => {
     const b = parseAmount(bonus, MAX_BONUS_AMOUNT)
-    if (b <= 0) return
+    if (!(b > 0) || !(parseAmount(monthlyPay, MAX_MONTHLY_PAY) >= 0) || (usePrepaidInput && !(parseAmount(prepaidTax, MAX_PREPAID_TAX) >= 0))) return
     const dep = Math.max(1, Number(dependents) || 1)
     setResult(
       calculateBonusWithholding({
@@ -115,7 +105,7 @@ export default function BonusForm() {
         </div>
 
         <div>
-          <label htmlFor="monthlyPay" className="label">상여 외 월평균 급여 (과세분)</label>
+          <label htmlFor="monthlyPay" className="label">상여 외 월평균 급여 (과세분·없으면 0 입력)</label>
           <div className="relative">
             <input id="monthlyPay" type="text" inputMode="numeric" autoComplete="off"
               placeholder="예: 3,000,000" value={monthlyPay}
@@ -140,7 +130,7 @@ export default function BonusForm() {
                   periodType === o.value
                     ? 'bg-brand-600 border-brand-600 text-white'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
-                }`}>
+                }`} aria-pressed={periodType === o.value}>
                 {o.label}
               </button>
             ))}
@@ -218,12 +208,12 @@ export default function BonusForm() {
                     dependents === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
-                  }`}>{n}명</button>
+                  }`} aria-pressed={dependents === String(n)}>{n}명</button>
               ))}
             </div>
           </div>
           <div>
-            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(선택)</span></label>
+            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button"
@@ -232,7 +222,7 @@ export default function BonusForm() {
                     children === String(n)
                       ? 'bg-brand-600 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
-                  }`}>{n}명</button>
+                  }`} aria-pressed={children === String(n)}>{n}명</button>
               ))}
             </div>
           </div>

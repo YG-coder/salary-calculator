@@ -1,3 +1,5 @@
+import { withPageMetadata } from "@/lib/metadata";
+import { withParticle } from "@/lib/korean";
 /**
  * src/app/about/page.tsx
  * 서비스 소개 페이지 (신뢰성 강화 버전)
@@ -19,12 +21,12 @@ import {
   MIN_HOURLY_WAGE_2026,
 } from '@/lib/constants'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: '서비스 소개',
-  description: `${SITE_NAME}은 ${TAX_YEAR}년 기준 한국 직장인을 위한 무료 급여 계산기 서비스입니다. 실수령액·4대보험·퇴직금·연차수당·주휴수당·실업급여를 한 곳에서 계산할 수 있습니다.`,
+  description: `${withParticle(SITE_NAME, "은/는")} ${TAX_YEAR}년 기준 한국 직장인을 위한 무료 급여 계산기 서비스입니다. 실수령액·4대보험·퇴직금·연차수당·주휴수당·실업급여를 한 곳에서 계산할 수 있습니다.`,
   alternates: { canonical: `${SITE_URL}/about` },
   robots: { index: true, follow: true },
-}
+}, "/about")
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
 const pensionMaxMan = Math.floor(PENSION_LIMITS.max / 10_000)
@@ -85,7 +87,7 @@ export default function AboutPage() {
           어떤 서비스인가요?
         </h2>
         <p className="text-sm">
-          {SITE_NAME}은 한국 직장인이 자신의 연봉·월급에서 얼마가 공제되고 실제로 통장에
+          {withParticle(SITE_NAME, "은/는")} 한국 직장인이 자신의 연봉·월급에서 얼마가 공제되고 실제로 통장에
           얼마가 들어오는지를 빠르게 확인할 수 있도록 만든 무료 온라인 계산기 서비스입니다.
           별도의 회원가입이나 개인정보 입력 없이 바로 사용할 수 있으며, 입력한
           금액은 서버로 전송되지 않고 사용자의 브라우저에서만 계산됩니다.

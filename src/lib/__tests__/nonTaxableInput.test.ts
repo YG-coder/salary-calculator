@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { NON_TAXABLE_EXCEEDS_GROSS, validateNonTaxableInput } from '@/lib/nonTaxableInput'
 
 describe('월 비과세 입력 검증', () => {
+  it('빈칸은 0으로 추정하지 않는다', () => { expect(validateNonTaxableInput('', 3000000).error).toContain('0을 직접 입력') })
   it('월급 입력 전에는 초과 오류를 표시하지 않는다', () => {
     expect(validateNonTaxableInput('200,000', null)).toEqual({ error: null, warning: null })
   })
@@ -14,7 +15,7 @@ describe('월 비과세 입력 검증', () => {
   it('최소 월급 입력 이후에는 실제 초과 금액을 차단한다', () => {
     expect(validateNonTaxableInput('200,000', 100_000).error).toBe(NON_TAXABLE_EXCEEDS_GROSS)
   })
-  it.each(['', '0', '200,000', '200000'])('정상 입력 %s를 허용한다', (raw) => {
+  it.each(['0', '200,000', '200000'])('정상 입력 %s를 허용한다', (raw) => {
     expect(validateNonTaxableInput(raw, 3_000_000)).toEqual({ error: null, warning: null })
   })
 

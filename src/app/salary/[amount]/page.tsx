@@ -1,3 +1,4 @@
+import { withParticle } from "@/lib/korean";
 /**
  * src/app/salary/[amount]/page.tsx
  * 연봉별 실수령액 정적 SEO 페이지
@@ -263,7 +264,7 @@ export default async function SalaryDetailPage({ params }: PageProps) {
             <p className="mt-2 text-sm leading-6 text-slate-600">
               세전 월급은 연봉 {parsed.toLocaleString()}만원을 12로 나눈{' '}
               {formatKRW(result.monthlyGross)}이지만, 실제 입금액은 여기에서 4대보험과
-              세금 {formatKRW(result.breakdown.totalDeduction)}이 공제된{' '}
+              세금 {withParticle(formatKRW(result.breakdown.totalDeduction), "이/가")} 공제된{' '}
               {formatKRW(result.monthlyNet)}입니다. 그래서 세전 월급과 월 실수령액은
               다릅니다.
             </p>

@@ -1,3 +1,4 @@
+import { withParticle } from "@/lib/korean";
 /**
  * src/components/calculator/ContentSection.tsx
  * 역할: 계산기 하단 SEO 콘텐츠 섹션 (Server Component)
@@ -63,7 +64,7 @@ export default function ContentSection() {
             {[
               {
                 name: '국민연금',
-                desc: `월 과세 급여에서 천원 미만을 버린 기준소득월액의 ${(pensionRate * 100).toFixed(2)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 ${formatKRW(pensionMaxEmployee)}이 공제됩니다.`,
+                desc: `월 과세 급여에서 천원 미만을 버린 기준소득월액의 ${(pensionRate * 100).toFixed(2)}%를 근로자가 부담합니다. 기준소득월액 상한은 ${pensionMaxMan}만원, 하한은 ${pensionMinMan}만원으로 이 범위 내에서만 계산됩니다. 월 급여가 ${pensionMaxMan}만원을 초과해도 ${pensionMaxMan}만원 기준으로 계산되어 최대 ${withParticle(formatKRW(pensionMaxEmployee), "이/가")} 공제됩니다.`,
               },
               {
                 name: '건강보험',

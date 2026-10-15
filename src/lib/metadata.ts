@@ -115,11 +115,34 @@ export function buildMetadata(meta: PageMeta): Metadata {
             siteName: SITE.name,
             type: 'website',
             locale: 'ko_KR',
+            images: [{ url: `${SITE.url}/og-image.png`, width: 1200, height: 630, alt: SITE.name }],
         },
         twitter: {
             card: 'summary_large_image',
+            images: [`${SITE.url}/og-image.png`],
             title: meta.title,
             description: meta.description,
         },
     }
+}
+/** 페이지별 제목·설명을 유지하며 검색·공유 주소와 이미지를 반드시 제공한다. */
+export function withPageMetadata(meta: Metadata, path: string): Metadata {
+ const url = new URL(path, SITE.url).href;
+ const image = `${SITE.url}/og-image.png`;
+ return {
+  ...meta,
+  metadataBase: new URL(SITE.url),
+  alternates: { ...meta.alternates, canonical: url },
+  openGraph: {
+   title: typeof meta.title === 'string' ? meta.title : SITE.name,
+   description: meta.description ?? SITE.description,
+   type: 'website', locale: 'ko_KR', siteName: SITE.name,
+   ...meta.openGraph, url, images: meta.openGraph?.images ?? [{url:image,width:1200,height:630,alt:SITE.name}],
+  },
+  twitter: {
+   title: typeof meta.title === 'string' ? meta.title : SITE.name,
+   description: meta.description ?? SITE.description,
+   ...meta.twitter, card:'summary_large_image', images: meta.twitter?.images ?? [image],
+  },
+ };
 }

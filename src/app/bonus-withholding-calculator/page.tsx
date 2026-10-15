@@ -1,3 +1,4 @@
+import { withPageMetadata } from "@/lib/metadata";
 /**
  * src/app/bonus-withholding-calculator/page.tsx
  * 상여금 원천징수 계산기
@@ -17,7 +18,7 @@ import { MAX_BONUS_PERIOD_MONTHS } from '@/lib/policy/bonus'
 
 const PATH = '/bonus-withholding-calculator'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   // layout.tsx의 title.template이 사이트명을 붙이므로 여기서는 넣지 않는다.
   title: `상여금 원천징수 계산기 ${TAX_YEAR} | 성과급·명절상여 실수령액`,
   description: `상여금에서 얼마가 떼이는지 계산합니다. 소득세법 제136조 지급대상기간 산식을 그대로 적용하며, 상여금을 받아도 국민연금·건강보험이 그달에 늘지 않는 이유도 함께 안내합니다.`,
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     description: '성과급·명절상여의 실수령액과 원천징수 세액을 계산합니다.',
     images: [`${SITE_URL}/og-image.png`],
   },
-}
+}, "/bonus-withholding-calculator")
 
 const RELATED = [
   { href: '/salary-calculator', emoji: '💰', label: '연봉 실수령액 계산기', description: '연봉 기준 월 실수령액' },

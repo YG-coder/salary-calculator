@@ -1,13 +1,15 @@
+import { withPageMetadata } from "@/lib/metadata";
+import { withParticle } from "@/lib/korean";
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SITE_URL, SITE_NAME, OPERATOR_EMAIL } from '@/lib/constants'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPageMetadata({
   title: '개인정보처리방침',
   description: `${SITE_NAME}의 계산 입력값, 접속 정보 및 문의 정보 처리 방침입니다.`,
   alternates: { canonical: `${SITE_URL}/privacy` },
   robots: { index: true, follow: true },
-}
+}, "/privacy")
 
 const EFFECTIVE_DATE = '2026년 10월 3일'
 
@@ -21,7 +23,7 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-lg font-bold text-slate-800">먼저 알려드립니다</h2>
           <p>
-            {SITE_NAME}은 회원가입을 받지 않으며 계산기에 입력한 연봉·월급·가족 수 등의
+            {withParticle(SITE_NAME, "은/는")} 회원가입을 받지 않으며 계산기에 입력한 연봉·월급·가족 수 등의
             값을 운영자 서버로 전송하거나 저장하지 않습니다. 계산은 사용자의 브라우저
             안에서 완료됩니다.
           </p>
