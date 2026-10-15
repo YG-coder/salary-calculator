@@ -18,3 +18,13 @@ check('robots Host accepts hostname or complete URL', () => {
  for (const host of ['주식계산기.kr', config.url]) inspectRobots(`Host: ${host}\nSitemap: https://주식계산기.kr/sitemap.xml`, config);
  assert.throws(() => inspectRobots('Host: other.example\nSitemap: https://주식계산기.kr/sitemap.xml', config));
 });
+
+check('IDN host and Korean path normalize independently without double encoding', () => {
+ const input = 'https://주식계산기.kr/계산';
+ const expected = 'https://xn--989a00a691bv6b3zl.kr/%EA%B3%84%EC%82%B0';
+ const actual = siteUrl(input, config);
+ assert.equal(actual.hostname, 'xn--989a00a691bv6b3zl.kr');
+ assert.equal(actual.pathname, '/%EA%B3%84%EC%82%B0');
+ assert.equal(siteUrl(actual.href, config).href, expected);
+ inspectHtml(fixture().replace(/\/example/g, '/계산'), config, expected);
+});

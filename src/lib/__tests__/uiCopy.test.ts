@@ -9,6 +9,7 @@ check('rendered copy rejects private identifiers but ignores source scripts',()=
  inspectCopy('<p>YouTube</p>','proper name');
 });
 check('particle templates must use the shared helper, without matching 이상/이하',()=>{
+ assert.throws(()=>inspectParticleTemplates(ts,'const copy = withParticle(" ", "과/와")','view.ts'));
  assert.throws(()=>inspectParticleTemplates(ts,'const copy = `${drug}를 선택했습니다`','view.ts'));
  inspectParticleTemplates(ts,'const copy = `${amount}이상`','view.ts');
  inspectParticleTemplates(ts,'const copy = `${withParticle(drug, "을/를")} 선택했습니다`','view.ts');

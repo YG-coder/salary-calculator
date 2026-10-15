@@ -13,6 +13,10 @@ export function inspectParticleTemplates(ts, text, path) {
  const source=ts.createSourceFile(path,text,ts.ScriptTarget.Latest,true,path.endsWith('.tsx')?ts.ScriptKind.TSX:ts.ScriptKind.TS);
  const bad=[];const particle=/^(?:을|를|(?:이|가|은|는|과|와)(?=[\s.,!?()]))/;
  function visit(node) {
+  if(ts.isCallExpression(node)&&ts.isIdentifier(node.expression)&&node.expression.text==='withParticle') {
+   const value=node.arguments[0];
+   if(value&&ts.isStringLiteralLike(value)&&!value.text.trim())bad.push('empty particle value');
+  }
   if(ts.isTemplateExpression(node))for(const span of node.templateSpans)if(particle.test(span.literal.text))bad.push(span.literal.text.slice(0,12));
   if(ts.isJsxElement(node)||ts.isJsxFragment(node))node.children.forEach((child,i)=>{const next=node.children[i+1];if(ts.isJsxExpression(child)&&child.expression&&next&&ts.isJsxText(next)&&particle.test(next.text.trimStart()))bad.push(next.text.slice(0,12));});
   ts.forEachChild(node,visit);
