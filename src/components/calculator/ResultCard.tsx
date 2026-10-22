@@ -7,6 +7,7 @@
 
 'use client'
 
+import { Fragment } from 'react'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, getPensionRate } from '@/lib/constants'
 import type { SalaryResult } from '@/lib/salary'
@@ -22,6 +23,13 @@ interface BreakdownRow {
   color: string
   barColor: string
   description: string
+}
+
+// 좁은 카드에서도 금액을 생략하지 않고 쉼표 뒤에서 줄바꿈할 수 있게 한다.
+function formatKRWWrap(value: number) {
+  return formatKRW(value).split(',').map((group, i) => (
+    <Fragment key={i}>{i > 0 && <>,<wbr /></>}{group}</Fragment>
+  ))
 }
 
 export default function ResultCard({ result, annualSalary }: Props) {
@@ -121,13 +129,13 @@ export default function ResultCard({ result, annualSalary }: Props) {
         <div className="card p-4">
           <p className="text-xs font-semibold text-slate-500 mb-1.5">연 실수령액</p>
           <p className="text-xl font-bold text-slate-900 tabular-nums">
-            {formatKRW(annualNet)}
+            {formatKRWWrap(annualNet)}
           </p>
         </div>
         <div className="card p-4">
           <p className="text-xs font-semibold text-slate-500 mb-1.5">연 총 공제액</p>
           <p className="text-xl font-bold text-red-600 tabular-nums">
-            -{formatKRW(annualDeduction)}
+            -{formatKRWWrap(annualDeduction)}
           </p>
         </div>
       </div>
