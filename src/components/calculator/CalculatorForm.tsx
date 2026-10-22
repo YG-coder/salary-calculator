@@ -101,7 +101,7 @@ export default function CalculatorForm() {
               className="input-field pr-8"
               autoComplete="off"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
               원
             </span>
           </div>
@@ -112,7 +112,7 @@ export default function CalculatorForm() {
         <div>
           <label htmlFor="nonTaxable" className="label">
             월 비과세 금액{' '}
-            <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
+            <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span>
           </label>
           <div className="relative">
             <input
@@ -128,7 +128,7 @@ export default function CalculatorForm() {
               className="input-field pr-8"
               autoComplete="off"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
               원/월
             </span>
           </div>
@@ -152,8 +152,8 @@ export default function CalculatorForm() {
                 }}
                 className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   dependents === String(n)
-                    ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
-                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                    ? 'bg-brand-700 border-brand-600 text-white shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
                 }`}
                aria-pressed={dependents === String(n)}>
                 {n}명
@@ -168,7 +168,7 @@ export default function CalculatorForm() {
           <div className="flex flex-wrap gap-2">
             {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
               <button key={n} type="button" onClick={() => setChildren(String(n))}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-700 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
                 {n}명
               </button>
             ))}

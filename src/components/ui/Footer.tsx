@@ -25,7 +25,7 @@ export default function Footer() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-xs text-slate-500 hover:text-brand-600 transition-colors"
+              className="text-xs text-slate-500 hover:text-brand-800 transition-colors"
             >
               {link.label}
             </Link>
@@ -40,7 +40,7 @@ export default function Footer() {
             href="https://taxsim.kr"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-xs text-slate-500 hover:text-brand-600 transition-colors"
+            className="mt-1 inline-block text-xs text-slate-500 hover:text-brand-800 transition-colors"
           >
             세금계산기 — 부가세·종합소득세·양도세 계산 ↗
           </a>
@@ -51,15 +51,15 @@ export default function Footer() {
             <p className="text-sm font-semibold text-slate-700">
               {OPERATOR_NAME} | {OPERATOR_EMAIL}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-500 mt-0.5">
               © {new Date().getFullYear()} {SITE_NAME}
             </p>
           </div>
 
           <div className="flex gap-4 text-sm text-slate-500">
-            <Link href="/about" className="hover:text-brand-600 transition-colors">소개</Link>
-            <Link href="/privacy" className="hover:text-brand-600 transition-colors">개인정보처리방침</Link>
-            <Link href="/contact" className="hover:text-brand-600 transition-colors">문의</Link>
+            <Link href="/about" className="hover:text-brand-800 transition-colors">소개</Link>
+            <Link href="/privacy" className="hover:text-brand-800 transition-colors">개인정보처리방침</Link>
+            <Link href="/contact" className="hover:text-brand-800 transition-colors">문의</Link>
           </div>
         </div>
       </div>

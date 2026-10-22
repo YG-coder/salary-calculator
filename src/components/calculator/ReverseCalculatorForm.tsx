@@ -100,7 +100,7 @@ export default function ReverseCalculatorForm() {
               className="input-field pr-8"
               autoComplete="off"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
               원/월
             </span>
           </div>
@@ -111,7 +111,7 @@ export default function ReverseCalculatorForm() {
         <div>
           <label htmlFor="nonTaxable" className="label">
             월 비과세 금액{' '}
-            <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
+            <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span>
           </label>
           <div className="relative">
             <input
@@ -127,7 +127,7 @@ export default function ReverseCalculatorForm() {
               className="input-field pr-8"
               autoComplete="off"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">
               원/월
             </span>
           </div>
@@ -148,8 +148,8 @@ export default function ReverseCalculatorForm() {
                 onClick={() => selectDependents(n)}
                 className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   dependents === String(n)
-                    ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
-                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                    ? 'bg-brand-700 border-brand-600 text-white shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
                 }`}
                aria-pressed={dependents === String(n)}>
                 {n}명
@@ -163,7 +163,7 @@ export default function ReverseCalculatorForm() {
         <div>
           <label className="label">
             공제대상가족 중 8세 이상 20세 이하 자녀 수{' '}
-            <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
+            <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span>
           </label>
           <div className="flex items-center gap-2">
             {Array.from({ length: maxChildren + 1 }, (_, i) => i).map((n) => (
@@ -173,8 +173,8 @@ export default function ReverseCalculatorForm() {
                 onClick={() => setChildren(String(n))}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   children === String(n)
-                    ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
-                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                    ? 'bg-brand-700 border-brand-600 text-white shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
                 }`}
                aria-pressed={children === String(n)}>
                 {n}명

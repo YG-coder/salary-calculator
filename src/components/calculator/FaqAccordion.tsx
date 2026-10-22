@@ -52,13 +52,13 @@ export default function FaqAccordion({
                   className="w-full flex items-start justify-between gap-3 py-4 text-left group"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-sm font-semibold text-slate-800 group-hover:text-brand-600 transition-colors leading-snug">
+                  <span className="text-sm font-semibold text-slate-800 group-hover:text-brand-800 transition-colors leading-snug">
                     Q. {faq.q}
                   </span>
                   <span
                     className={[
                       'flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center',
-                      'text-slate-400 text-xs transition-all duration-200 mt-0.5',
+                      'text-slate-500 text-xs transition-all duration-200 mt-0.5',
                       isOpen
                         ? 'rotate-180 border-brand-300 bg-brand-50 text-brand-500'
                         : 'border-slate-200',

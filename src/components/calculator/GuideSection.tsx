@@ -173,7 +173,7 @@ export default function GuideSection({
               {referenceTable.footnote}
             </p>
           )}
-          <div className="overflow-x-auto -mx-2">
+          <div className="overflow-x-auto -mx-2" tabIndex={0}>
             <table className="w-full text-sm border-collapse min-w-[400px]">
               <thead>
                 <tr className="bg-slate-50">

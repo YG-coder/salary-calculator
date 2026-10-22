@@ -78,8 +78,8 @@ export default function Header() {
             priority
             className="h-8 w-8 rounded-lg"
           />
-          <span className="text-[15px] font-bold tracking-tight text-slate-900 transition-colors group-hover:text-brand-600">
-            연봉계산기<span className="text-brand-500">.kr</span>
+          <span className="text-[15px] font-bold tracking-tight text-slate-900 transition-colors group-hover:text-brand-800">
+            연봉계산기<span className="text-brand-700">.kr</span>
           </span>
         </Link>
 
@@ -97,7 +97,7 @@ export default function Header() {
                     'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-brand-50 text-brand-700'
-                      : 'text-slate-600 hover:bg-brand-50 hover:text-brand-600',
+                      : 'text-slate-600 hover:bg-brand-50 hover:text-brand-800',
                   ].join(' ')}
                 >
                   {item.label}
@@ -117,7 +117,7 @@ export default function Header() {
                 'flex min-h-10 items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 menuIsActive
                   ? 'bg-brand-50 text-brand-700'
-                  : 'text-slate-600 hover:bg-brand-50 hover:text-brand-600',
+                  : 'text-slate-600 hover:bg-brand-50 hover:text-brand-800',
               ].join(' ')}
             >
               <span className="hidden sm:inline">계산기 전체</span>
@@ -149,7 +149,7 @@ export default function Header() {
                   <div className="grid gap-1 sm:grid-cols-2">
                     {MENU_GROUPS.map((group) => (
                       <section key={group.title} className="rounded-xl p-2" aria-labelledby={`menu-${group.title}`}>
-                        <h2 id={`menu-${group.title}`} className="px-2 pb-1.5 text-xs font-bold text-slate-400">
+                        <h2 id={`menu-${group.title}`} className="px-2 pb-1.5 text-xs font-bold text-slate-500">
                           {group.title}
                         </h2>
                         <div className="space-y-0.5">
@@ -167,7 +167,7 @@ export default function Header() {
                                   'block rounded-lg px-2 py-2 text-sm font-medium transition-colors',
                                   isActive
                                     ? 'bg-brand-50 text-brand-700'
-                                    : 'text-slate-700 hover:bg-slate-50 hover:text-brand-600',
+                                    : 'text-slate-700 hover:bg-slate-50 hover:text-brand-800',
                                 ].join(' ')}
                               >
                                 {item.label}

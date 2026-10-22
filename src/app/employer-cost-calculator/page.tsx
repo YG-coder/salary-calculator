@@ -99,7 +99,7 @@ export default function Page() {
                     그래서 이 계산기는 평균값 같은 기본값을 넣지 않았습니다. 임의값으로
                     계산하면 총 인건비가 크게 틀어지기 때문입니다. 사업장의 실제 요율은{' '}
                     <a href="https://total.comwel.or.kr" target="_blank" rel="noopener noreferrer"
-                      className="text-brand-600 underline">근로복지공단 고용·산재보험 토탈서비스</a>
+                      className="text-brand-700 underline">근로복지공단 고용·산재보험 토탈서비스</a>
                     에서 확인할 수 있습니다.
                   </p>
                 </>

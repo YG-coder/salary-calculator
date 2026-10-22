@@ -78,14 +78,14 @@ export default function EmployerCostForm() {
               onChange={(e) => setAnnualSalary(formatAmount(e.target.value, MAX_SALARY))}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-8" />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
           </div>
           <p className="hint">근로계약서상 세전 연봉 (최소 100만원)</p>
         </div>
 
         <div>
           <label htmlFor="nonTaxable" className="label">
-            월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
+            월 비과세 금액 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span>
           </label>
           <div className="relative">
             <input id="nonTaxable" type="text" inputMode="numeric" autoComplete="off"
@@ -95,7 +95,7 @@ export default function EmployerCostForm() {
               onChange={(e) => setNonTaxable(formatAmount(e.target.value, MAX_NON_TAXABLE))}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-12" />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원/월</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원/월</span>
           </div>
           <p className="hint">식대 등 — 4대보험·소득세 산정에서 제외됩니다</p>
           <NonTaxableNotice validation={nonTaxableValidation} />
@@ -129,7 +129,7 @@ export default function EmployerCostForm() {
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-8" />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">%</span>
           </div>
           <p className="mt-2 text-xs text-amber-800">
             <strong>업종별로 최대 20배까지 차이가 납니다.</strong> 임의로 평균값을 넣으면
@@ -154,21 +154,21 @@ export default function EmployerCostForm() {
                   }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     dependents === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`} aria-pressed={dependents === String(n)}>{n}명</button>
               ))}
             </div>
           </div>
           <div>
-            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button"
                   onClick={() => { setChildren(String(n)) }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     children === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`} aria-pressed={children === String(n)}>{n}명</button>
               ))}
@@ -229,7 +229,7 @@ function EmployerCostResultView({ r }: { r: EmployerCostResult }) {
           근로자가 부담하는 공제액입니다. <strong>회사 비용이 아닙니다.</strong>
           ② 계약상 급여에서 빠져 ① 실수령액이 됩니다.
         </p>
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm">
             <tbody>
               {[
@@ -261,7 +261,7 @@ function EmployerCostResultView({ r }: { r: EmployerCostResult }) {
           계약 연봉에 <strong>추가로</strong> 회사가 부담하는 금액입니다. 근로자 공제액과
           금액이 다릅니다.
         </p>
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm">
             <tbody>
               <tr className="border-b">

@@ -35,7 +35,7 @@ export default function PrivacyPage() {
 
         <section className="space-y-3">
           <h2 className="text-lg font-bold text-slate-800">1. 처리되는 정보와 목적</h2>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full min-w-[34rem] border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500">
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-bold text-slate-800">5. 개인정보 문의처</h2>
           <p>개인정보 관련 문의와 열람·정정·삭제 요청은 아래 이메일로 보내주세요.</p>
           <div className="rounded-xl bg-slate-50 p-4">
-            <a href={`mailto:${OPERATOR_EMAIL}`} className="font-semibold text-brand-600 hover:underline">{OPERATOR_EMAIL}</a>
+            <a href={`mailto:${OPERATOR_EMAIL}`} className="font-semibold text-brand-700 underline">{OPERATOR_EMAIL}</a>
           </div>
         </section>
 
@@ -107,9 +107,9 @@ export default function PrivacyPage() {
       </div>
 
       <div className="flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-sm">
-        <Link href="/" className="text-brand-600 hover:underline">홈으로</Link>
-        <Link href="/about" className="text-brand-600 hover:underline">서비스 소개</Link>
-        <Link href="/contact" className="text-brand-600 hover:underline">문의하기</Link>
+        <Link href="/" className="text-brand-700 underline">홈으로</Link>
+        <Link href="/about" className="text-brand-700 underline">서비스 소개</Link>
+        <Link href="/contact" className="text-brand-700 underline">문의하기</Link>
       </div>
     </main>
   )

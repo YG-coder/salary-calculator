@@ -136,7 +136,7 @@ export default function Home() {
         <p className="mt-2 text-sm text-slate-600 leading-relaxed">
           {HOME_SALARY_ASSUMPTION_TEXT}
         </p>
-        <div className="mt-4 card p-0 overflow-x-auto">
+        <div className="mt-4 card p-0 overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-slate-50 text-left text-slate-500">
@@ -178,12 +178,12 @@ export default function Home() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-[11px] text-slate-400">
+        <p className="mt-2 text-[11px] text-slate-500">
           연봉을 누르면 위 조건이 채워진 상태로 계산기가 열립니다.
           <span className="sm:hidden"> 월 공제액과 실수령률은 넓은 화면에서 함께 표시됩니다.</span>
         </p>
         <Link href="/salary-calculator"
-          className="mt-3 inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors">
+          className="mt-3 inline-flex rounded-xl bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors">
           내 연봉으로 계산하기 →
         </Link>
       </section>
@@ -204,7 +204,7 @@ export default function Home() {
                 {g.items.map((item) => (
                   <li key={item.href}>
                     <Link href={item.href}
-                      className="text-sm text-brand-700 hover:underline">
+                      className="text-sm text-brand-700 underline">
                       {item.label} →
                     </Link>
                   </li>
@@ -240,7 +240,7 @@ export default function Home() {
             <div key={g.q} className="card p-5">
               <h3 className="text-base font-bold text-slate-900">{g.q}</h3>
               <p className="mt-2 text-sm text-slate-600 leading-relaxed">{g.a}</p>
-              <Link href={g.href} className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline">
+              <Link href={g.href} className="mt-3 inline-block text-sm font-semibold text-brand-700 underline">
                 {g.cta} →
               </Link>
             </div>

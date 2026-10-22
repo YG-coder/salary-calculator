@@ -33,7 +33,7 @@ export default function ContactPage() {
 
         <div className="rounded-xl bg-slate-50 p-4">
           <p className="text-xs font-semibold text-slate-500">운영자 {OPERATOR_NAME}</p>
-          <a href={`mailto:${OPERATOR_EMAIL}`} className="mt-1 inline-block text-base font-bold text-brand-700 hover:underline">
+          <a href={`mailto:${OPERATOR_EMAIL}`} className="mt-1 inline-block text-base font-bold text-brand-700 underline">
             {OPERATOR_EMAIL}
           </a>
           <p className="mt-2 text-xs text-slate-500">
@@ -60,9 +60,9 @@ export default function ContactPage() {
       </section>
 
       <div className="flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-sm">
-        <Link href="/" className="text-brand-600 hover:underline">홈으로</Link>
-        <Link href="/about" className="text-brand-600 hover:underline">서비스 소개</Link>
-        <Link href="/privacy" className="text-brand-600 hover:underline">개인정보처리방침</Link>
+        <Link href="/" className="text-brand-700 underline">홈으로</Link>
+        <Link href="/about" className="text-brand-700 underline">서비스 소개</Link>
+        <Link href="/privacy" className="text-brand-700 underline">개인정보처리방침</Link>
       </div>
     </main>
   )

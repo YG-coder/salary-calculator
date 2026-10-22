@@ -29,7 +29,7 @@ export default function RelatedCalculators({ items, title = '관련 계산기' }
               <p className="text-sm font-semibold text-slate-800 group-hover:text-brand-700 transition-colors">
                 {item.label}
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
             </div>
           </Link>
         ))}

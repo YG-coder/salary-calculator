@@ -120,10 +120,10 @@ export default function Page() {
                   비과세 금액, 공제대상가족 수, 8~20세 자녀 수는 A와 B에 <strong>똑같이</strong>
                   적용됩니다. 연봉 차이만 놓고 비교해야 한계 실수령률을 해석할 수 있기
                   때문입니다. 이직처럼 비과세 구성이나 부양 조건까지 달라지는 경우라면,
-                  각각을 <a href="/salary-calculator" className="text-brand-600 underline">
+                  각각을 <a href="/salary-calculator" className="text-brand-700 underline">
                   연봉 실수령액 계산기</a>로 따로 계산해 비교하세요.
                   반대로 <strong>받고 싶은 실수령액이 먼저 정해져 있다면</strong>{' '}
-                  <a href="/target-salary-calculator" className="text-brand-600 underline">
+                  <a href="/target-salary-calculator" className="text-brand-700 underline">
                   목표 실수령액 역산 계산기</a>가 맞습니다. 이 계산기는 &ldquo;연봉이
                   바뀌면 실수령액이 얼마나 달라지는가&rdquo;에 답하고, 역산 계산기는
                   &ldquo;원하는 실수령액을 받으려면 연봉이 얼마여야 하는가&rdquo;에

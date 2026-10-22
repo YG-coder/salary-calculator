@@ -183,7 +183,7 @@ export default function Page() {
               </h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 그 경우에는{' '}
-                <Link href="/salary-calculator" className="text-brand-600 hover:underline">
+                <Link href="/salary-calculator" className="text-brand-700 underline">
                   연봉 실수령액 계산기
                 </Link>
                 를 사용하세요. 세전 연봉을 입력하면 세후 실수령액과 공제 내역을 계산합니다.

@@ -76,9 +76,9 @@ export default function WeeklyHolidayPayCalculatorPage() {
       <div className="mt-6 space-y-6">
         <InputCard title="근무 정보 입력">
           <div>
-            <label className="label">주 소정근로시간 <span className="text-red-400">*</span></label>
+            <label htmlFor="weeklyHours" className="label">주 소정근로시간 <span className="text-red-400">*</span></label>
             <div className="relative">
-              <input
+              <input id="weeklyHours"
                 type="text" inputMode="decimal"
                 placeholder="예: 20"
                 value={weeklyHours}
@@ -88,18 +88,18 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-10"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">시간</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">시간</span>
             </div>
             <p className="hint">
               주 15시간 이상 근무 시 주휴수당 발생
               {wh > 0 && (
-                <span className={wh >= 15 ? ' text-emerald-600 font-semibold' : ' text-red-500 font-semibold'}>
+                <span className={wh >= 15 ? ' text-emerald-600 font-semibold' : ' text-red-600 font-semibold'}>
                   {' '}· {wh >= 15 ? '✓ 주휴수당 발생' : '✗ 주휴수당 미발생'}
                 </span>
               )}
             </p>
             {weeklyHours !== '' && !weeklyHours.endsWith('.') && !hasValidWeeklyHours && (
-              <p className="hint text-red-500">0보다 큰 숫자를 입력하세요.</p>
+              <p className="hint text-red-600">0보다 큰 숫자를 입력하세요.</p>
             )}
             {hasValidWeeklyHours && wh > 168 && (
               <p className="hint text-amber-600">
@@ -109,14 +109,14 @@ export default function WeeklyHolidayPayCalculatorPage() {
           </div>
 
           <div>
-            <label className="label">
+            <label htmlFor="hourlyWage" className="label">
               시간당 임금{' '}
-              <span className="text-xs font-normal text-slate-400">
+              <span className="text-xs font-normal text-slate-500">
                 (선택, 기본: 최저시급 {MIN_HOURLY_WAGE.toLocaleString()}원)
               </span>
             </label>
             <div className="relative">
-              <input
+              <input id="hourlyWage"
                 type="text" inputMode="numeric"
                 placeholder={`최저시급: ${MIN_HOURLY_WAGE.toLocaleString()}`}
                 value={hourlyWage}
@@ -126,7 +126,7 @@ export default function WeeklyHolidayPayCalculatorPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-10"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">{TAX_YEAR}년 최저시급 {MIN_HOURLY_WAGE.toLocaleString()}원 적용 중</p>
           </div>
@@ -148,7 +148,7 @@ export default function WeeklyHolidayPayCalculatorPage() {
                   }}
                   className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     fullAttendance === option.value
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
                  aria-pressed={fullAttendance === option.value}>

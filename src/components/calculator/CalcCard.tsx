@@ -89,7 +89,7 @@ interface DisclaimerProps {
 
 export function Disclaimer({ year, extra }: DisclaimerProps) {
   return (
-    <p className="text-xs text-slate-400 text-center px-2 leading-relaxed">
+    <p className="text-xs text-slate-500 text-center px-2 leading-relaxed">
       본 계산 결과는 {year}년 기준 근사값으로, 실제와 다를 수 있습니다.
       {extra && ` ${extra}`}
       {' '}정확한 내용은 담당 세무사 또는 관계 기관에 문의하세요.

@@ -116,72 +116,73 @@ export default function SeverancePayCalculatorPage() {
                 <div key={label} className="relative">
                   <input
                     type="text" inputMode="numeric"
+                    aria-label={`최근 3개월 월 급여 — ${label}`}
                     placeholder={`${label}`}
                     value={val}
                     onChange={(e) => set(formatNum(e.target.value))}
                     className="input-field pr-8"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="label">연간 상여금 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+            <label htmlFor="bonus" className="label">연간 상여금 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
             <div className="relative">
-              <input
+              <input id="bonus"
                 type="text" inputMode="numeric"
                 placeholder="예: 3,000,000"
                 value={bonus}
                 onChange={(e) => setBonus(formatNum(e.target.value))}
                 className="input-field pr-8"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">연간 지급된 상여금 총액 (평균임금 산정에 포함)</p>
           </div>
 
           <div>
-            <label className="label">직전 1년간 지급된 연차수당 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+            <label htmlFor="annualLeaveAllowance" className="label">직전 1년간 지급된 연차수당 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
             <div className="relative">
-              <input
+              <input id="annualLeaveAllowance"
                 type="text" inputMode="numeric"
                 placeholder="예: 1,500,000"
                 value={annualLeaveAllowance}
                 onChange={(e) => setAnnualLeaveAllowance(formatNum(e.target.value))}
                 className="input-field pr-8"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">입력액의 3/12을 평균임금 산정에 반영합니다</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">주 소정근로시간</label>
+              <label htmlFor="weeklyHours" className="label">주 소정근로시간</label>
               <div className="relative">
-                <input
+                <input id="weeklyHours"
                   type="text" inputMode="numeric"
                   value={weeklyHours}
                   onChange={(e) => setWeeklyHours(formatNum(e.target.value))}
                   className="input-field pr-10"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">시간</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">시간</span>
               </div>
               <p className="hint">4주 평균 주 15시간 이상 필요</p>
             </div>
             <div>
-              <label className="label">1일 통상임금 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+              <label htmlFor="ordinaryDailyWage" className="label">1일 통상임금 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
               <div className="relative">
-                <input
+                <input id="ordinaryDailyWage"
                   type="text" inputMode="numeric"
                   placeholder="예: 120,000"
                   value={ordinaryDailyWage}
                   onChange={(e) => setOrdinaryDailyWage(formatNum(e.target.value))}
                   className="input-field pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
               </div>
               <p className="hint">평균임금보다 높으면 하한으로 적용</p>
             </div>

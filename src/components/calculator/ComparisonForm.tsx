@@ -92,7 +92,7 @@ export default function ComparisonForm() {
                   onKeyDown={handleKeyDown}
                   className="input-field pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
               </div>
             </div>
           ))}
@@ -108,7 +108,7 @@ export default function ComparisonForm() {
 
           <div>
             <label htmlFor="nonTaxable" className="label">
-              월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
+              월 비과세 금액 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span>
             </label>
             <div className="relative">
               <input
@@ -121,7 +121,7 @@ export default function ComparisonForm() {
                 onKeyDown={handleKeyDown}
                 className="input-field pr-12"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원/월</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원/월</span>
             </div>
             <p className="hint">식대 등 월 비과세 금액 — 4대보험·소득세 산정에서 제외됩니다</p>
             <NonTaxableNotice validation={nonTaxableValidation} />
@@ -139,8 +139,8 @@ export default function ComparisonForm() {
                   }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     dependents === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                      ? 'bg-brand-700 border-brand-600 text-white shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
                   }`}
                  aria-pressed={dependents === String(n)}>
                   {n}명
@@ -151,7 +151,7 @@ export default function ComparisonForm() {
 
           <div>
             <label className="label">
-              그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span>
+              그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span>
             </label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
@@ -160,8 +160,8 @@ export default function ComparisonForm() {
                   onClick={() => setChildren(String(n))}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     children === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                      ? 'bg-brand-700 border-brand-600 text-white shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
                   }`}
                  aria-pressed={children === String(n)}>
                   {n}명
@@ -208,7 +208,7 @@ function ComparisonResult({ result: r }: { result: SalaryComparisonResult }) {
   return (
     <div className="space-y-4 animate-slide-up">
       {/* 핵심 차이 */}
-      <div className="card p-6 bg-brand-600 text-white">
+      <div className="card p-6 bg-brand-700 text-white">
         <p className="text-sm opacity-90">월 실수령액 차이 (B − A)</p>
         <p className="text-3xl font-bold mt-1">{formatSignedKRW(r.monthlyNetDiff)}</p>
         <p className="text-sm opacity-90 mt-2">
@@ -267,7 +267,7 @@ function ComparisonResult({ result: r }: { result: SalaryComparisonResult }) {
       {/* 나란히 비교 */}
       <div className="card p-5">
         <h3 className="text-sm font-bold text-slate-800 mb-3">나란히 비교</h3>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-slate-500 border-b">
@@ -306,7 +306,7 @@ function ComparisonResult({ result: r }: { result: SalaryComparisonResult }) {
                 <td className="py-2 text-slate-600">평균 실수령률</td>
                 <td className="py-2 text-right">{formatRate(r.averageNetRateA)}</td>
                 <td className="py-2 text-right">{formatRate(r.averageNetRateB)}</td>
-                <td className="py-2 text-right text-slate-400">—</td>
+                <td className="py-2 text-right text-slate-500">—</td>
               </tr>
             </tbody>
           </table>
@@ -316,7 +316,7 @@ function ComparisonResult({ result: r }: { result: SalaryComparisonResult }) {
       {/* 공제 항목별 차이 */}
       <div className="card p-5">
         <h3 className="text-sm font-bold text-slate-800 mb-3">공제 항목별 차이 (월 기준)</h3>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-slate-500 border-b">

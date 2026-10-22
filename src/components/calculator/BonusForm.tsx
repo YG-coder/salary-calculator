@@ -99,7 +99,7 @@ export default function BonusForm() {
               onChange={(e) => setBonus(formatAmount(e.target.value, MAX_BONUS_AMOUNT))}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-8" />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
           </div>
           <p className="hint">세전 상여금액을 입력하세요</p>
         </div>
@@ -112,7 +112,7 @@ export default function BonusForm() {
               onChange={(e) => setMonthlyPay(formatAmount(e.target.value, MAX_MONTHLY_PAY))}
               onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
               className="input-field pr-8" />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
           </div>
           <p className="hint">
             지급대상기간의 월평균 급여에서 비과세를 뺀 금액. 법정 산식이 상여금과 합산해
@@ -128,7 +128,7 @@ export default function BonusForm() {
                 onClick={() => { setPeriodType(o.value) }}
                 className={`py-2.5 px-2 rounded-xl text-sm font-semibold border transition-all ${
                   periodType === o.value
-                    ? 'bg-brand-600 border-brand-600 text-white'
+                    ? 'bg-brand-700 border-brand-600 text-white'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                 }`} aria-pressed={periodType === o.value}>
                 {o.label}
@@ -206,21 +206,21 @@ export default function BonusForm() {
                   }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     dependents === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`} aria-pressed={dependents === String(n)}>{n}명</button>
               ))}
             </div>
           </div>
           <div>
-            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+            <label className="label">그중 8~20세 자녀 수 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
             <div className="flex flex-wrap items-center gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button"
                   onClick={() => { setChildren(String(n)) }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     children === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`} aria-pressed={children === String(n)}>{n}명</button>
               ))}
@@ -245,7 +245,7 @@ export default function BonusForm() {
                 placeholder="지급대상기간 소득세 합계" value={prepaidTax}
                 onChange={(e) => setPrepaidTax(formatAmount(e.target.value, MAX_PREPAID_TAX))}
                 className="input-field pr-8" />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
           )}
         </div>
@@ -272,7 +272,7 @@ export default function BonusForm() {
 function BonusResult({ r, bonus }: { r: BonusWithholdingResult; bonus: number }) {
   return (
     <div className="space-y-4 animate-slide-up">
-      <div className="card p-6 bg-brand-600 text-white">
+      <div className="card p-6 bg-brand-700 text-white">
         <p className="text-sm opacity-90">{r.additionalAmountDue > 0 ? '상여금에서 지급 가능한 금액' : '실수령 상여금'}</p>
         <p className="text-3xl font-bold mt-1">{formatKRW(r.netBonus)}</p>
         <p className="text-sm opacity-90 mt-2">
@@ -301,7 +301,7 @@ function BonusResult({ r, bonus }: { r: BonusWithholdingResult; bonus: number })
 
       <div className="card p-5">
         <h3 className="text-sm font-bold text-slate-800 mb-3">공제 내역</h3>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm">
             <tbody>
               <tr className="border-b">
@@ -327,7 +327,7 @@ function BonusResult({ r, bonus }: { r: BonusWithholdingResult; bonus: number })
 
       <div className="card p-5 bg-sky-50 border-sky-100">
         <h3 className="text-sm font-bold text-sky-800 mb-3">계산 과정 (소득세법 제136조)</h3>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-xs text-sky-800">
             <tbody>
               <tr className="border-b border-sky-200">

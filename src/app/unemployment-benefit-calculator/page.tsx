@@ -77,7 +77,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                   onClick={() => setUseMonthly(opt.value)}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     useMonthly === opt.value
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
                  aria-pressed={useMonthly === opt.value}>
@@ -89,55 +89,55 @@ export default function UnemploymentBenefitCalculatorPage() {
 
           {useMonthly ? (
             <div>
-              <label className="label">퇴직 전 월평균임금 <span className="text-red-400">*</span></label>
+              <label htmlFor="monthlyWage" className="label">퇴직 전 월평균임금 <span className="text-red-400">*</span></label>
               <div className="relative">
-                <input
+                <input id="monthlyWage"
                   type="text" inputMode="numeric"
                   placeholder="예: 3,000,000"
                   value={monthlyWage}
                   onChange={(e) => setMonthlyWage(formatNum(e.target.value))}
                   className="input-field pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
               </div>
               {parseNum(monthlyWage) > 0 && (
-                <p className="hint text-brand-600">
+                <p className="hint text-brand-700">
                   계산된 1일 평균임금: {formatKRW(Math.floor(parseNum(monthlyWage) / 30))}
                 </p>
               )}
             </div>
           ) : (
             <div>
-              <label className="label">1일 평균임금 <span className="text-red-400">*</span></label>
+              <label htmlFor="dailyWage" className="label">1일 평균임금 <span className="text-red-400">*</span></label>
               <div className="relative">
-                <input
+                <input id="dailyWage"
                   type="text" inputMode="numeric"
                   placeholder="예: 100,000"
                   value={dailyWage}
                   onChange={(e) => setDailyWage(formatNum(e.target.value))}
                   className="input-field pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
               </div>
             </div>
           )}
 
           <div>
-            <label className="label">고용보험 가입 기간 <span className="text-red-400">*</span></label>
+            <label htmlFor="employmentMonths" className="label">고용보험 가입 기간 <span className="text-red-400">*</span></label>
             <div className="relative">
-              <input
+              <input id="employmentMonths"
                 type="text" inputMode="numeric"
                 placeholder="예: 24"
                 value={employmentMonths}
                 onChange={(e) => setEmploymentMonths(formatNum(e.target.value))}
                 className="input-field pr-10"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">개월</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">개월</span>
             </div>
             <p className="hint">
               이직 전 18개월 내 피보험단위기간 180일(약 6개월) 이상 필요
               {parseNum(employmentMonths) > 0 && (
-                <span className={parseNum(employmentMonths) >= 6 ? ' text-emerald-600 font-semibold' : ' text-red-500 font-semibold'}>
+                <span className={parseNum(employmentMonths) >= 6 ? ' text-emerald-600 font-semibold' : ' text-red-600 font-semibold'}>
                   {' '}· {parseNum(employmentMonths) >= 6 ? '✓ 수급 요건 충족' : '✗ 수급 요건 미충족 (6개월 미만)'}
                 </span>
               )}
@@ -153,7 +153,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                   onClick={() => setAge(a)}
                   className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     age === a
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
                  aria-pressed={age === a}>
@@ -179,7 +179,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                   }}
                   className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     isDisabled === option.value
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
                  aria-pressed={isDisabled === option.value}>
@@ -222,13 +222,13 @@ export default function UnemploymentBenefitCalculatorPage() {
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="card p-4">
-                    <p className="text-xs font-semibold text-slate-400 mb-1">1일 실업급여</p>
+                    <p className="text-xs font-semibold text-slate-500 mb-1">1일 실업급여</p>
                     <p className="text-xl font-bold text-slate-900 tabular-nums">
                       {formatKRW(result.dailyBenefit)}
                     </p>
                   </div>
                   <div className="card p-4">
-                    <p className="text-xs font-semibold text-slate-400 mb-1">수급 일수</p>
+                    <p className="text-xs font-semibold text-slate-500 mb-1">수급 일수</p>
                     <p className="text-xl font-bold text-slate-900 tabular-nums">{result.totalDays}일</p>
                   </div>
                 </div>

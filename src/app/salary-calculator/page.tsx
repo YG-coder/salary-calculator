@@ -90,7 +90,7 @@ export default function Page() {
         </p>
 
         <div className="mt-6">
-          <Suspense fallback={<div className="card p-6 text-sm text-slate-400">계산기를 불러오는 중…</div>}>
+          <Suspense fallback={<div className="card p-6 text-sm text-slate-500">계산기를 불러오는 중…</div>}>
             <CalculatorForm />
           </Suspense>
         </div>

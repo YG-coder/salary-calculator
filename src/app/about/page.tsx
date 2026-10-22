@@ -109,7 +109,7 @@ export default function AboutPage() {
             <li key={href}>
               <Link
                 href={href}
-                className="text-sm text-brand-600 hover:text-brand-800 hover:underline"
+                className="text-sm text-brand-700 hover:text-brand-800 underline"
               >
                 · {label}
               </Link>
@@ -195,7 +195,7 @@ export default function AboutPage() {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brand-600 hover:underline"
+                className="text-brand-700 underline"
               >
                 {label}
               </a>
@@ -254,7 +254,7 @@ export default function AboutPage() {
             <span className="text-slate-500">이메일: </span>
             <a
               href={`mailto:${OPERATOR_EMAIL}`}
-              className="font-semibold text-brand-700 hover:underline"
+              className="font-semibold text-brand-700 underline"
             >
               {OPERATOR_EMAIL}
             </a>
@@ -263,7 +263,7 @@ export default function AboutPage() {
             <span className="text-slate-500">사이트 URL: </span>
             <a
               href={SITE_URL}
-              className="font-semibold text-brand-700 hover:underline"
+              className="font-semibold text-brand-700 underline"
             >
               {SITE_URL}
             </a>
@@ -279,7 +279,7 @@ export default function AboutPage() {
           운영자 서버로 전송하거나 저장하지 않습니다. 다만 사이트 운영에 필요한 접속
           로그로 IP 주소와 같은 정보가 처리될 수 있습니다. 이메일 문의를 보내는 경우에는
           회신을 위해 이메일 주소와 문의 내용이 처리됩니다. 자세한 내용은{' '}
-          <Link href="/privacy" className="text-brand-600 hover:underline">
+          <Link href="/privacy" className="text-brand-700 underline">
             개인정보 처리방침
           </Link>
           을 참고하세요.
@@ -288,16 +288,16 @@ export default function AboutPage() {
 
       {/* ── 하단 네비게이션 ──────────────────────────────── */}
       <div className="flex flex-wrap gap-4 text-sm pt-4 border-t border-slate-100">
-        <Link href="/" className="text-brand-600 hover:underline">
+        <Link href="/" className="text-brand-700 underline">
           홈으로
         </Link>
-        <Link href="/salary-calculator" className="text-brand-600 hover:underline">
+        <Link href="/salary-calculator" className="text-brand-700 underline">
           연봉 실수령액 계산기
         </Link>
-        <Link href="/privacy" className="text-brand-600 hover:underline">
+        <Link href="/privacy" className="text-brand-700 underline">
           개인정보처리방침
         </Link>
-        <Link href="/contact" className="text-brand-600 hover:underline">
+        <Link href="/contact" className="text-brand-700 underline">
           문의하기
         </Link>
       </div>

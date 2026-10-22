@@ -158,7 +158,7 @@ export default function AnnualLeavePayCalculatorPage() {
                   onClick={() => setMode(opt.value as 'direct' | 'calc')}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     mode === opt.value
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
                  aria-pressed={mode === opt.value}>
@@ -170,34 +170,34 @@ export default function AnnualLeavePayCalculatorPage() {
 
           {mode === 'direct' ? (
             <div>
-              <label className="label">1일 통상임금 <span className="text-red-400">*</span></label>
+              <label htmlFor="dailyWage" className="label">1일 통상임금 <span className="text-red-400">*</span></label>
               <div className="relative">
-                <input
+                <input id="dailyWage"
                   type="text" inputMode="numeric"
                   placeholder="예: 80,000"
                   value={dailyWage}
                   onChange={(e) => setDailyWage(formatAmountInput(e.target.value))}
                   className="input-field pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
               </div>
               <p className="hint">급여명세서의 1일 통상임금을 입력하세요</p>
             </div>
           ) : (
             <div>
-              <label className="label">월 통상임금 <span className="text-red-400">*</span></label>
+              <label htmlFor="monthlyWage" className="label">월 통상임금 <span className="text-red-400">*</span></label>
               <div className="relative">
-                <input
+                <input id="monthlyWage"
                   type="text" inputMode="numeric"
                   placeholder="예: 2,500,000"
                   value={monthlyWage}
                   onChange={(e) => setMonthlyWage(formatAmountInput(e.target.value))}
                   className="input-field pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
               </div>
               {parseAmount(monthlyWage) > 0 && (
-                <p className="hint text-brand-600">
+                <p className="hint text-brand-700">
                   계산된 1일 통상임금: {formatKRW(computedDailyWage)}
                 </p>
               )}
@@ -205,9 +205,9 @@ export default function AnnualLeavePayCalculatorPage() {
           )}
 
           <div>
-            <label className="label">미사용 연차 일수 <span className="text-red-400">*</span></label>
+            <label htmlFor="unusedDays" className="label">미사용 연차 일수 <span className="text-red-400">*</span></label>
             <div className="relative">
-              <input
+              <input id="unusedDays"
                 type="text" inputMode="decimal"
                 placeholder="예: 10 (반차는 0.5)"
                 aria-invalid={unusedDays.trim() !== '' && parseDays(unusedDays) === 0}
@@ -215,7 +215,7 @@ export default function AnnualLeavePayCalculatorPage() {
                 onChange={(e) => setUnusedDays(sanitizeDaysInput(e.target.value))}
                 className="input-field pr-10"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">일</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">일</span>
             </div>
             <p className="hint">반차·반반차가 남았다면 0.5, 0.25처럼 소수로 입력할 수 있습니다</p>
             {exceedsStatutory && (
@@ -237,7 +237,7 @@ export default function AnnualLeavePayCalculatorPage() {
                   onClick={() => setTenureCategory(opt.value)}
                   className={`py-2.5 px-2 rounded-xl text-sm font-semibold border transition-all ${
                     tenureCategory === opt.value
-                      ? 'bg-brand-600 border-brand-600 text-white'
+                      ? 'bg-brand-700 border-brand-600 text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300'
                   }`}
                  aria-pressed={tenureCategory === opt.value}>
@@ -252,9 +252,9 @@ export default function AnnualLeavePayCalculatorPage() {
 
           {tenureCategory === 'under1' && (
             <div>
-              <label className="label">개근한 개월 수</label>
+              <label htmlFor="attendanceMonths" className="label">개근한 개월 수</label>
               <div className="relative">
-                <input
+                <input id="attendanceMonths"
                   type="text" inputMode="numeric"
                   placeholder="예: 6"
                   value={attendanceMonths}
@@ -262,11 +262,11 @@ export default function AnnualLeavePayCalculatorPage() {
                   onBlur={() => setAttendanceMonths(String(normalizeMonths(attendanceMonths)))}
                   className="input-field pr-10"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">개월</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">개월</span>
               </div>
               <p className="hint">
                 개근 {normalizedMonths}개월 기준 법정 연차: {statutory.annualGrantDays}일
-                <span className="text-slate-400"> · 입력 범위 0~{MAX_FULL_ATTENDANCE_MONTHS}개월</span>
+                <span className="text-slate-500"> · 입력 범위 0~{MAX_FULL_ATTENDANCE_MONTHS}개월</span>
               </p>
             </div>
           )}
@@ -281,9 +281,9 @@ export default function AnnualLeavePayCalculatorPage() {
 
           {tenureCategory === 'over1' && (
             <div>
-              <label className="label">근속 기간</label>
+              <label htmlFor="workingYears" className="label">근속 기간</label>
               <div className="relative">
-                <input
+                <input id="workingYears"
                   type="text" inputMode="numeric"
                   placeholder="예: 12"
                   value={workingYears}
@@ -291,20 +291,20 @@ export default function AnnualLeavePayCalculatorPage() {
                   onBlur={() => setWorkingYears(String(normalizeWorkingYears(workingYears)))}
                   className="input-field pr-10"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">년</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">년</span>
               </div>
               <p className="hint">
                 근속 {normalizedYears}년 기준 법정 연차: {statutory.annualGrantDays}일
-                <span className="text-slate-400"> · 입력 범위 {MIN_WORKING_YEARS}~{MAX_WORKING_YEARS}년</span>
+                <span className="text-slate-500"> · 입력 범위 {MIN_WORKING_YEARS}~{MAX_WORKING_YEARS}년</span>
               </p>
               {normalizedYears === 1 && (
-                <p className="hint text-brand-600">
+                <p className="hint text-brand-700">
                   1년 미만 기간에 발생한 최대 {SUB_ONE_YEAR_MAX_DAYS}일이 남아 있다면 합쳐서
                   최대 {statutory.warningThresholdDays}일까지 정산 대상이 될 수 있습니다.
                 </p>
               )}
               {normalizedYears >= ANNUAL_LEAVE_CAP_YEARS && (
-                <p className="hint text-brand-600">
+                <p className="hint text-brand-700">
                   {ANNUAL_LEAVE_CAP_YEARS}년 이상 근속자는 가산 연차를 포함해 법정 연차가 최대 {ANNUAL_LEAVE_MAX_DAYS}일입니다.
                 </p>
               )}
@@ -355,7 +355,7 @@ export default function AnnualLeavePayCalculatorPage() {
 
             <div className="card p-5 bg-sky-50 border-sky-100">
               <h3 className="text-sm font-bold text-sky-800 mb-2">연차 일수 기준 (근로기준법)</h3>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0}>
                 <table className="w-full text-xs text-sky-700">
                   <thead><tr className="font-semibold"><th className="text-left py-1">근속기간</th><th className="text-right py-1">연차 일수</th></tr></thead>
                   <tbody>

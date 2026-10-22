@@ -22,7 +22,7 @@ export default function NotFound() {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link
                     href="/salary-calculator"
-                    className="rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white hover:bg-brand-700"
+                    className="rounded-xl bg-brand-700 px-5 py-3 text-sm font-bold text-white hover:bg-brand-800"
                 >
                     연봉계산기 바로 가기
                 </Link>

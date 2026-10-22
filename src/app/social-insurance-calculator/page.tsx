@@ -80,9 +80,9 @@ export default function SocialInsuranceCalculatorPage() {
       <div className="mt-6 space-y-6">
         <InputCard title="급여 정보 입력">
           <div>
-            <label className="label">월 세전 급여 <span className="text-red-400">*</span></label>
+            <label htmlFor="monthlyGross" className="label">월 세전 급여 <span className="text-red-400">*</span></label>
             <div className="relative">
-              <input
+              <input id="monthlyGross"
                 type="text" inputMode="numeric"
                 placeholder="예: 3,500,000"
                 value={monthlyGross}
@@ -90,27 +90,27 @@ export default function SocialInsuranceCalculatorPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-8"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">월 세전 급여를 입력하세요</p>
           </div>
 
           <div>
-            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
             <div className="relative">
               <input id="nonTaxable" type="text" inputMode="numeric" placeholder="예: 200,000" value={nonTaxable}
                 aria-invalid={Boolean(nonTaxableValidation.error)}
                 aria-describedby="non-taxable-feedback"
                 onChange={(e) => setNonTaxable(formatNum(e.target.value))} className="input-field pr-8" />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">세전 급여에서 차감한 금액을 보험료 산정 기준으로 사용합니다</p>
             <NonTaxableNotice validation={nonTaxableValidation} />
           </div>
 
           <div>
-            <label className="label">사업장 규모</label>
-            <select
+            <label htmlFor="employerEmploymentRate" className="label">사업장 규모</label>
+            <select id="employerEmploymentRate"
               value={employerEmploymentRate}
               onChange={(e) => {
                 setEmployerEmploymentRate(e.target.value)
@@ -138,7 +138,7 @@ export default function SocialInsuranceCalculatorPage() {
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-8" />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">%</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">%</span>
             </div>
             <p className="mt-2 text-xs text-amber-800">
               산재보험료율은 업종별로 크게 다르므로 기본값을 제공하지 않습니다. 사업장의
@@ -170,11 +170,11 @@ export default function SocialInsuranceCalculatorPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="card p-4">
-                <p className="text-xs font-semibold text-slate-400 mb-1">근로자 부담</p>
+                <p className="text-xs font-semibold text-slate-500 mb-1">근로자 부담</p>
                 <p className="text-xl font-bold text-slate-900 tabular-nums">{formatKRW(result.totalEmployee)}</p>
               </div>
               <div className="card p-4">
-                <p className="text-xs font-semibold text-slate-400 mb-1">사업주 부담</p>
+                <p className="text-xs font-semibold text-slate-500 mb-1">사업주 부담</p>
                 <p className="text-xl font-bold text-orange-600 tabular-nums">{formatKRW(result.totalEmployer)}</p>
               </div>
             </div>
