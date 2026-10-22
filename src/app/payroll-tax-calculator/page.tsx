@@ -68,9 +68,9 @@ export default function PayrollTaxCalculatorPage() {
       <div className="mt-6 space-y-6">
         <InputCard title="월급여 정보 입력">
           <div>
-            <label className="label">월 세전 급여 <span className="text-red-400">*</span></label>
+            <label htmlFor="monthlyGross" className="label">월 세전 급여 <span className="text-red-400">*</span></label>
             <div className="relative">
-              <input
+              <input id="monthlyGross"
                 type="text" inputMode="numeric"
                 placeholder="예: 3,500,000"
                 value={monthlyGross}
@@ -78,13 +78,13 @@ export default function PayrollTaxCalculatorPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-8"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원</span>
             </div>
             <p className="hint">월 세전 급여를 입력하세요 (최소 10만원)</p>
           </div>
 
           <div>
-            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-400">(없으면 0 입력)</span></label>
+            <label htmlFor="nonTaxable" className="label">월 비과세 금액 <span className="text-xs font-normal text-slate-500">(없으면 0 입력)</span></label>
             <div className="relative">
               <input id="nonTaxable"
                 type="text" inputMode="numeric"
@@ -96,7 +96,7 @@ export default function PayrollTaxCalculatorPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCalc()}
                 className="input-field pr-12"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">원/월</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">원/월</span>
             </div>
             <p className="hint">식대 등 비과세 항목 (4대보험·소득세 계산에서 제외)</p>
             <NonTaxableNotice validation={nonTaxableValidation} />
@@ -114,8 +114,8 @@ export default function PayrollTaxCalculatorPage() {
                   }}
                   className={`flex-1 min-w-12 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                     dependents === String(n)
-                      ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                      ? 'bg-brand-700 border-brand-600 text-white shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
                   }`}
                  aria-pressed={dependents === String(n)}>
                   {n}명
@@ -129,7 +129,7 @@ export default function PayrollTaxCalculatorPage() {
             <div className="flex flex-wrap gap-2">
               {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
                 <button key={n} type="button" onClick={() => setChildren(String(n))}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-700 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
                   {n}명
                 </button>
               ))}
@@ -164,7 +164,7 @@ export default function PayrollTaxCalculatorPage() {
                 { label: '고용보험 (0.9%)', value: formatKRW(result.employment) },
                 { label: '소득세', value: formatKRW(result.incomeTax) },
                 { label: '지방소득세 (소득세×10%)', value: formatKRW(result.localTax) },
-                { label: '월 총 공제', value: `-${formatKRW(result.totalDeduction)}`, highlight: true, color: 'text-red-500' },
+                { label: '월 총 공제', value: `-${formatKRW(result.totalDeduction)}`, highlight: true, color: 'text-red-600' },
               ]}
             />
 
@@ -323,7 +323,7 @@ export default function PayrollTaxCalculatorPage() {
             },
             {
               q: '실수령액을 늘리는 방법이 있나요?',
-              a: '① 비과세 항목 최대 활용(식대 20만원·차량유지비 20만원), ② 부양가족 등록 확인(소득 없는 부모·자녀), ③ IRP/연금저축으로 세액공제(연 700만원 한도, 최대 115.5만원 환급), ④ 의료비·교육비·기부금 영수증 챙기기, ⑤ 무주택자라면 월세·전세 자금 대출 공제 활용 등이 효과적입니다.',
+              a: '① 비과세 항목 최대 활용(식대 월 20만원·차량유지비 월 20만원·6세 이하 자녀 보육수당 자녀 1인당 월 20만원), ② 부양가족 등록 확인(소득 없는 부모·자녀), ③ 연금계좌 세액공제(연금저축 연 600만원, 퇴직연금 합산 연 900만원 한도, 총급여 5,500만원 이하 15%·초과 12%, 지방소득세 포함 16.5%·13.2% — 공제 효과는 소득·납입액과 다른 공제·감면에 따라 달라지며, 환급액은 이미 낸 세금(기납부세액)에서 공제·감면 후 최종 세금(결정세액)을 뺀 차액으로 정해집니다), ④ 의료비·교육비·기부금 영수증 챙기기, ⑤ 요건을 갖춘 무주택자의 월세액 세액공제(총급여 8,000만원 이하, 월세액 연 1,000만원 한도, 15~17%)·주택임차차입금 원리금 상환액 공제 등이 효과적입니다.',
             },
             {
               q: '회사가 임의로 공제 항목을 늘려도 되나요?',

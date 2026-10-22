@@ -12,7 +12,7 @@ import { withParticle } from "@/lib/korean";
  *   수정: 데이터 객체에 monthlyGross 직접 포함
  */
 import Link from 'next/link'
-import { TAX_YEAR, LONG_TERM_CARE_RATIO_LABEL, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear } from '@/lib/constants'
+import { TAX_YEAR, LONG_TERM_CARE_RATIO_LABEL, TAX_YEAR_AS_OF, RATES, PENSION_LIMITS, getPensionRateForYear, HEALTH_PREMIUM_LIMITS } from '@/lib/constants'
 import { calculateSalary, formatKRW } from '@/lib/salary'
 
 const pensionMinMan = Math.floor(PENSION_LIMITS.min / 10_000)
@@ -68,7 +68,7 @@ export default function ContentSection() {
               },
               {
                 name: '건강보험',
-                desc: `월 과세 급여의 ${(RATES.healthInsurance * 100).toFixed(3)}%를 근로자가 부담합니다. 회사도 동일 금액을 부담하며, 이 계산기는 근로자 부담분만 표시합니다. 연봉 5,000만원 기준 월 약 14만원 수준입니다.`,
+                desc: `월 과세 급여(보수월액)의 ${(RATES.healthInsurance * 100).toFixed(3)}%를 근로자가 부담합니다. 회사도 동일 금액을 부담하며, 이 계산기는 근로자 부담분만 표시합니다. 직장가입자 보수월액보험료는 ${TAX_YEAR}년 1월분부터 근로자·회사 합산 월 ${formatKRW(HEALTH_PREMIUM_LIMITS.totalMin)} ~ ${formatKRW(HEALTH_PREMIUM_LIMITS.totalMax)} 범위에서 부과되므로(보건복지부 고시), 근로자 부담분은 월 ${formatKRW(HEALTH_PREMIUM_LIMITS.employeeMin)} ~ ${formatKRW(HEALTH_PREMIUM_LIMITS.employeeMax)} 안에서 계산됩니다. 연봉 5,000만원 기준 월 약 14만원 수준입니다.`,
               },
               {
                 name: '장기요양보험',
@@ -115,7 +115,7 @@ export default function ContentSection() {
             ].map(({ range, rate }) => (
               <div key={range} className="bg-slate-50 rounded-lg px-3 py-2 text-center">
                 <p className="text-xs text-slate-500">{range}</p>
-                <p className="text-sm font-bold text-brand-600">{rate}</p>
+                <p className="text-sm font-bold text-brand-700">{rate}</p>
               </div>
             ))}
           </div>
@@ -133,9 +133,11 @@ export default function ContentSection() {
           <p className="text-sm text-slate-600 leading-relaxed">
             비과세 급여는 소득세·4대보험 산정에서 제외되는 항목으로, 잘 활용할수록 실수령액이
             늘어납니다. 대표적 비과세 항목으로는 월 20만원 한도 식대 보조금, 차량 유지비(월 20만원
-            한도), 육아수당(월 10만원 한도), 생산직 근로자 초과근무수당, 국외근로소득(월 100만원
-            한도) 등이 있습니다. 연봉 협상 시 비과세 항목을 최대한 활용하면 실수령액을 유지하면서
-            세금 부담을 줄일 수 있습니다.
+            한도), 6세 이하 자녀의 보육수당(2026년 1월부터 자녀 1인당 월 20만원 한도, 기획재정부
+            「2026년부터 이렇게 달라집니다」), 생산직 근로자 초과근무수당, 국외근로소득(월 100만원
+            한도) 등이 있습니다. 각 항목은 소득세법이 정한 요건(지급 대상·용도·증빙)을 갖춰야 비과세로
+            인정됩니다. 연봉 협상 시 비과세 항목을 최대한 활용하면 실수령액을 유지하면서 세금 부담을
+            줄일 수 있습니다.
           </p>
         </div>
 
@@ -144,12 +146,19 @@ export default function ContentSection() {
             실수령액을 높이는 절세 방법
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            연말정산과 비과세 항목을 적극 활용하면 세후 소득을 크게 높일 수 있습니다.
-            첫째, 개인형 퇴직연금(IRP)에 연 700만원을 납입하면 최대 115.5만원(세율 16.5%)의
-            세액공제를 받을 수 있습니다. 둘째, 연금저축(최대 400만원)을 IRP와 합산해 700만원까지
-            세액공제를 받을 수 있습니다. 셋째, 의료비·교육비·기부금·신용카드 사용액은 연말정산 시
-            공제 항목으로 환급받을 수 있습니다. 넷째, 무주택자의 월세 납부액은 연 750만원 한도로
-            15~17%의 세액공제가 가능합니다.
+            연말정산과 비과세 항목을 적극 활용하면 세후 소득을 높일 수 있습니다.
+            첫째, 연금계좌 세액공제는 연금저축 연 600만원, 개인형 퇴직연금(IRP) 등 퇴직연금을
+            합산하면 연 900만원까지가 세액공제 대상 납입한도입니다(국세청 원천세 안내). 공제율은
+            총급여 5,500만원(종합소득금액 4,500만원) 이하 15%, 초과 12%이며, 지방소득세를 포함하면
+            16.5%·13.2%입니다. 900만원을 모두 납입하고 16.5%가 적용되는 조건이면 공제액은
+            148.5만원이지만, 이는 조건에 따른 세액공제 효과이지 확정 환급액이 아닙니다. 연금계좌의
+            실제 세액공제 효과는 소득·납입액과 다른 공제·감면 적용에 따라 달라지고, 연말정산 환급액은
+            이미 낸 세금(기납부세액)에서 공제·감면 후 최종 세금(결정세액)을 뺀 차액으로 정해집니다
+            (국세청 연말정산 안내). 둘째, 의료비·교육비·기부금·신용카드 사용액은 연말정산 시 공제 항목으로
+            반영됩니다. 셋째, 월세액 세액공제는 총급여 8,000만원(종합소득금액 7,000만원) 이하의
+            무주택 세대주·세대원이 국민주택규모(85㎡) 또는 기준시가 4억원 이하 주택을 임차하고
+            전입신고로 임대차계약서와 주민등록 주소가 같을 때, 월세액 연 1,000만원 한도로 총급여
+            5,500만원 이하 17%, 초과~8,000만원 이하 15%를 공제합니다(국세청 연말정산 안내).
           </p>
         </div>
 
@@ -187,7 +196,7 @@ export default function ContentSection() {
           정확한 금액은 위 계산기에 직접 입력해 확인하세요.
         </p>
 
-        <div className="overflow-x-auto -mx-2">
+        <div className="overflow-x-auto -mx-2" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[400px]">
             <thead>
               <tr className="bg-slate-50">
@@ -210,9 +219,9 @@ export default function ContentSection() {
           </table>
         </div>
 
-        <p className="text-xs text-slate-400 mt-3">
+        <p className="text-xs text-slate-500 mt-3">
           * 위 표는 참고용 근사값입니다.{' '}
-          <Link href="/" className="text-brand-600 hover:underline font-medium">
+          <Link href="/" className="text-brand-700 underline font-medium">
             계산기
           </Link>
           에 정확한 연봉을 입력하면 실제 공제 내역을 항목별로 확인할 수 있습니다.

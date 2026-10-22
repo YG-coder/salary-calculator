@@ -39,14 +39,24 @@ export default function ResultCard({ result, annualSalary }: Props) {
       amount: breakdown.nationalPension,
       color: 'text-violet-600',
       barColor: 'bg-violet-400',
-      description: `${(pensionRate * 100).toFixed(2)}%`,
+      // 기준소득월액 상·하한에 걸리면 금액이 월 과세소득 × 요율이 아니므로 설명도 그 사실을 따른다(건강보험 행과 같은 정책).
+      description: result.flags.pensionCapped
+        ? '기준소득월액 상한 적용'
+        : result.flags.pensionFloored
+          ? '기준소득월액 하한 적용'
+          : `${(pensionRate * 100).toFixed(2)}%`,
     },
     {
       label: '건강보험',
       amount: breakdown.healthInsurance,
       color: 'text-blue-600',
       barColor: 'bg-blue-400',
-      description: '3.595%',
+      // 보수월액보험료 상·하한(보건복지부고시 제2025-222호)에 걸리면 금액이 3.595% 가 아니므로 설명도 그 사실을 따른다.
+      description: result.flags.healthInsuranceCapped
+        ? '보수월액보험료 상한 적용'
+        : result.flags.healthInsuranceFloored
+          ? '보수월액보험료 하한 적용'
+          : '3.595%',
     },
     {
       label: '장기요양',
@@ -109,14 +119,14 @@ export default function ResultCard({ result, annualSalary }: Props) {
       {/* 연 실수령 + 연 공제 */}
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4">
-          <p className="text-xs font-semibold text-slate-400 mb-1.5">연 실수령액</p>
+          <p className="text-xs font-semibold text-slate-500 mb-1.5">연 실수령액</p>
           <p className="text-xl font-bold text-slate-900 tabular-nums">
             {formatKRW(annualNet)}
           </p>
         </div>
         <div className="card p-4">
-          <p className="text-xs font-semibold text-slate-400 mb-1.5">연 총 공제액</p>
-          <p className="text-xl font-bold text-red-500 tabular-nums">
+          <p className="text-xs font-semibold text-slate-500 mb-1.5">연 총 공제액</p>
+          <p className="text-xl font-bold text-red-600 tabular-nums">
             -{formatKRW(annualDeduction)}
           </p>
         </div>
@@ -154,7 +164,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
                 <span className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   {row.label}
                 </span>
-                <span className="text-xs text-slate-400 hidden sm:inline">
+                <span className="text-xs text-slate-500 hidden sm:inline">
                   {row.description}
                 </span>
               </div>
@@ -167,7 +177,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
           {/* 합계 */}
           <li className="flex items-center justify-between pt-3 border-t border-slate-100">
             <span className="text-sm font-bold text-slate-800">월 합계</span>
-            <span className="text-sm font-bold text-red-500 tabular-nums">
+            <span className="text-sm font-bold text-red-600 tabular-nums">
               -{formatKRW(breakdown.totalDeduction)}
             </span>
           </li>
@@ -175,7 +185,7 @@ export default function ResultCard({ result, annualSalary }: Props) {
       </div>
 
       {/* 면책 안내 */}
-      <p className="text-xs text-slate-400 text-center px-2 leading-relaxed">
+      <p className="text-xs text-slate-500 text-center px-2 leading-relaxed">
         소득세는 국세청 근로소득 간이세액표({TAX_YEAR}년 기준) 산식에 따른
         <strong className="font-semibold text-slate-500"> 간이세액표 기준 예상액</strong>이며,
         8세 이상 20세 이하 자녀 세액공제는 미입력 시 0명으로 가정합니다.

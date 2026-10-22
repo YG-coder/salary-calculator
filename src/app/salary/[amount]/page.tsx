@@ -105,8 +105,8 @@ export default async function SalaryDetailPage({ params }: PageProps) {
     buildSalaryPageData(parsed)
 
   const breakdownRows = [
-    { label: '국민연금', desc: result.flags.pensionCapped ? '기준소득월액 상한 적용' : '월 과세소득 기준', value: result.breakdown.nationalPension },
-    { label: '건강보험', desc: '월 과세소득 기준', value: result.breakdown.healthInsurance },
+    { label: '국민연금', desc: result.flags.pensionCapped ? '기준소득월액 상한 적용' : result.flags.pensionFloored ? '기준소득월액 하한 적용' : '월 과세소득 기준', value: result.breakdown.nationalPension },
+    { label: '건강보험', desc: result.flags.healthInsuranceCapped ? '보수월액보험료 상한 적용' : result.flags.healthInsuranceFloored ? '보수월액보험료 하한 적용' : '월 과세소득 기준', value: result.breakdown.healthInsurance },
     { label: '장기요양보험', desc: '건강보험료 기준', value: result.breakdown.longTermCare },
     { label: '고용보험', desc: '월 과세소득 기준', value: result.breakdown.employment },
     { label: '소득세', desc: result.flags.usedHighIncomeTaxFormula ? '별표2 고소득 산식' : '근로소득 간이세액표', value: result.breakdown.incomeTax },
@@ -115,10 +115,10 @@ export default async function SalaryDetailPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
-      <nav className="mb-6 text-sm text-slate-400">
-        <Link href="/" className="hover:text-brand-600">홈</Link>
+      <nav className="mb-6 text-sm text-slate-500">
+        <Link href="/" className="hover:text-brand-800">홈</Link>
         <span className="mx-2">›</span>
-        <Link href="/salary-calculator" className="hover:text-brand-600">연봉 실수령액 계산기</Link>
+        <Link href="/salary-calculator" className="hover:text-brand-800">연봉 실수령액 계산기</Link>
         <span className="mx-2">›</span>
         <span className="text-slate-600">연봉 {parsed.toLocaleString()}만원</span>
       </nav>
@@ -170,7 +170,7 @@ export default async function SalaryDetailPage({ params }: PageProps) {
         </div>
         <div className="card p-5">
           <p className="text-sm text-slate-500">연 총 공제액</p>
-          <p className="mt-2 text-xl font-black text-red-500 tabular-nums">-{formatKRW(result.annualDeduction)}</p>
+          <p className="mt-2 text-xl font-black text-red-600 tabular-nums">-{formatKRW(result.annualDeduction)}</p>
         </div>
         <div className="card p-5">
           <p className="text-sm text-slate-500">월 실수령률</p>
@@ -188,14 +188,14 @@ export default async function SalaryDetailPage({ params }: PageProps) {
             <li key={row.label} className="flex items-center justify-between gap-4 py-3">
               <div>
                 <p className="font-semibold text-slate-800">{row.label}</p>
-                <p className="mt-1 text-xs text-slate-400">{row.desc}</p>
+                <p className="mt-1 text-xs text-slate-500">{row.desc}</p>
               </div>
               <p className="font-bold text-slate-800 tabular-nums">{formatKRW(row.value)}</p>
             </li>
           ))}
           <li className="flex items-center justify-between gap-4 pt-4">
             <p className="font-bold text-slate-900">월 공제 합계</p>
-            <p className="font-black text-red-500 tabular-nums">-{formatKRW(result.breakdown.totalDeduction)}</p>
+            <p className="font-black text-red-600 tabular-nums">-{formatKRW(result.breakdown.totalDeduction)}</p>
           </li>
         </ul>
       </section>
@@ -306,7 +306,7 @@ export default async function SalaryDetailPage({ params }: PageProps) {
           있습니다.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link href="/salary-calculator" className="rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white hover:bg-brand-700">
+          <Link href="/salary-calculator" className="rounded-xl bg-brand-700 px-5 py-3 text-sm font-bold text-white hover:bg-brand-800">
             연봉 실수령액 계산기 →
           </Link>
           <Link href="/social-insurance-calculator" className="rounded-xl border border-brand-200 bg-white px-5 py-3 text-sm font-bold text-brand-700 hover:bg-brand-50">

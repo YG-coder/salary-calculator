@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createFloor10Rate, percentageToRate, applyRateFloor10 } from '../rateMath'
 import { RATES, getPensionRate } from '../constants'
 import { EMPLOYER_EMPLOYMENT_RATES } from '../policy/socialInsurance'
-import { calculateHealthInsurance, calculateLongTermCare, calculateLocalTax, calculateEmployeeEmploymentInsurance } from '../insurancePremiums'
+import { applyHealthInsuranceRate, calculateLongTermCare, calculateLocalTax, calculateEmployeeEmploymentInsurance } from '../insurancePremiums'
 import { calculateSocialInsurance } from '../calculators'
 
 describe('요율 적용의 독립 정수 검증', () => {
@@ -16,7 +16,8 @@ describe('요율 적용의 독립 정수 검증', () => {
     expect(calculateSocialInsurance({ monthlyGross: 3_500_000, industrialAccidentRate: rate }).industrialAccident).toBe(24_500)
   })
   const rates = [
-    { name: '건강보험', calculate: calculateHealthInsurance, numerator: 719, denominator: 200_000 },
+    // 저수준 요율 산술만 검증한다. 제도 상·하한은 healthInsuranceLimits.test.ts에서 따로 검증한다.
+    { name: '건강보험 요율 산술', calculate: applyHealthInsuranceRate, numerator: 719, denominator: 200_000 },
     { name: '근로자 고용보험', calculate: calculateEmployeeEmploymentInsurance, numerator: 9, denominator: 10_000 },
     ...EMPLOYER_EMPLOYMENT_RATES.map((option, index) => ({
       name: `사업주 고용보험 ${option.rateLabel}`,

@@ -22,6 +22,7 @@ import { withParticle } from "@/lib/korean";
 import { TAX_YEAR_AS_OF } from './policyYear'
 import { RATES, getPensionLimits, getPensionRate } from './constants'
 import { calculateNationalPension } from './pension'
+import { calculateEmployeeHealthInsurance } from './insurancePremiums'
 import { HIGH_INCOME_MONTHLY_THRESHOLD } from './incomeTax'
 import { calculateSalary, type SalaryResult } from './salary'
 
@@ -59,7 +60,7 @@ function pct(part: number, whole: number, digits = 1): number {
 
 // ── 이벤트 (질문 → 원인 → 이 연봉의 숫자) ─────────────────────────
 // 모든 이벤트는 이 계산에서 엔진이 실제로 수행한 사실만 담는다.
-export type SalaryEventKind = 'pensionCap' | 'highIncomeFormula'
+export type SalaryEventKind = 'pensionCap' | 'healthCap' | 'highIncomeFormula'
 
 export interface SalaryEvent {
   kind: SalaryEventKind
@@ -219,6 +220,27 @@ export function buildSalaryPageData(
       )}이지만, 기준소득월액 상한이 적용되어 실제 국민연금 본인부담은 월 ${won(
         cappedPension,
       )}입니다. 두 금액의 차이는 월 ${won(monthlyDifference)}입니다.`,
+    })
+  }
+
+  // ── 이벤트 1-2: 건강보험 보수월액보험료 상한 도달 ─────────────────
+  if (result.flags.healthInsuranceCapped) {
+    const health = calculateEmployeeHealthInsurance(monthlyTaxable, asOfDate)
+    const isEntry = prevResult !== null && !prevResult.flags.healthInsuranceCapped
+    events.push({
+      kind: 'healthCap',
+      isEntry,
+      question: isEntry
+        ? '이 연봉부터 건강보험료가 왜 더 늘지 않나요?'
+        : '연봉이 올라도 건강보험료는 왜 그대로인가요?',
+      answer: `직장가입자 보수월액보험료에 월 상한이 있기 때문입니다. 요율대로 계산한 근로자 부담 건강보험료 월 ${withParticle(won(
+        health.uncappedAmount,
+      ), "은/는")} 상한 ${withParticle(won(health.limits.employeeMax), "을/를")} 넘어, 건강보험 본인부담은 상한 기준 월 ${won(
+        health.amount,
+      )}으로 고정됩니다. 장기요양보험료도 이 금액을 기준으로 계산됩니다.`,
+      detail: `보수월액보험료 상한은 근로자·사업주 합산 월 ${won(health.limits.totalMax)}이며 근로자는 그 절반을 부담합니다(${health.limits.label}). 두 금액의 차이는 월 ${won(
+        health.uncappedAmount - health.amount,
+      )}입니다.`,
     })
   }
 

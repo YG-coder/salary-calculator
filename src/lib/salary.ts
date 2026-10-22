@@ -10,11 +10,13 @@
 //   v1.3  국민연금 상·하한 2026 상/하반기 분기 (getPensionLimits)
 //         소득세 계산을 종합소득세 월할 근사 → 실제 근로소득 간이세액표
 //         (소득세법 시행령 별표2) 산식으로 교체 (src/lib/incomeTax.ts)
+//   v1.4  건강보험 직장가입자 보수월액보험료 상·하한 적용 (getHealthPremiumLimits,
+//         보건복지부고시 제2025-222호). 장기요양은 상·하한 적용 후 건강보험료에 연동.
 // ────────────────────────────────────────────────────────────
 
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
 import { calculateNationalPension } from './pension'
-import { calculateEmployeeEmploymentInsurance, calculateHealthInsurance, calculateLongTermCare, calculateLocalTax } from './insurancePremiums'
+import { calculateEmployeeEmploymentInsurance, calculateEmployeeHealthInsurance, calculateLongTermCare, calculateLocalTax } from './insurancePremiums'
 import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
@@ -49,8 +51,14 @@ export interface SalaryBreakdown {
 export interface SalaryFlags {
   /** 천원 미만 절사한 월 과세소득이 국민연금 기준소득월액 상한을 초과함 */
   pensionCapped: boolean
+  /** 천원 미만 절사한 월 과세소득이 국민연금 기준소득월액 하한에 못 미쳐 하한을 기준으로 계산함(하한과 같으면 false) */
+  pensionFloored: boolean
   /** 월 과세소득이 간이세액표 조견표 상한(1천만원)을 초과하여 고소득 전용 산식으로 소득세를 계산함 */
   usedHighIncomeTaxFormula: boolean
+  /** 요율대로 계산한 건강보험료가 보수월액보험료 월 상한(근로자 부담분)을 넘어 상한으로 고정됨 */
+  healthInsuranceCapped: boolean
+  /** 요율대로 계산한 건강보험료가 보수월액보험료 월 하한(근로자 부담분)에 못 미쳐 하한으로 올림 */
+  healthInsuranceFloored: boolean
 }
 
 export interface SalaryResult {
@@ -85,9 +93,12 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
   const nationalPension = pension.amount
 
   // ── 건강보험 ─────────────────────────────────────────────
-  const healthInsurance = calculateHealthInsurance(monthlyTaxable)
+  // 보수월액보험료 상·하한(보건복지부 고시)을 적용한 근로자 부담분. 보수 0원은 0원.
+  const health = calculateEmployeeHealthInsurance(monthlyTaxable, asOfDate)
+  const healthInsurance = health.amount
 
   // ── 장기요양 ─────────────────────────────────────────────
+  // 상·하한이 적용된 건강보험료에 연동한다 (상한 도달 시 장기요양도 상한 기준 금액).
   const longTermCare = calculateLongTermCare(healthInsurance)
 
   // ── 고용보험 ─────────────────────────────────────────────
@@ -129,7 +140,11 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
     flags: {
       // 상한 초과 시에만 true. 천원 미만 절사한 소득월액이 상한을 초과한 경우입니다.
       pensionCapped: pension.capped,
+      // 하한 미달 시에만 true. 하한과 같은 금액은 요율 그대로이므로 false.
+      pensionFloored: pension.floored,
       usedHighIncomeTaxFormula: isHighIncomeMonthly(monthlyTaxable),
+      healthInsuranceCapped: health.capped,
+      healthInsuranceFloored: health.floored,
     },
   }
 }

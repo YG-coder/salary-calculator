@@ -10,7 +10,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { TAX_YEAR, TAX_YEAR_AS_OF, RATES, getPensionRateForYear } from '@/lib/constants'
+import { TAX_YEAR, TAX_YEAR_AS_OF, RATES, getPensionRateForYear, HEALTH_PREMIUM_LIMITS } from '@/lib/constants'
 import { calculateSalary, formatKRW } from '@/lib/salary'
 
 interface FaqItem {
@@ -38,7 +38,7 @@ export default function FaqSection() {
     },
     {
       q: '건강보험료와 장기요양보험료는 어떻게 계산되나요?',
-      a: `건강보험 근로자 부담율은 ${(RATES.healthInsurance * 100).toFixed(3)}%이며, 장기요양보험료는 건강보험료의 약 ${(RATES.longTermCare * 100).toFixed(2)}%가 추가로 부과됩니다. 연봉 5,000만원 기준 건강보험 월 약 14만원, 장기요양 약 1.8만원 수준입니다.`,
+      a: `건강보험 근로자 부담율은 ${(RATES.healthInsurance * 100).toFixed(3)}%이며, 장기요양보험료는 건강보험료의 약 ${(RATES.longTermCare * 100).toFixed(2)}%가 추가로 부과됩니다. 직장가입자 보수월액보험료에는 보건복지부 고시의 월 상·하한(${TAX_YEAR}년 근로자 부담분 ${formatKRW(HEALTH_PREMIUM_LIMITS.employeeMin)} ~ ${formatKRW(HEALTH_PREMIUM_LIMITS.employeeMax)})이 있어 이 범위를 벗어나는 보수에는 상·하한 금액이 적용됩니다. 연봉 5,000만원 기준 건강보험 월 약 14만원, 장기요양 약 1.8만원 수준입니다.`,
     },
     {
       q: '고용보험은 왜 공제되나요?',
@@ -58,7 +58,7 @@ export default function FaqSection() {
         <>
           연봉 5,000만원 기준(부양가족 1명, 비과세 없음) 현재 계산 결과는 월 {formatKRW(salary50m.monthlyNet)}입니다.
           정확한 금액은{' '}
-          <Link href="/" className="text-brand-600 hover:underline font-medium">
+          <Link href="/" className="text-brand-700 underline font-medium">
             위 계산기
           </Link>
           에 직접 입력해 확인하세요.
@@ -76,12 +76,12 @@ export default function FaqSection() {
             href="https://www.hometax.go.kr"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-brand-600 hover:underline font-medium"
+            className="text-brand-700 underline font-medium"
           >
             국세청 홈택스
           </a>
           또는{' '}
-          <Link href="/about" className="text-brand-600 hover:underline font-medium">
+          <Link href="/about" className="text-brand-700 underline font-medium">
             서비스 소개
           </Link>
           를 참고하세요.
@@ -110,13 +110,13 @@ export default function FaqSection() {
                   className="w-full flex items-start justify-between gap-3 py-4 text-left group"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-sm font-semibold text-slate-800 group-hover:text-brand-600 transition-colors leading-snug">
+                  <span className="text-sm font-semibold text-slate-800 group-hover:text-brand-800 transition-colors leading-snug">
                     Q. {faq.q}
                   </span>
                   <span
                     className={[
                       'flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center',
-                      'text-slate-400 text-xs transition-all duration-200 mt-0.5',
+                      'text-slate-500 text-xs transition-all duration-200 mt-0.5',
                       isOpen
                         ? 'rotate-180 border-brand-300 bg-brand-50 text-brand-500'
                         : 'border-slate-200',

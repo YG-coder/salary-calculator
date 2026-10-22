@@ -152,6 +152,76 @@ export function getPensionLimits(date: Date = TAX_YEAR_AS_OF): { min: number; ma
  */
 export const PENSION_LIMITS = getPensionLimits(TAX_YEAR_AS_OF)
 
+// ── 건강보험 직장가입자 보수월액보험료 상·하한 ────────────────────
+// 출처: 보건복지부고시 제2025-222호 「월별 건강보험료액의 상한과 하한에 관한 고시」
+//       (2025.12.24 개정, 2026.1.1 시행, 부칙 제2조: 2026년 1월분 보험료부터 적용)
+//       제2조 제1호 직장가입자 보수월액보험료 상한 9,183,480원
+//       제3조 제1호 직장가입자 보수월액보험료 하한 20,160원
+// 두 금액은 근로자·사업주 부담을 합친 월별 보험료액이며, 일반 근로자는 그 50%를 부담합니다
+// (국민건강보험법 제76조 제1항). 같은 고시 제2조 제2호의 4,591,740원은 직장가입자
+// 소득월액보험료·지역가입자 월별 보험료액 상한이므로 보수월액보험료와 혼동하지 않습니다.
+// ⚠️ 이 계산기는 일반 직장가입자(경감·면제 없음, 가입 대상)를 가정합니다. 보수가 0원이면
+//    보수월액보험료 대상 보수가 없는 것으로 보아 0원으로 계산하고 하한을 부과하지 않습니다.
+//    휴직 등 경감·면제, 단시간 근로자 등 가입 제외, 둘 이상 사업장 합산은 지원하지 않습니다.
+export interface HealthPremiumLimitPeriod {
+  /** 이 값의 적용이 시작되는 날짜 (YYYY-MM-DD, 해당일 포함) */
+  effectiveFrom: string
+  /** 적용 종료일의 다음 날 (해당일 제외) */
+  effectiveUntil: string
+  /** 보수월액보험료 월 상한 (근로자+사업주 합산, 원) */
+  totalMax: number
+  /** 보수월액보험료 월 하한 (근로자+사업주 합산, 원) */
+  totalMin: number
+  /** 참고용 적용 기간·출처 라벨 */
+  label: string
+}
+
+/**
+ * 보수월액보험료 상·하한 변경 이력 (적용 시작일 오름차순).
+ * 새 고시값이 나오면 배열 끝에 새 구간을 추가하세요. 기존 값은 지우지 마세요.
+ */
+export const HEALTH_PREMIUM_LIMIT_PERIODS: readonly HealthPremiumLimitPeriod[] = [
+  { effectiveFrom: '2026-01-01', effectiveUntil: '2027-01-01', totalMax: 9_183_480, totalMin: 20_160, label: '2026.1월분~ (보건복지부고시 제2025-222호)' },
+] as const
+
+const healthPremiumLimitIntervals = HEALTH_PREMIUM_LIMIT_PERIODS.map(period => ({
+  ...period,
+  start: new Date(`${period.effectiveFrom}T00:00:00+09:00`).getTime(),
+  end: new Date(`${period.effectiveUntil}T00:00:00+09:00`).getTime(),
+}))
+
+export interface HealthPremiumLimits {
+  /** 근로자 부담 월 상한 (합산 상한의 50%) */
+  employeeMax: number
+  /** 근로자 부담 월 하한 (합산 하한의 50%) */
+  employeeMin: number
+  /** 근로자+사업주 합산 월 상한 */
+  totalMax: number
+  /** 근로자+사업주 합산 월 하한 */
+  totalMin: number
+  label: string
+}
+
+/**
+ * 특정 시점(date)에 적용되는 직장가입자 보수월액보험료 상·하한을 반환합니다.
+ * date를 생략하면 TAX_YEAR_AS_OF로 고정합니다. 미고시 기간은 계산하지 않습니다.
+ */
+export function getHealthPremiumLimits(date: Date = TAX_YEAR_AS_OF): HealthPremiumLimits {
+  const time = date.getTime()
+  const matched = healthPremiumLimitIntervals.find(period => time >= period.start && time < period.end)
+  if (!matched) throw new RangeError('해당 기준일의 건강보험료 상·하한 데이터가 없습니다. 고시값을 갱신해 주세요.')
+  return {
+    employeeMax: matched.totalMax / 2,
+    employeeMin: matched.totalMin / 2,
+    totalMax: matched.totalMax,
+    totalMin: matched.totalMin,
+    label: matched.label,
+  }
+}
+
+/** 화면 안내용 TAX_YEAR_AS_OF의 보수월액보험료 상·하한. 계산 시 기준일은 getHealthPremiumLimits로 조회합니다. */
+export const HEALTH_PREMIUM_LIMITS = getHealthPremiumLimits(TAX_YEAR_AS_OF)
+
 // ── 소득세 누진세율 구간 [과세표준 상한, 세율, 누진공제액] ─────
 // ℹ️ 참고: 매월 원천징수 소득세 계산(src/lib/incomeTax.ts)은 이 브라켓을 직접
 // 적용하지 않고, 국세청 근로소득 간이세액표 조견표(src/lib/data/simplifiedTaxTable2026.ts)를

@@ -15,5 +15,7 @@ export function calculateNationalPension(monthlyTaxable: number, asOfDate: Date 
     /** 콘텐츠에서 상·하한이 없는 경우와 비교하기 위한 금액. 실제 공제액은 amount이다. */
     uncappedAmount: contribution(roundedIncome),
     capped: roundedIncome > limits.max,
+    /** 천원 미만 절사한 소득월액이 기준소득월액 하한에 못 미쳐 하한을 기준으로 계산함(하한과 같으면 false). */
+    floored: roundedIncome < limits.min,
   }
 }

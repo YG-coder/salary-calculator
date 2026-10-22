@@ -4,7 +4,7 @@
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
 import { MIN_HOURLY_WAGE_2026 } from './constants'
 import { calculateNationalPension } from './pension'
-import { calculateEmployeeEmploymentInsurance, calculateHealthInsurance, calculateLongTermCare } from './insurancePremiums'
+import { calculateEmployeeEmploymentInsurance, calculateEmployeeHealthInsurance, calculateLongTermCare } from './insurancePremiums'
 import { applyRateFloor10 } from './rateMath'
 import { DEFAULT_EMPLOYER_EMPLOYMENT_RATE } from './policy/socialInsurance'
 import {
@@ -51,6 +51,10 @@ export interface SocialInsuranceResult {
   employerEmployment: number
   /** 실제 적용된 산재보험료율 (화면 표시용) */
   industrialAccidentRate: number
+  /** 건강보험료가 보수월액보험료 월 상한으로 고정됨 (근로자·사업주 동일) */
+  healthInsuranceCapped: boolean
+  /** 건강보험료가 보수월액보험료 월 하한으로 올림 (근로자·사업주 동일) */
+  healthInsuranceFloored: boolean
 }
 
 // asOfDate: 계산 기준 시점 (기본값: TAX_YEAR_AS_OF)
@@ -72,10 +76,11 @@ export function calculateSocialInsurance(
   // 국민연금: 기준소득월액 상·하한 적용 (계산 기준 시점의 구간 값 조회)
   const nationalPension = calculateNationalPension(monthlyTaxable, asOfDate).amount
 
-  // 건강보험
-  const healthInsurance = calculateHealthInsurance(monthlyTaxable)
+  // 건강보험: 보수월액보험료 상·하한(보건복지부 고시)을 적용한 근로자 부담분. 보수 0원은 0원.
+  const health = calculateEmployeeHealthInsurance(monthlyTaxable, asOfDate)
+  const healthInsurance = health.amount
 
-  // 장기요양: 공단의 법정 요율 비율을 반올림 없이 적용한다.
+  // 장기요양: 상·하한 적용 후 건강보험료에 공단의 법정 요율 비율을 반올림 없이 적용한다.
   const longTermCare = calculateLongTermCare(healthInsurance)
 
   // 고용보험 (근로자 0.9%)
@@ -92,7 +97,7 @@ export function calculateSocialInsurance(
 
   // 사업주 부담분
   const employerPension    = nationalPension                           // 법정 동일 요율
-  const employerHealth     = healthInsurance                           // 동일 요율 (3.595%)
+  const employerHealth     = healthInsurance                           // 동일 요율 (3.595%), 상·하한도 동일 적용
   const employerLongTerm   = longTermCare                              // 동일 요율
   const employerEmployment = applyRateFloor10(monthlyTaxable, employerEmploymentRate)
   const totalEmployer =
@@ -111,6 +116,8 @@ export function calculateSocialInsurance(
     employerLongTerm,
     employerEmployment,
     industrialAccidentRate: safeIndustrialRate,
+    healthInsuranceCapped: health.capped,
+    healthInsuranceFloored: health.floored,
   }
 }
 
