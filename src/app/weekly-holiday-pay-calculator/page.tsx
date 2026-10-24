@@ -64,8 +64,11 @@ export default function WeeklyHolidayPayCalculatorPage() {
   const isValid = hasValidWeeklyHours && fullAttendance !== null
 
   // 월 주휴수당 예상 (주 4.345주)
+  // 주 금액 × 4.345 의 원 미만 내림. 주 금액이 안전 정수면 정수 산술로 계산한다(큰 금액의 곱셈 오차 방지).
   const monthlyEstimate = result?.weeklyHolidayPay
-    ? Math.floor(result.weeklyHolidayPay * 4.345)
+    ? Number.isSafeInteger(result.weeklyHolidayPay) && result.weeklyHolidayPay > 0
+      ? Number((BigInt(result.weeklyHolidayPay) * BigInt(4345)) / BigInt(1000))
+      : Math.floor((result.weeklyHolidayPay * 4345) / 1000)
     : null
 
   return (

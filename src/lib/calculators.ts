@@ -211,6 +211,30 @@ export interface SeverancePayResult {
   usedOrdinaryWage: boolean
 }
 
+/**
+ * 퇴직금 = 1일 평균임금 × 30 × 재직일수/365 의 원 미만 내림.
+ * 입력이 원 단위 정수이면 (3개월 임금 + 상여·연차수당 각 3/12)을 4배한 정수 분자로 정확히 계산한다.
+ * 이진 부동소수로 곱하면 정확히 정수인 퇴직금이 186,857,999.99…가 되어 1원이 빠진다.
+ */
+function severanceFloor(
+  pay: { month1Pay: number; month2Pay: number; month3Pay: number; annualBonus: number; annualLeaveAllowance: number; ordinaryDailyWage: number },
+  usedOrdinaryWage: boolean,
+  threeMonthDays: number,
+  workingDays: number,
+  averageDailyWage: number,
+): number {
+  const exact = Object.values(pay).every(Number.isSafeInteger) && Number.isSafeInteger(workingDays) && threeMonthDays > 0
+  if (!exact) return floorWithFloatTolerance(averageDailyWage * 30 * (workingDays / 365))
+  const days = BigInt(workingDays) * BigInt(30)
+  if (usedOrdinaryWage) {
+    return Number((BigInt(pay.ordinaryDailyWage) * days) / BigInt(365))
+  }
+  const totalTimes4 =
+    BigInt(pay.month1Pay + pay.month2Pay + pay.month3Pay) * BigInt(4) +
+    BigInt(pay.annualBonus) + BigInt(pay.annualLeaveAllowance)
+  return Number((totalTimes4 * days) / (BigInt(4) * BigInt(threeMonthDays) * BigInt(365)))
+}
+
 export function calculateSeverancePay(input: SeverancePayInput): SeverancePayResult {
   const {
     month1Pay, month2Pay, month3Pay,
@@ -242,7 +266,7 @@ export function calculateSeverancePay(input: SeverancePayInput): SeverancePayRes
 
   // 퇴직금 = 1일 평균임금 × 30 × (재직일수 / 365)
   const severancePay = isEligible
-    ? Math.floor(averageDailyWage * 30 * (workingDays / 365))
+    ? severanceFloor({ month1Pay, month2Pay, month3Pay, annualBonus, annualLeaveAllowance, ordinaryDailyWage }, usedOrdinaryWage, threeMonthDays, workingDays, averageDailyWage)
     : 0
 
   return {
@@ -468,6 +492,36 @@ export interface WeeklyHolidayPayResult {
   weeklyHolidayHours: number  // 주휴시간
 }
 
+/** 유한한 JS 숫자를 가장 짧은 십진 표기(입력한 값) 그대로 [분자, 10의 거듭제곱 분모]로 읽는다. 주휴수당 전용. */
+function weeklyDecimalFraction(value: number): [bigint, bigint] | null {
+  const m = /^(-?)(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(value))
+  if (!Number.isFinite(value) || !m) return null
+  const [, sign, intPart, fracPart = '', exp = '0'] = m
+  const ten = BigInt(10)
+  let numerator = BigInt(intPart + fracPart)
+  let denominator = ten ** BigInt(fracPart.length)
+  const e = Number(exp)
+  if (e > 0) numerator *= ten ** BigInt(e)
+  else if (e < 0) denominator *= ten ** BigInt(-e)
+  return [sign ? -numerator : numerator, denominator]
+}
+
+/**
+ * 주휴수당 = 주휴시간(min(주 소정근로시간, 40) ÷ 5) × 시급의 원 미만 내림(기존 Math.floor 방향).
+ * 두 입력을 십진 분수로 읽어 정확히 계산한 뒤 한 번만 내린다.
+ * 상대오차 허용 내림(floorWithFloatTolerance)은 시급이 아주 크면 허용폭이 0.5원을 넘어
+ * 실제 소수부(예: 302,000,000,000,120.8원의 0.8원)를 정수로 올리므로 이 경로에는 쓰지 않는다.
+ */
+function floorWeeklyHolidayPay(weeklyHours: number, hourlyWage: number): number {
+  const hours = weeklyDecimalFraction(Math.min(weeklyHours, 40))
+  const wage = weeklyDecimalFraction(hourlyWage)
+  if (!hours || !wage) return Math.floor(Math.min(weeklyHours / 5, 8) * hourlyWage)
+  const numerator = hours[0] * wage[0]
+  const denominator = BigInt(5) * hours[1] * wage[1]
+  const quotient = numerator / denominator
+  return Number(numerator % denominator !== BigInt(0) && numerator < BigInt(0) ? quotient - BigInt(1) : quotient)
+}
+
 export function calculateWeeklyHolidayPay(input: WeeklyHolidayPayInput): WeeklyHolidayPayResult {
   const { weeklyHours, hourlyWage, fullAttendance = true } = input
   const hasMinimumHours = Number.isFinite(weeklyHours) && weeklyHours >= 15
@@ -480,7 +534,8 @@ export function calculateWeeklyHolidayPay(input: WeeklyHolidayPayInput): WeeklyH
 
   // 주휴시간 = 주 소정근로시간 ÷ 5 (최대 8시간)
   const weeklyHolidayHours = isEligible ? Math.min(weeklyHours / 5, 8) : 0
-  const weeklyHolidayPay   = isEligible ? Math.floor(weeklyHolidayHours * hourlyWage) : 0
+  // 주휴시간 × 시급을 십진 정확 계산으로 내린다(정수 경계의 1원 누락과 큰 시급의 1원 올림을 모두 막는다).
+  const weeklyHolidayPay   = isEligible ? floorWeeklyHolidayPay(weeklyHours, hourlyWage) : 0
 
   return { weeklyHolidayPay, isEligible, ineligibleReason, weeklyHolidayHours }
 }

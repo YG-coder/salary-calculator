@@ -102,9 +102,31 @@ function lookupTable(monthlyGrossWon: number, familyCount: number): number {
 
 // ── 월급여 10,000천원(1천만원) 초과: 별표2 원문 고소득 산식 ────────
 // (10,000천원인 경우의 해당세액) + 구간별 가산액 + 초과분×세율 (일부 구간은 ×98% 적용)
+/**
+ * 1천만원 초과 구간 산식을 원 단위 정수로 계산하기 위한 표.
+ * 비율은 만분율 정수로 바꾼다(98% × 35% = 0.343 → 3,430). 이진 부동소수로 곱하면
+ * 정확히 10원 단위인 세액이 10,014,579.99…가 되어 10원 미만 절사에서 10원이 빠진다.
+ */
+const HIGH_INCOME_BANDS = [
+  { upToWon: 14_000_000, fromWon: 10_000_000, addWon: 25_000, perTenThousand: 3_430 },
+  { upToWon: 28_000_000, fromWon: 14_000_000, addWon: 1_397_000, perTenThousand: 3_724 },
+  { upToWon: 30_000_000, fromWon: 28_000_000, addWon: 6_610_600, perTenThousand: 3_920 },
+  { upToWon: 45_000_000, fromWon: 30_000_000, addWon: 7_394_600, perTenThousand: 4_000 },
+  { upToWon: 87_000_000, fromWon: 45_000_000, addWon: 13_394_600, perTenThousand: 4_200 },
+  { upToWon: Number.POSITIVE_INFINITY, fromWon: 87_000_000, addWon: 31_034_600, perTenThousand: 4_500 },
+] as const
+
 function calcHighIncomeTax(monthlyGrossWon: number, familyCount: number): number {
   const gThousand = monthlyGrossWon / 1000
   const base = valuesForFamily(SIMPLIFIED_TAX_TABLE_2026_AT_10M, familyCount)
+  if (Number.isSafeInteger(monthlyGrossWon)) {
+    const band = HIGH_INCOME_BANDS.find((b) => monthlyGrossWon <= b.upToWon) ?? HIGH_INCOME_BANDS[HIGH_INCOME_BANDS.length - 1]
+    // 세액 × 10,000 을 정수로 만든 뒤 10원 미만 절사
+    const scaled =
+      BigInt(base + band.addWon) * BigInt(10_000) +
+      BigInt(monthlyGrossWon - band.fromWon) * BigInt(band.perTenThousand)
+    return Math.max(0, Number(scaled / BigInt(100_000)) * 10)
+  }
   const excessWon = (gThousand - 10_000) * 1000 // 초과분 (원 단위)
 
   let tax: number
