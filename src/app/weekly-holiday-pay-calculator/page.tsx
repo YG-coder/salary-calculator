@@ -5,19 +5,40 @@
  * 주휴수당 계산기
  */
 import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, Fragment } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
-import { calculateWeeklyHolidayPay, type WeeklyHolidayPayResult } from '@/lib/calculators'
+import {
+  calculateWeeklyHolidayPay,
+  estimateWeeklyHolidayMonthlyPayExact,
+  formatWeeklyHolidayKRW,
+  type WeeklyHolidayPayResult,
+} from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
 import { TAX_YEAR, MIN_HOURLY_WAGE_2026 } from '@/lib/constants'
-import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
+import { InputCard, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
 
 function formatNum(value: string) { return formatAmountInput(value) }
 function parseNum(value: string) { return parseAmountInput(value) }
+
+// 아주 큰 금액이 좁은 화면에서 카드 밖으로 넘치지 않도록 쉼표 뒤에만 줄바꿈 기회(<wbr>)를 둔다.
+// 글자는 바꾸지 않으므로 화면 텍스트와 복사 결과가 그대로다.
+function AmountWithCommaBreaks({ text }: { text: string }) {
+  const parts = text.split(',')
+  return (
+    <>
+      {parts.map((part, i) => (
+        <Fragment key={i}>
+          {part}
+          {i < parts.length - 1 && <>,<wbr /></>}
+        </Fragment>
+      ))}
+    </>
+  )
+}
 
 // 근로시간은 소수 첫째 자리까지 허용한다. 음수 부호는 보존해 유효하지 않은 입력으로 판정한다.
 function sanitizeHoursInput(v: string): string {
@@ -63,13 +84,14 @@ export default function WeeklyHolidayPayCalculatorPage() {
   const submittedHourlyWage = parseNum(submittedInput?.hourlyWage ?? '') || MIN_HOURLY_WAGE
   const isValid = hasValidWeeklyHours && fullAttendance !== null
 
-  // 월 주휴수당 예상 (주 4.345주)
-  // 주 금액 × 4.345 의 원 미만 내림. 주 금액이 안전 정수면 정수 산술로 계산한다(큰 금액의 곱셈 오차 방지).
-  const monthlyEstimate = result?.weeklyHolidayPay
-    ? Number.isSafeInteger(result.weeklyHolidayPay) && result.weeklyHolidayPay > 0
-      ? Number((BigInt(result.weeklyHolidayPay) * BigInt(4345)) / BigInt(1000))
-      : Math.floor((result.weeklyHolidayPay * 4345) / 1000)
-    : null
+  // 화면 금액은 정확한 정수 문자열에서 만든다. Number를 거치면 9,007,199,254,740,991원을 넘는 금액의 원 단위가 바뀐다.
+  const weeklyPayExact = result?.weeklyHolidayPayExact ?? null
+  const weeklyPayText = result
+    ? weeklyPayExact !== null ? formatWeeklyHolidayKRW(weeklyPayExact) : formatKRW(result.weeklyHolidayPay)
+    : ''
+  // 월 주휴수당 예상 (주 4.345주): 정확한 주 금액 × 4.345 의 원 미만 내림. 주 금액이 0이면 없음('-').
+  const monthlyEstimateExact = weeklyPayExact !== null ? estimateWeeklyHolidayMonthlyPayExact(weeklyPayExact) : null
+  const monthlyEstimateText = monthlyEstimateExact !== null ? formatWeeklyHolidayKRW(monthlyEstimateExact) : null
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
@@ -175,12 +197,24 @@ export default function WeeklyHolidayPayCalculatorPage() {
         {result && (
           <div className="space-y-4 animate-slide-up">
             {result.isEligible ? (
-              <ResultHighlight
-                label="주 주휴수당"
-                value={formatKRW(result.weeklyHolidayPay)}
-                subtitle={`월 예상 주휴수당: ${monthlyEstimate ? formatKRW(monthlyEstimate) : '-'}`}
-                color="#0284c7"
-              />
+              // 공통 ResultHighlight와 같은 표시. 금액 문자열은 그대로 두고 쉼표 뒤 줄바꿈 기회만 더한다.
+              <div
+                className="rounded-2xl p-6 text-white"
+                style={{
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0284c7cc 100%)',
+                  boxShadow: '0 10px 24px -4px rgb(0 0 0 / 0.15)',
+                }}
+              >
+                <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">
+                  주 주휴수당
+                </p>
+                <p className="text-3xl sm:text-4xl font-black tracking-tight tabular-nums leading-none">
+                  <AmountWithCommaBreaks text={weeklyPayText} />
+                </p>
+                <p className="mt-2 text-sm text-white/80">
+                  {`월 예상 주휴수당: ${monthlyEstimateText ?? '-'}`}
+                </p>
+              </div>
             ) : (
               <div className="card p-6 bg-red-50 border-red-100">
                 <p className="text-base font-bold text-red-700 mb-1">주휴수당 미발생</p>
@@ -199,8 +233,8 @@ export default function WeeklyHolidayPayCalculatorPage() {
                   { label: '주 소정근로시간', value: `${submittedHours}시간` },
                   { label: '시간당 임금', value: formatKRW(submittedHourlyWage) },
                   { label: '주휴시간 (주 소정근로 ÷ 5, 최대 8시간)', value: `${result.weeklyHolidayHours}시간` },
-                  { label: '주 주휴수당', value: formatKRW(result.weeklyHolidayPay), highlight: true, color: 'text-brand-700' },
-                  { label: '월 예상 주휴수당 (×4.345주)', value: formatKRW(monthlyEstimate ?? 0) },
+                  { label: '주 주휴수당', value: weeklyPayText, highlight: true, color: 'text-brand-700' },
+                  { label: '월 예상 주휴수당 (×4.345주)', value: monthlyEstimateText ?? formatKRW(0) },
                 ]}
               />
             )}

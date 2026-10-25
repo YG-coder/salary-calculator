@@ -486,7 +486,13 @@ export type WeeklyHolidayPayIneligibleReason =
   | null
 
 export interface WeeklyHolidayPayResult {
-  weeklyHolidayPay: number    // 주휴수당
+  /**
+   * 주휴수당(원, Number). 9,007,199,254,740,991원(안전 정수 상한)을 넘으면 가장 가까운 double로 바뀌고
+   * 십진 표기도 원 단위가 달라질 수 있다. 화면 금액은 weeklyHolidayPayExact로 만든다.
+   */
+  weeklyHolidayPay: number
+  /** 주휴수당의 정확한 원 단위 정수(십진 숫자 문자열, 미발생이면 '0'). 입력이 유한하지 않아 정확히 셀 수 없으면 null. */
+  weeklyHolidayPayExact: string | null
   isEligible: boolean         // 주 15시간 이상 및 개근 여부
   ineligibleReason: WeeklyHolidayPayIneligibleReason
   weeklyHolidayHours: number  // 주휴시간
@@ -512,14 +518,34 @@ function weeklyDecimalFraction(value: number): [bigint, bigint] | null {
  * 상대오차 허용 내림(floorWithFloatTolerance)은 시급이 아주 크면 허용폭이 0.5원을 넘어
  * 실제 소수부(예: 302,000,000,000,120.8원의 0.8원)를 정수로 올리므로 이 경로에는 쓰지 않는다.
  */
-function floorWeeklyHolidayPay(weeklyHours: number, hourlyWage: number): number {
+function floorWeeklyHolidayPayExact(weeklyHours: number, hourlyWage: number): bigint | null {
   const hours = weeklyDecimalFraction(Math.min(weeklyHours, 40))
   const wage = weeklyDecimalFraction(hourlyWage)
-  if (!hours || !wage) return Math.floor(Math.min(weeklyHours / 5, 8) * hourlyWage)
+  if (!hours || !wage) return null
   const numerator = hours[0] * wage[0]
   const denominator = BigInt(5) * hours[1] * wage[1]
   const quotient = numerator / denominator
-  return Number(numerator % denominator !== BigInt(0) && numerator < BigInt(0) ? quotient - BigInt(1) : quotient)
+  return numerator % denominator !== BigInt(0) && numerator < BigInt(0) ? quotient - BigInt(1) : quotient
+}
+
+/**
+ * 월 예상 주휴수당 = 주 주휴수당 × 4.345주의 원 미만 내림. 정확한 주 금액(정수 문자열)에서 바로 계산해
+ * 안전 정수 상한을 넘는 금액도 원 단위를 잃지 않는다. 주 금액이 0이면 null(화면은 '-'). 주휴수당 전용.
+ */
+export function estimateWeeklyHolidayMonthlyPayExact(weeklyHolidayPayExact: string): string | null {
+  const weekly = BigInt(weeklyHolidayPayExact)
+  if (weekly === BigInt(0)) return null
+  const scaled = weekly * BigInt(4345)
+  const thousand = BigInt(1000)
+  const quotient = scaled / thousand
+  return (scaled % thousand !== BigInt(0) && scaled < BigInt(0) ? quotient - BigInt(1) : quotient).toString()
+}
+
+/** 주휴수당 화면용 원 표기. 정확한 정수 문자열에 세 자리마다 쉼표를 넣는다(Number를 거치지 않는다). 주휴수당 전용. */
+export function formatWeeklyHolidayKRW(exactInteger: string): string {
+  const m = /^(-?)(\d+)$/.exec(exactInteger)
+  if (!m) throw new TypeError(`정수 문자열이 아닙니다: ${exactInteger}`)
+  return `${m[1]}${m[2].replace(/\B(?=(\d{3})+(?!\d))/g, ',')}원`
 }
 
 export function calculateWeeklyHolidayPay(input: WeeklyHolidayPayInput): WeeklyHolidayPayResult {
@@ -535,9 +561,16 @@ export function calculateWeeklyHolidayPay(input: WeeklyHolidayPayInput): WeeklyH
   // 주휴시간 = 주 소정근로시간 ÷ 5 (최대 8시간)
   const weeklyHolidayHours = isEligible ? Math.min(weeklyHours / 5, 8) : 0
   // 주휴시간 × 시급을 십진 정확 계산으로 내린다(정수 경계의 1원 누락과 큰 시급의 1원 올림을 모두 막는다).
-  const weeklyHolidayPay   = isEligible ? floorWeeklyHolidayPay(weeklyHours, hourlyWage) : 0
+  // 정확한 정수는 문자열로 따로 돌려준다. Number 값은 기존 호출자 호환용이다.
+  const exactPay = isEligible ? floorWeeklyHolidayPayExact(weeklyHours, hourlyWage) : BigInt(0)
+  const weeklyHolidayPay = !isEligible
+    ? 0
+    : exactPay === null
+      ? Math.floor(Math.min(weeklyHours / 5, 8) * hourlyWage)
+      : Number(exactPay)
+  const weeklyHolidayPayExact = exactPay === null ? null : exactPay.toString()
 
-  return { weeklyHolidayPay, isEligible, ineligibleReason, weeklyHolidayHours }
+  return { weeklyHolidayPay, weeklyHolidayPayExact, isEligible, ineligibleReason, weeklyHolidayHours }
 }
 
 // ── 실업급여 계산 ─────────────────────────────────────────────
