@@ -111,7 +111,7 @@ export default function EmployerCostForm() {
             ))}
           </select>
           <p className="hint">
-            실업급여 0.9%의 절반과 고용안정·직업능력개발사업 요율을 합한 값입니다.
+            실업급여 사업주 부담분 0.9%와 고용안정·직업능력개발사업 요율을 합한 값입니다.
             고용안정·직업능력개발분은 사업주가 전액 부담합니다
           </p>
         </div>
