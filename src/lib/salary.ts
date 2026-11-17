@@ -17,11 +17,12 @@
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
 import { calculateNationalPension } from './pension'
 import { calculateEmployeeEmploymentInsurance, calculateEmployeeHealthInsurance, calculateLongTermCare, calculateLocalTax } from './insurancePremiums'
-import { calcSimplifiedWithholdingTax, isHighIncomeMonthly } from './incomeTax'
+import { calcSimplifiedWithholdingTax, isHighIncomeMonthly, type WithholdingPercentage } from './incomeTax'
 
 // ── 타입 정의 ────────────────────────────────────────────────
 
 export interface SalaryInput {
+  withholdingPercentage?: WithholdingPercentage // 생략 시 100%
   annualSalary: number  // 연봉 (원, 세전)
   nonTaxable:   number  // 월 비과세 금액 (원) — 월 단위 입력
   dependents:   number  // 부양가족 수 (본인 포함, 최소 1)
@@ -79,7 +80,7 @@ export interface SalaryResult {
 // asOfDate를 calcSimplifiedWithholdingTax()에도 그대로 전달합니다.
 export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS_OF): SalaryResult {
   assertCalculationDate(asOfDate)
-  const { annualSalary, nonTaxable, dependents, childCount8to20 = 0 } = input
+  const { annualSalary, nonTaxable, dependents, childCount8to20 = 0, withholdingPercentage } = input
 
   // 월 세전 급여
   const monthlyGross = Math.floor(annualSalary / 12)
@@ -111,6 +112,7 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
       monthlyTaxable,
       dependents: Math.max(1, dependents),
       childCount8to20,
+      withholdingPercentage,
     },
     asOfDate,
   )

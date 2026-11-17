@@ -16,6 +16,7 @@ import {
   type AnnualLeaveTenureCategory,
 } from './policy/annualLeave'
 import { calculateSalary } from './salary'
+import type { WithholdingPercentage } from './incomeTax'
 import { getAverageWagePeriod, getSeveranceTenure } from './severanceDates'
 
 // ── 4대보험 계산 ──────────────────────────────────────────────
@@ -123,13 +124,12 @@ export function calculateSocialInsurance(
 
 // ── 급여 세금 간편 계산 ───────────────────────────────────────
 export interface PayrollTaxInput {
+  withholdingPercentage?: WithholdingPercentage // 생략 시 100%
   monthlyGross: number   // 월 세전 급여 (원)
   nonTaxable?: number    // 월 비과세 (원)
   dependents?: number    // 부양가족 수
   /**
    * 공제대상가족 중 8세 이상 20세 이하 자녀 수 (선택, 기본값 0)
-   * ⚠️ 조건: 현재 UI는 이 값을 입력받지 않으므로 0으로 가정합니다. 실제로 해당
-   * 자녀가 있는 경우 원천징수 세액은 이 계산값보다 낮을 수 있습니다.
    */
   childCount8to20?: number
 }
@@ -155,13 +155,14 @@ export function calculatePayrollTax(
   input: PayrollTaxInput,
   asOfDate: Date = TAX_YEAR_AS_OF,
 ): PayrollTaxResult {
-  const { monthlyGross, nonTaxable = 0, dependents = 1, childCount8to20 = 0 } = input
+  const { monthlyGross, nonTaxable = 0, dependents = 1, childCount8to20 = 0, withholdingPercentage } = input
   const salaryResult = calculateSalary(
     {
       annualSalary: monthlyGross * 12,
       nonTaxable,
       dependents,
       childCount8to20,
+      withholdingPercentage,
     },
     asOfDate,
   )

@@ -12,6 +12,7 @@ import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
 import { validateNonTaxableInput } from '@/lib/nonTaxableInput'
 import { calculatePayrollTax, type PayrollTaxResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
+import { WITHHOLDING_PERCENTAGES, type WithholdingPercentage } from '@/lib/incomeTax'
 import { TAX_YEAR, TAX_YEAR_AS_OF_LABEL, getPensionRate } from '@/lib/constants'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
@@ -33,7 +34,8 @@ export default function PayrollTaxCalculatorPage() {
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('1')
   const [children, setChildren] = useState('0')
-  const calculationInputs = { monthlyGross, nonTaxable, dependents, children }
+  const [withholdingPercentage, setWithholdingPercentage] = useState<WithholdingPercentage>(100)
+  const calculationInputs = { monthlyGross, nonTaxable, dependents, children, withholdingPercentage }
   const { result, setResult, isStale, submittedInput } =
     useCalculationResult<PayrollTaxResult, typeof calculationInputs>(calculationInputs)
 
@@ -42,11 +44,12 @@ export default function PayrollTaxCalculatorPage() {
     if (!gross || gross < 100_000 || validateNonTaxableInput(nonTaxable, gross).error) return
     setResult(calculatePayrollTax({
       monthlyGross: gross,
+      withholdingPercentage,
       nonTaxable: parseNum(nonTaxable),
       dependents: Math.max(1, Number(dependents) || 1),
       childCount8to20: Math.min(Number(children) || 0, Math.max(0, (Number(dependents) || 1) - 1)),
     }))
-  }, [monthlyGross, nonTaxable, dependents, children, setResult])
+  }, [monthlyGross, nonTaxable, dependents, children, withholdingPercentage, setResult])
 
   const grossNum = parseNum(monthlyGross)
   const nonTaxableValidation = validateNonTaxableInput(nonTaxable, grossNum >= 100_000 ? grossNum : null)
@@ -137,6 +140,21 @@ export default function PayrollTaxCalculatorPage() {
             <p className="hint">배우자·부모 등은 가족 수에만 포함하고, 여기에는 해당 연령의 자녀만 입력하세요</p>
           </div>
 
+          <fieldset aria-describedby="withholding-help">
+            <legend className="label">소득세 원천징수 비율</legend>
+            <div className="flex gap-2">
+              {WITHHOLDING_PERCENTAGES.map((percentage) => (
+                <button key={percentage} type="button"
+                  aria-pressed={withholdingPercentage === percentage}
+                  onClick={() => setWithholdingPercentage(percentage)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border ${withholdingPercentage === percentage ? 'bg-brand-700 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`}>
+                  {percentage}%
+                </button>
+              ))}
+            </div>
+            <p id="withholding-help" className="hint">매달 미리 내는 소득세의 비율입니다. 연말정산으로 확정되는 최종 세금 자체를 줄이는 선택은 아닙니다. 실제 변경은 회사에 신청해야 합니다.</p>
+          </fieldset>
+
           <button
             type="button" onClick={handleCalc} disabled={!isValid}
             className="btn-primary w-full py-3.5 text-base"
@@ -162,7 +180,7 @@ export default function PayrollTaxCalculatorPage() {
                 { label: '건강보험 (3.595%)', value: formatKRW(result.healthInsurance) },
                 { label: '장기요양 (건보료 기준)', value: formatKRW(result.longTermCare) },
                 { label: '고용보험 (0.9%)', value: formatKRW(result.employment) },
-                { label: '소득세', value: formatKRW(result.incomeTax) },
+                { label: `소득세 (원천징수 ${submittedInput?.withholdingPercentage}%)`, value: formatKRW(result.incomeTax) },
                 { label: '지방소득세 (소득세×10%)', value: formatKRW(result.localTax) },
                 { label: '월 총 공제', value: `-${formatKRW(result.totalDeduction)}`, highlight: true, color: 'text-red-600' },
               ]}
@@ -201,8 +219,8 @@ export default function PayrollTaxCalculatorPage() {
                   <p>
                     매월 떼인 세금이 실제 세금보다 많았다면 환급(13월의 월급)을 받고,
                     적었다면 추가 납부해야 합니다. 매월 공제액은 부양가족 수·간이세액
-                    선택(80%·100%·120% 중) 등에 따라 달라지므로, 본 계산기는 평균치 기준
-                    근사값입니다.
+                    선택(80%·100%·120% 중) 등에 따라 달라집니다. 본 계산기는 선택한 비율을
+                    적용한 월 예상액입니다.
                   </p>
                 </>
               ),
@@ -245,8 +263,8 @@ export default function PayrollTaxCalculatorPage() {
               body: (
                 <p>
                   본 계산기는 월별 평균 공제액을 보여주지만, 실제로는 매월 공제액이
-                  조금씩 다를 수 있습니다. 회사가 100%가 아닌 80% 또는 120% 간이세액표를
-                  적용하는 경우, 분기별 보너스가 있는 경우, 연말정산 결과를 매년 2월
+                  조금씩 다를 수 있습니다. 회사가 적용하는 원천징수 비율이 여기서 선택한
+                  비율과 다른 경우, 분기별 보너스가 있는 경우, 연말정산 결과를 매년 2월
                   급여에 반영하는 경우 등 다양한 변동 요인이 있습니다. 연 단위로 봤을
                   때의 실수령률은 입력한 급여와 공제 조건에 따라 달라집니다.
                 </p>
@@ -260,7 +278,7 @@ export default function PayrollTaxCalculatorPage() {
             items: [
               { label: '① 월 과세급여', value: '월 세전 급여 - 월 비과세 금액' },
               { label: '② 4대보험', value: '월 과세급여 × 각 보험 요율 (국민연금만 상·하한 적용)' },
-              { label: '③ 소득세', value: '국세청 근로소득 간이세액표 조견표(월급여·부양가족수 기준)를 그대로 조회, 자녀세액공제 차감 (월급여 1천만원 초과 시 별표2 고소득 산식 적용)' },
+              { label: '③ 소득세', value: '국세청 근로소득 간이세액표 조견표(월급여·부양가족수 기준)를 그대로 조회, 자녀세액공제 차감 후 선택 비율 적용·10원 미만 절사 (월급여 1천만원 초과 시 별표2 고소득 산식 적용)' },
               { label: '④ 지방소득세', value: '소득세 × 10%' },
               { label: '⑤ 월 실수령액', value: '월 세전 - (4대보험 + 소득세 + 지방소득세)' },
             ],
@@ -268,7 +286,7 @@ export default function PayrollTaxCalculatorPage() {
           referenceTable={{
             caption: '월급별 공제 합계 참고표',
             footnote:
-              `${TAX_YEAR}년 요율 기준, 부양가족 1명·비과세 없음 가정. 실수령액은 회사 정책에 따라 다를 수 있습니다.`,
+              `${TAX_YEAR}년 요율 기준, 부양가족 1명·비과세 없음·원천징수 100% 가정. 실수령액은 회사 정책에 따라 다를 수 있습니다.`,
             headers: ['4대보험', '소득세+지방세', '월 실수령'],
             rows: referenceRows,
           }}
@@ -287,7 +305,7 @@ export default function PayrollTaxCalculatorPage() {
           ]}
           disclaimer={
             <>
-              본 계산기는 {TAX_YEAR}년 기준 근로소득 간이세액표의 100% 선택을 적용한 예상값입니다. 회사가
+              본 계산기는 {TAX_YEAR}년 기준 근로소득 간이세액표에 선택한 비율을 적용한 예상값입니다. 회사가
               적용하는 간이세액표 비율(80%·100%·120%), 추가 공제 신고(주택자금·기부금
               등), 회사 규정에 따라 실제 공제액과 차이가 발생할 수 있습니다. 정확한
               세액은 국세청 홈택스의 간이세액표 조회 또는 회사 인사담당부서에 문의하세요.
@@ -303,7 +321,7 @@ export default function PayrollTaxCalculatorPage() {
             },
             {
               q: '간이세액표 80%·100%·120% 중 어느 게 좋나요?',
-              a: '입사 시 회사에 신고할 수 있는 옵션입니다. 80%를 선택하면 매월 떼이는 세금이 적어 월 실수령액이 많아지지만, 연말정산 시 추가 납부할 가능성이 커집니다. 120%는 반대로 매월 많이 떼이지만 환급액이 커집니다. “13월의 월급”을 원하면 120%, 매월 현금흐름이 중요하면 80%를 선택하는 것이 일반적입니다. 별도 신고하지 않으면 기본값은 100%입니다.',
+              a: '이 계산기에서 각 비율의 예상액을 비교할 수 있습니다. 80%는 매달 미리 내는 소득세가 적고, 120%는 많습니다. 최종 세금은 연말정산에서 확정되므로 비율 선택만으로 절세하거나 환급을 보장받는 것은 아닙니다. 실제 변경은 회사에 소득세 원천징수세액 조정신청서 등을 제출해야 하며, 제출일 이후 지급분부터 해당 과세기간 종료일까지 변경 비율을 적용합니다. 별도 신청이 없으면 100%입니다.',
             },
             {
               q: '비과세 식대 20만원은 어디서 적용되나요?',

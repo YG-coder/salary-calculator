@@ -25,14 +25,15 @@
 // 출처: 소득세법 시행령 [별표 2] <개정 2026. 2. 27., 시행 2026. 3. 1.> /
 //       <개정 2024. 2. 29.> (국가법령정보센터 원문 대조 완료)
 //
+// 근로자 신청에 따른 80%/100%/120%를 지원하며 생략 시 100%입니다.
 // 남아있는 근사·미반영 요소:
-//   - 원천징수의무자가 선택 가능한 80%/100%/120% 옵션 중 100%만 반영합니다.
 //   - 학자금(별표2 제5호)은 별도 처리하지 않습니다(비과세 제외 후 금액을 그대로 사용).
 //   - 연말정산 시 추가 반영되는 보험료·의료비·신용카드 등 실제 소득·세액공제는
 //     반영하지 않습니다 (간이세액표 자체가 원천징수 단계용 근사이기 때문).
 // ────────────────────────────────────────────────────────────
 
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
+import { createFloor10Rate } from './rateMath'
 import {
   SIMPLIFIED_TAX_TABLE_2026,
   SIMPLIFIED_TAX_TABLE_2026_AT_10M,
@@ -156,7 +157,17 @@ function calcChildTaxCredit(childCount8to20: number, asOfDate: Date): number {
   return c.two + (n - 2) * c.perExtra
 }
 
+export const WITHHOLDING_PERCENTAGES = [80, 100, 120] as const
+export type WithholdingPercentage = typeof WITHHOLDING_PERCENTAGES[number]
+const withholdingRate = {
+  80: createFloor10Rate(0.8),
+  100: createFloor10Rate(1),
+  120: createFloor10Rate(1.2),
+}
+
 export interface SimplifiedWithholdingInput {
+  /** 자녀공제 후 적용하는 원천징수 비율. 생략하면 기존 100% */
+  withholdingPercentage?: WithholdingPercentage
   /** 월 과세 급여 (비과세 제외, 원) */
   monthlyTaxable: number
   /** 공제대상가족 수 (본인 포함, 배우자도 1명으로 산정, 최소 1) */
@@ -183,6 +194,10 @@ export function calcSimplifiedWithholdingTax(
   asOfDate: Date = TAX_YEAR_AS_OF,
 ): number {
   assertCalculationDate(asOfDate)
+  const percentage = input.withholdingPercentage === undefined ? 100 : input.withholdingPercentage
+  if (!WITHHOLDING_PERCENTAGES.includes(percentage)) {
+    throw new RangeError('원천징수 비율은 80%, 100%, 120% 중에서 선택하세요.')
+  }
   const dependents = Math.max(1, Math.floor(input.dependents))
   // 부양가족 수(dependents)에는 본인이 포함되므로(별표2 제2호: 본인·배우자도 각각
   // 1명으로 산정), 자녀가 될 수 있는 인원은 최대 dependents-1명입니다.
@@ -198,5 +213,7 @@ export function calcSimplifiedWithholdingTax(
     : lookupTable(monthlyGrossWon, dependents)
 
   const childCredit = calcChildTaxCredit(childCount8to20, asOfDate)
-  return Math.max(0, beforeChildCredit - childCredit)
+  // 홈택스 조회로 순서 확인: 고소득 산식의 10원 절사 → 자녀공제/0원 하한
+  // → 선택 비율 → 10원 미만 절사. 근거·확인 예제: docs/payroll-withholding-ratio.md
+  return withholdingRate[percentage](Math.max(0, beforeChildCredit - childCredit))
 }
