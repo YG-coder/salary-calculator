@@ -6,6 +6,9 @@
 
 import { SITE } from '@/lib/site'
 import { TAX_YEAR_AS_OF, getKoreanYear } from './policyYear'
+import { getMinimumHourlyWage } from './policy/annualRates'
+
+export { getMinimumHourlyWage, getLongTermCareRate, MINIMUM_WAGE_PERIODS, LONG_TERM_CARE_RATE_PERIODS } from './policy/annualRates'
 
 export { SITE }
 
@@ -288,7 +291,7 @@ export const BASIC_DEDUCTION_PER_PERSON = 1_500_000
 
 // ── 2026년 최저임금 ───────────────────────────────────────────
 /** 2026년 시간당 최저임금 (원) */
-export const MIN_HOURLY_WAGE_2026 = 10_320
+export const MIN_HOURLY_WAGE_2026 = getMinimumHourlyWage(new Date('2026-01-01T00:00:00+09:00'))
 
 // ── 사이트 정보 ───────────────────────────────────────────────
 // 사이트 정보의 원본은 src/lib/site.ts에서 중앙 관리합니다.

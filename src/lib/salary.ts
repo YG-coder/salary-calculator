@@ -99,7 +99,7 @@ export function calculateSalary(input: SalaryInput, asOfDate: Date = TAX_YEAR_AS
 
   // ── 장기요양 ─────────────────────────────────────────────
   // 상·하한이 적용된 건강보험료에 연동한다 (상한 도달 시 장기요양도 상한 기준 금액).
-  const longTermCare = calculateLongTermCare(healthInsurance)
+  const longTermCare = calculateLongTermCare(healthInsurance, asOfDate)
 
   // ── 고용보험 ─────────────────────────────────────────────
   const employment = calculateEmployeeEmploymentInsurance(monthlyTaxable)

@@ -81,7 +81,7 @@ export function calculateSocialInsurance(
   const healthInsurance = health.amount
 
   // 장기요양: 상·하한 적용 후 건강보험료에 공단의 법정 요율 비율을 반올림 없이 적용한다.
-  const longTermCare = calculateLongTermCare(healthInsurance)
+  const longTermCare = calculateLongTermCare(healthInsurance, asOfDate)
 
   // 고용보험 (근로자 0.9%)
   const employment = calculateEmployeeEmploymentInsurance(monthlyTaxable)

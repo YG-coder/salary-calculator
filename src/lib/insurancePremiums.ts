@@ -1,6 +1,7 @@
 import { RATES, getHealthPremiumLimits, type HealthPremiumLimits } from './constants'
 import { TAX_YEAR_AS_OF } from './policyYear'
 import { createFloor10Rate } from './rateMath'
+import { getLongTermCareRate, LONG_TERM_CARE_RATE_PERIODS } from './policy/annualRates'
 
 // ── 저수준 요율 산술 (제도 상·하한 없음) ──────────────────────────
 /**
@@ -11,8 +12,15 @@ export const applyHealthInsuranceRate = createFloor10Rate(RATES.healthInsurance)
 export const calculateEmployeeEmploymentInsurance = createFloor10Rate(RATES.employment)
 export const calculateLocalTax = createFloor10Rate(RATES.localTax)
 
-/** 공단 산식: 건강보험료 × 소득 대비 장기요양 요율 / 전체 건강보험 요율. 상·하한이 적용된 건강보험료를 넣는다. */
-export const calculateLongTermCare = createFloor10Rate(RATES.longTermCareIncome, RATES.healthInsuranceTotal)
+const longTermCareCalculators = new Map(LONG_TERM_CARE_RATE_PERIODS.map(period => [
+  period.startDate, createFloor10Rate(period.healthPremiumNumerator, period.healthPremiumDenominator),
+]))
+
+/** 상·하한 적용 후 건강보험료에 월분별 비율을 적용한다. 2026년 기존 산식 유지, 2027년 건보료 대비 13.90%. */
+export function calculateLongTermCare(healthPremium: number, asOfDate: Date = TAX_YEAR_AS_OF): number {
+  const period = getLongTermCareRate(asOfDate)
+  return longTermCareCalculators.get(period.startDate)!(healthPremium)
+}
 
 // ── 도메인 보험료: 직장가입자 보수월액보험료 (근로자 부담분) ─────────
 export interface EmployeeHealthInsurance {
