@@ -196,7 +196,9 @@ export function calcSimplifiedWithholdingTax(
   asOfDate: Date = TAX_YEAR_AS_OF,
 ): number {
   assertCalculationDate(asOfDate)
-  const percentage = input.withholdingPercentage ?? DEFAULT_WITHHOLDING_PERCENTAGE
+  const percentage = input.withholdingPercentage === undefined
+    ? DEFAULT_WITHHOLDING_PERCENTAGE
+    : input.withholdingPercentage
   if (!WITHHOLDING_PERCENTAGES.includes(percentage)) {
     throw new RangeError('원천징수 비율은 80%, 100%, 120% 중에서 선택하세요.')
   }

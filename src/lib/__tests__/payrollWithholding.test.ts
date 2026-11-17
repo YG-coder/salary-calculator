@@ -41,6 +41,7 @@ describe('공식 예제 및 독립 수기 계산', () => {
     expect(calcSimplifiedWithholdingTax({ monthlyTaxable: 3_500_000, dependents: 13, withholdingPercentage })).toBe(({80:3120,100:3900,120:4680})[withholdingPercentage])
   })
   it.each([0, 79, 81, 101, 121, -80, NaN, Infinity, null, '80'])('비율 %s는 조용히 100%%로 바꾸지 않는다', value => {
+    expect(() => calcSimplifiedWithholdingTax({ monthlyTaxable: 3_500_000, dependents: 1, withholdingPercentage: value as WithholdingPercentage })).toThrow('원천징수 비율')
     expect(() => calculatePayrollTax({ monthlyGross: 3_500_000, withholdingPercentage: value as WithholdingPercentage })).toThrow('원천징수 비율')
   })
 })
