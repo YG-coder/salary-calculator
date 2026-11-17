@@ -159,6 +159,8 @@ function calcChildTaxCredit(childCount8to20: number, asOfDate: Date): number {
 
 export const WITHHOLDING_PERCENTAGES = [80, 100, 120] as const
 export type WithholdingPercentage = typeof WITHHOLDING_PERCENTAGES[number]
+/** 비율을 고르지 않는 계산기가 쓰는 기본 원천징수 비율 */
+export const DEFAULT_WITHHOLDING_PERCENTAGE: WithholdingPercentage = 100
 const withholdingRate = {
   80: createFloor10Rate(0.8),
   100: createFloor10Rate(1),
@@ -194,7 +196,7 @@ export function calcSimplifiedWithholdingTax(
   asOfDate: Date = TAX_YEAR_AS_OF,
 ): number {
   assertCalculationDate(asOfDate)
-  const percentage = input.withholdingPercentage === undefined ? 100 : input.withholdingPercentage
+  const percentage = input.withholdingPercentage ?? DEFAULT_WITHHOLDING_PERCENTAGE
   if (!WITHHOLDING_PERCENTAGES.includes(percentage)) {
     throw new RangeError('원천징수 비율은 80%, 100%, 120% 중에서 선택하세요.')
   }

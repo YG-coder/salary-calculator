@@ -6,7 +6,7 @@
 //   2. 계산 summary 패널 추가 (입력값 요약 표시)
 //   3. 부양가족 선택 5명+ 처리 개선
 import { parseAmountInput, formatAmountInput } from '@/lib/amountInput'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
 import NonTaxableNotice from '@/components/calculator/NonTaxableNotice'
@@ -15,6 +15,8 @@ import { useSearchParams } from 'next/navigation'
 import { calculateSalary, formatKRW, type SalaryInput, type SalaryResult } from '@/lib/salary'
 import ResultCard from './ResultCard'
 import { resolvePrefill, PREFILL_FALLBACK } from '@/lib/homeData'
+import { buildSalaryCopyText, writeTextToClipboard } from '@/lib/salaryCopyText'
+import { TAX_YEAR_AS_OF_LABEL } from '@/lib/policyYear'
 
 function formatNumberInput(value: string) { return formatAmountInput(value) }
 
@@ -28,6 +30,20 @@ function parseNumberInput(value: string) { return parseAmountInput(value) }
  * ⚠️ effect가 아니라 초기 상태로 읽는다. effect에서 setState하면 렌더가 한 번 더 돈다.
  *    값 검증은 resolvePrefill()이 담당한다 (테스트 대상).
  */
+interface SalaryFormValues { annualSalary: string; nonTaxable: string; dependents: string; children: string }
+
+/** 계산과 결과 복사가 같은 입력 해석을 쓰도록 한 곳에서 변환한다. */
+function toSalaryInput(form: SalaryFormValues): SalaryInput {
+  const dependents = Math.max(1, Number(form.dependents) || 1)
+  return {
+    annualSalary: parseNumberInput(form.annualSalary),
+    // nonTaxable 은 월 단위 금액 그대로 전달 (salary.ts 내부에서 ÷12 하지 않음)
+    nonTaxable: parseNumberInput(form.nonTaxable),
+    dependents,
+    childCount8to20: Math.min(Number(form.children) || 0, dependents - 1),
+  }
+}
+
 function usePrefill() {
   const searchParams = useSearchParams()
   return resolvePrefill((key) => searchParams.get(key))
@@ -43,28 +59,44 @@ export default function CalculatorForm() {
   const { result, setResult, isStale, submittedInput } =
     useCalculationResult<SalaryResult, typeof calculationInputs>(calculationInputs)
   const [hasCalculated, setHasCalculated] = useState(false)
+  const [copyStatus, setCopyStatus] = useState<'copied' | 'manual' | null>(null)
+  const copyAttempt = useRef(0)
+  // 입력 변경·초기화·재계산마다 호출해 이전 복사 안내와 대체 영역을 지우고, 진행 중인 복사의 결과도 무시한다.
+  const resetCopy = useCallback(() => {
+    copyAttempt.current += 1
+    setCopyStatus(null)
+  }, [])
 
   const handleCalculate = useCallback(() => {
     const salary = parseNumberInput(annualSalary)
     if (!salary || salary < 1_000_000 || validateNonTaxableInput(nonTaxable, Math.floor(salary / 12)).error) return
 
-    const input: SalaryInput = {
-      annualSalary: salary,
-      // nonTaxable 은 월 단위 금액 그대로 전달 (salary.ts 내부에서 ÷12 하지 않음)
-      nonTaxable: parseNumberInput(nonTaxable),
-      dependents: Math.max(1, Number(dependents) || 1),
-      childCount8to20: Math.min(Number(children) || 0, Math.max(0, (Number(dependents) || 1) - 1)),
-    }
-
-    setResult(calculateSalary(input))
+    resetCopy()
+    setResult(calculateSalary(toSalaryInput({ annualSalary, nonTaxable, dependents, children })))
     setHasCalculated(true)
-  }, [annualSalary, nonTaxable, dependents, children, setResult])
+  }, [annualSalary, nonTaxable, dependents, children, setResult, resetCopy])
+
+  // 복사 문구는 계산 당시 입력 스냅샷과 그 결과에서만 만든다. 결과가 숨겨지면 문구도 없다.
+  const copyText = result && submittedInput
+    ? buildSalaryCopyText(toSalaryInput(submittedInput), result, TAX_YEAR_AS_OF_LABEL)
+    : null
+
+  const handleCopy = async () => {
+    if (copyText === null) return
+    const attempt = ++copyAttempt.current
+    setCopyStatus(null)
+    const copied = await writeTextToClipboard(copyText)
+    // 처리 중 입력 변경·초기화·재계산이 있었다면 이전 결과의 안내를 남기지 않는다.
+    if (copyAttempt.current !== attempt) return
+    setCopyStatus(copied ? 'copied' : 'manual')
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCalculate()
   }
 
   const handleReset = () => {
+    resetCopy()
     setAnnualSalary('')
     setNonTaxable('')
     setDependents('1')
@@ -96,7 +128,7 @@ export default function CalculatorForm() {
               inputMode="numeric"
               placeholder="예: 40,000,000"
               value={annualSalary}
-              onChange={(e) => setAnnualSalary(formatNumberInput(e.target.value))}
+              onChange={(e) => { resetCopy(); setAnnualSalary(formatNumberInput(e.target.value)) }}
               onKeyDown={handleKeyDown}
               className="input-field pr-8"
               autoComplete="off"
@@ -123,7 +155,7 @@ export default function CalculatorForm() {
               value={nonTaxable}
               aria-invalid={Boolean(nonTaxableValidation.error)}
               aria-describedby="non-taxable-feedback"
-              onChange={(e) => setNonTaxable(formatNumberInput(e.target.value))}
+              onChange={(e) => { resetCopy(); setNonTaxable(formatNumberInput(e.target.value)) }}
               onKeyDown={handleKeyDown}
               className="input-field pr-8"
               autoComplete="off"
@@ -147,6 +179,7 @@ export default function CalculatorForm() {
                 key={n}
                 type="button"
                 onClick={() => {
+                  resetCopy()
                   setDependents(String(n))
                   setChildren((current) => String(Math.min(Number(current) || 0, n - 1)))
                 }}
@@ -167,7 +200,7 @@ export default function CalculatorForm() {
           <label className="label">공제대상가족 중 8세 이상 20세 이하 자녀 수</label>
           <div className="flex flex-wrap gap-2">
             {Array.from({ length: Math.max(1, Number(dependents) || 1) }, (_, i) => i).map((n) => (
-              <button key={n} type="button" onClick={() => setChildren(String(n))}
+              <button key={n} type="button" onClick={() => { resetCopy(); setChildren(String(n)) }}
                 className={`px-4 py-2.5 rounded-xl text-sm font-semibold border ${children === String(n) ? 'bg-brand-700 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600'}`} aria-pressed={children === String(n)}>
                 {n}명
               </button>
@@ -233,6 +266,31 @@ export default function CalculatorForm() {
       {result && (
         <div className="animate-slide-up">
           <ResultCard result={result} annualSalary={parseNumberInput(submittedInput?.annualSalary ?? '')} />
+          {copyText !== null && (
+            <div className="card p-5 mt-4 space-y-3">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="w-full px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                결과 복사
+              </button>
+              <p role="status" className="text-sm text-slate-600 text-center">
+                {copyStatus === 'copied' && '복사했습니다'}
+                {copyStatus === 'manual' && '자동으로 복사하지 못했습니다. 아래 내용을 직접 선택해 복사해 주세요.'}
+              </p>
+              {copyStatus === 'manual' && (
+                <textarea
+                  readOnly
+                  value={copyText}
+                  rows={12}
+                  aria-label="직접 복사할 계산 결과"
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="block w-full max-w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700"
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
