@@ -87,7 +87,7 @@ export default function UnemploymentBenefitCalculatorPage() {
             <label htmlFor="dailyHours" className="label">이직 전 1일 평균 소정근로시간 *</label>
             <input id="dailyHours" type="text" inputMode="decimal" placeholder="예: 4 또는 7.5"
               value={dailyHours} onChange={e => setDailyHours(e.target.value)} className="input-field" />
-            <p className="hint">이직확인서 또는 고용센터에서 확인한 시간을 입력하세요. 실제 초과근무시간이 아닙니다. 소수 시간은 올림하고 최대 8시간을 적용합니다. 주·월 단위 또는 매주 시간이 다르면 유급휴일을 포함한 별도 산정이 필요합니다.</p>
+            <p className="hint">하루 소정근로시간이 8시간인 전일제라면 8을 입력하세요. 이직확인서 또는 고용센터에서 확인한 시간을 입력하세요. 실제 초과근무시간이 아닙니다. 소수 시간은 올림하고 최대 8시간을 적용합니다. 주·월 단위 또는 매주 시간이 다르면 유급휴일을 포함한 별도 산정이 필요합니다.</p>
           </div>
           {/* 임금 입력 방식 선택 */}
           <div>
@@ -348,7 +348,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                   <p>
                     1일 실업급여는 <strong>이직 전 1일 평균임금의 60%</strong>로 계산됩니다.
                     다만 상한액과 하한액이 적용됩니다. 2026년 8시간 예시의 하한액은 최저시급 × 8시간 × 80%로 {formatKRW(MIN_DAILY_BENEFIT)}이며,
-                    상한액은 고용보험법 시행령 기준 약 {formatKRW(MAX_DAILY_BENEFIT)}입니다.
+                    상한액은 고용보험법 시행령 기준 {formatKRW(MAX_DAILY_BENEFIT)}입니다.
                   </p>
                   <p>
                     평균임금이 매우 낮은 저임금 근로자도 하한액은 보장되며, 고임금
