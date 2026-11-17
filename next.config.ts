@@ -1,7 +1,8 @@
 // next.config.ts
 import type { NextConfig } from 'next'
 import { PHASE_PRODUCTION_BUILD } from 'next/constants'
-import { assertPolicyFresh } from './src/lib/policyYear'
+import { assertUnemploymentPolicyYear } from './src/lib/policy/unemployment'
+import { TAX_YEAR, assertPolicyFresh } from './src/lib/policyYear'
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -22,6 +23,9 @@ const nextConfig: NextConfig = {
 }
 
 export default function config(phase: string): NextConfig {
-  if (phase === PHASE_PRODUCTION_BUILD) assertPolicyFresh()
+  if (phase === PHASE_PRODUCTION_BUILD) {
+    assertPolicyFresh()
+    assertUnemploymentPolicyYear(TAX_YEAR)
+  }
   return nextConfig
 }

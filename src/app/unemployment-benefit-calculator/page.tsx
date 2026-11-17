@@ -10,7 +10,7 @@ import { useCalculationResult } from '@/hooks/useCalculationResult'
 import CalculationNotice from '@/components/calculator/CalculationNotice'
 import { calculateUnemploymentBenefit, type UnemploymentBenefitResult } from '@/lib/calculators'
 import { formatKRW } from '@/lib/salary'
-import { TAX_YEAR, MIN_HOURLY_WAGE_2026 } from '@/lib/constants'
+import { getUnemploymentLimits } from '@/lib/policy/unemployment'
 import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/components/calculator/CalcCard'
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
@@ -19,10 +19,12 @@ import FaqAccordion from '@/components/calculator/FaqAccordion'
 function formatNum(value: string) { return formatAmountInput(value) }
 function parseNum(value: string) { return parseAmountInput(value) }
 
-// 2026년 실업급여 상·하한 (calculators.ts와 동일 로직)
-// 하한 66,048원(최저임금×8h×80%), 상한 68,100원(2026년 고시 인상)
-const MIN_DAILY_BENEFIT = Math.floor(MIN_HOURLY_WAGE_2026 * 8 * 0.8)  // 66,048원
-const MAX_DAILY_BENEFIT = Math.max(68_100, MIN_DAILY_BENEFIT)           // 68,100원
+// 설명 글은 지원하는 2026년·8시간 예시다. 입력별 결과에는 해당 이직일·시간을 쓴다.
+const EXAMPLE_LIMITS = getUnemploymentLimits('2026-01-01', 8)
+const MIN_DAILY_BENEFIT = EXAMPLE_LIMITS.minDailyBenefit
+const MAX_DAILY_BENEFIT = EXAMPLE_LIMITS.maxDailyBenefit
+
+type CalculationOutcome = { value: UnemploymentBenefitResult; reason?: never } | { reason: string; value?: never }
 
 const RELATED = [
   { href: '/severance-pay-calculator', emoji: '📦', label: '퇴직금 계산기', description: '퇴직금 산출' },
@@ -31,15 +33,18 @@ const RELATED = [
 ]
 
 export default function UnemploymentBenefitCalculatorPage() {
+  const [separationDate, setSeparationDate] = useState('')
+  const [dailyHours, setDailyHours] = useState('')
   const [dailyWage, setDailyWage]               = useState('')
   const [monthlyWage, setMonthlyWage]           = useState('')
   const [useMonthly, setUseMonthly]             = useState(true)
   const [employmentMonths, setEmploymentMonths] = useState('')
   const [age, setAge]                           = useState('40')
   const [isDisabled, setIsDisabled]             = useState(false)
-  const calculationInputs = { dailyWage, monthlyWage, useMonthly, employmentMonths, age, isDisabled }
-  const { result, setResult, isStale } =
-    useCalculationResult<UnemploymentBenefitResult, typeof calculationInputs>(calculationInputs)
+  const calculationInputs = { dailyWage, monthlyWage, useMonthly, employmentMonths, age, isDisabled, separationDate, dailyHours }
+  const { result: outcome, setResult, isStale } =
+    useCalculationResult<CalculationOutcome, typeof calculationInputs>(calculationInputs)
+  const result = outcome?.value
 
   const computedDailyWage = useMonthly
     ? Math.floor(parseNum(monthlyWage) / 30)
@@ -50,20 +55,40 @@ export default function UnemploymentBenefitCalculatorPage() {
     const em = parseNum(employmentMonths)
     const a  = Number(age) || 40
     if (!dw || !em) return
-    setResult(calculateUnemploymentBenefit({ dailyWage: dw, employmentMonths: em, age: a, isDisabled }))
-  }, [computedDailyWage, employmentMonths, age, isDisabled, setResult])
+    try {
+      if (!dailyHours.trim() || !/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(dailyHours)) {
+        throw new RangeError('이직 전 1일 평균 소정근로시간을 입력해 주세요.')
+      }
+      setResult({ value: calculateUnemploymentBenefit({ dailyWage: dw, employmentMonths: em, age: a, isDisabled, separationDate, dailyHours: Number(dailyHours) }) })
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error
+      setResult({ reason: error.message })
+    }
+  }, [computedDailyWage, employmentMonths, age, isDisabled, separationDate, dailyHours, setResult])
 
-  const isValid = computedDailyWage > 0 && parseNum(employmentMonths) > 0
+  const isValid = computedDailyWage > 0 && parseNum(employmentMonths) > 0 && Boolean(separationDate) && Boolean(dailyHours.trim())
 
   return (
     <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-2">실업급여 계산기</h1>
       <p className="text-gray-500 mb-6">
-        {TAX_YEAR}년 기준 · 최저시급 {MIN_HOURLY_WAGE_2026.toLocaleString()}원 적용
+        2026년 이직한 일반 근로자 기준 · 수급 자격을 충족한다고 가정한 예상액
       </p>
 
       <div className="mt-6 space-y-6">
         <InputCard title="고용 정보 입력">
+          <div>
+            <label htmlFor="separationDate" className="label">이직일 *</label>
+            <input id="separationDate" type="date" value={separationDate}
+              onChange={e => setSeparationDate(e.target.value)} className="input-field" />
+            <p className="hint">이직확인서의 이직일(고용관계가 끝난 날)을 입력하세요. 다음 날인 피보험자격 상실일을 넣지 않습니다. 2027년은 상한 확정 여부를 확인할 때까지 계산을 보류합니다.</p>
+          </div>
+          <div>
+            <label htmlFor="dailyHours" className="label">이직 전 1일 평균 소정근로시간 *</label>
+            <input id="dailyHours" type="text" inputMode="decimal" placeholder="예: 4 또는 7.5"
+              value={dailyHours} onChange={e => setDailyHours(e.target.value)} className="input-field" />
+            <p className="hint">이직확인서 또는 고용센터에서 확인한 시간을 입력하세요. 실제 초과근무시간이 아닙니다. 소수 시간은 올림하고 최대 8시간을 적용합니다. 주·월 단위 또는 매주 시간이 다르면 유급휴일을 포함한 별도 산정이 필요합니다.</p>
+          </div>
           {/* 임금 입력 방식 선택 */}
           <div>
             <label className="label">임금 입력 방식</label>
@@ -102,7 +127,7 @@ export default function UnemploymentBenefitCalculatorPage() {
               </div>
               {parseNum(monthlyWage) > 0 && (
                 <p className="hint text-brand-700">
-                  계산된 1일 평균임금: {formatKRW(Math.floor(parseNum(monthlyWage) / 30))}
+                  월평균임금 ÷ 30의 간편 추정액: {formatKRW(Math.floor(parseNum(monthlyWage) / 30))}
                 </p>
               )}
             </div>
@@ -135,17 +160,12 @@ export default function UnemploymentBenefitCalculatorPage() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">개월</span>
             </div>
             <p className="hint">
-              이직 전 18개월 내 피보험단위기간 180일(약 6개월) 이상 필요
-              {parseNum(employmentMonths) > 0 && (
-                <span className={parseNum(employmentMonths) >= 6 ? ' text-emerald-600 font-semibold' : ' text-red-600 font-semibold'}>
-                  {' '}· {parseNum(employmentMonths) >= 6 ? '✓ 수급 요건 충족' : '✗ 수급 요건 미충족 (6개월 미만)'}
-                </span>
-              )}
+              가입 개월 수는 예상 지급일수 구간에 사용합니다. 가입 6개월을 피보험단위기간 180일로 보지 않으며, 실제 수급 자격은 고용센터에서 확인해야 합니다.
             </p>
           </div>
 
           <div>
-            <label className="label">나이</label>
+            <label className="label">이직 당시 나이</label>
             <div className="flex flex-wrap gap-2">
               {['30', '40', '50', '55'].map((a) => (
                 <button
@@ -199,26 +219,18 @@ export default function UnemploymentBenefitCalculatorPage() {
         </InputCard>
 
         <CalculationNotice isStale={isStale} />
+        {outcome?.reason && <div role="status" className="card p-5 bg-amber-50 text-amber-900">
+          <p className="font-semibold">계산 보류</p><p>{outcome.reason}</p>
+        </div>}
 
         {result && (
           <div className="space-y-4 animate-slide-up">
-            {result.isEligible ? (
               <ResultHighlight
-                label="총 예상 실업급여"
+                label="수급 자격 충족 가정 시 총 예상 실업급여"
                 value={formatKRW(result.totalBenefit)}
                 subtitle={`1일 ${formatKRW(result.dailyBenefit)} × ${result.totalDays}일`}
                 color="#0369a1"
               />
-            ) : (
-              <div className="card p-6 bg-red-50 border-red-100">
-                <p className="text-base font-bold text-red-700 mb-1">수급 요건 미충족</p>
-                <p className="text-sm text-red-600">
-                  고용보험 가입 기간 {parseNum(employmentMonths)}개월 → 최소 6개월(180일) 이상 필요합니다.
-                </p>
-              </div>
-            )}
-
-            {result.isEligible && (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="card p-4">
@@ -239,11 +251,11 @@ export default function UnemploymentBenefitCalculatorPage() {
                     { label: '1일 평균임금', value: formatKRW(computedDailyWage) },
                     { label: '1일 실업급여 (평균임금 × 60%)', value: formatKRW(result.dailyBenefit) },
                     {
-                      label: `하한 ${formatKRW(result.minDailyBenefit)} (최저시급 ${MIN_HOURLY_WAGE_2026.toLocaleString()}원×8h×80%)`,
+                      label: `하한 ${formatKRW(result.minDailyBenefit)} (최저시급 ${result.hourlyMinimum.toLocaleString()}원 × ${result.appliedHours}시간 × 80%)`,
                       value: '',
                     },
                     {
-                      label: `상한 ${formatKRW(result.maxDailyBenefit)} (고용노동부 고시 기준)`,
+                      label: `상한 ${formatKRW(result.maxDailyBenefit)} (고용보험법 시행령 기준)`,
                       value: '',
                     },
                     { label: '수급 일수', value: `${result.totalDays}일` },
@@ -256,20 +268,19 @@ export default function UnemploymentBenefitCalculatorPage() {
                   ]}
                 />
               </>
-            )}
 
             <div className="card p-5 bg-sky-50 border-sky-100">
               <h3 className="text-sm font-bold text-sky-800 mb-2">
-                {TAX_YEAR}년 실업급여 상·하한액
+                {separationDate.slice(0, 4)}년 · 적용 {result.appliedHours}시간 상·하한액
               </h3>
               <ul className="text-xs text-sky-700 space-y-1 leading-relaxed">
                 <li>
-                  • 하한액: <strong>{formatKRW(MIN_DAILY_BENEFIT)}/일</strong>
-                  {' '}(최저시급 {MIN_HOURLY_WAGE_2026.toLocaleString()}원 × 8시간 × 80%)
+                  • 하한액: <strong>{formatKRW(result.minDailyBenefit)}/일</strong>
+                  {' '}(최저시급 {result.hourlyMinimum.toLocaleString()}원 × {result.appliedHours}시간 × 80%)
                 </li>
                 <li>
-                  • 상한액: <strong>{formatKRW(MAX_DAILY_BENEFIT)}/일</strong>
-                  {' '}(고용노동부 고시 기준)
+                  • 상한액: <strong>{formatKRW(result.maxDailyBenefit)}/일</strong>
+                  {' '}(고용보험법 시행령 기준)
                 </li>
                 <li>• 1일 실업급여 = 1일 평균임금 × 60% (상·하한 범위 내 적용)</li>
               </ul>
@@ -287,7 +298,7 @@ export default function UnemploymentBenefitCalculatorPage() {
             </div>
 
             <Disclaimer
-              year={TAX_YEAR}
+              year={2026}
               extra="수급 일수·금액은 고용보험 가입 이력·이직 사유 등에 따라 실제와 다를 수 있습니다. 정확한 내용은 고용복지+센터에 문의하세요."
             />
           </div>
@@ -316,7 +327,7 @@ export default function UnemploymentBenefitCalculatorPage() {
                   <p>
                     실업급여를 받으려면 다음 네 가지 요건을 모두 충족해야 합니다.
                     첫째, 이직일 이전 <strong>18개월 동안 피보험단위기간이 180일 이상</strong>
-                    이어야 합니다(약 6개월). 피보험단위기간은 고용보험에 가입한 상태에서
+                    이어야 합니다. 가입 개월 수와는 다릅니다. 피보험단위기간은 고용보험에 가입한 상태에서
                     임금을 받은 일수의 합계입니다. 둘째, 근로 의사와 능력이 있음에도
                     실직 상태여야 합니다. 셋째, 적극적으로 구직활동을 해야 합니다.
                   </p>
@@ -336,9 +347,8 @@ export default function UnemploymentBenefitCalculatorPage() {
                 <>
                   <p>
                     1일 실업급여는 <strong>이직 전 1일 평균임금의 60%</strong>로 계산됩니다.
-                    다만 상한액과 하한액이 적용됩니다. {TAX_YEAR}년 기준 하한액은
-                    최저시급 × 8시간 × 80%로 약 {formatKRW(MIN_DAILY_BENEFIT)}이며,
-                    상한액은 고용노동부 고시 기준 약 {formatKRW(MAX_DAILY_BENEFIT)}입니다.
+                    다만 상한액과 하한액이 적용됩니다. 2026년 8시간 예시의 하한액은 최저시급 × 8시간 × 80%로 {formatKRW(MIN_DAILY_BENEFIT)}이며,
+                    상한액은 고용보험법 시행령 기준 약 {formatKRW(MAX_DAILY_BENEFIT)}입니다.
                   </p>
                   <p>
                     평균임금이 매우 낮은 저임금 근로자도 하한액은 보장되며, 고임금
@@ -406,8 +416,8 @@ export default function UnemploymentBenefitCalculatorPage() {
               '고용보험법 제46조 및 별표 1에 따른 산식입니다. 평균임금의 60%를 기준으로 하되, 법정 상·하한액 범위 내에서 결정됩니다.',
             items: [
               { label: '1일 실업급여', value: '1일 평균임금 × 60% (상·하한 범위 내)' },
-              { label: '하한액', value: `최저시급 × 8시간 × 80% = ${formatKRW(MIN_DAILY_BENEFIT)}/일` },
-              { label: '상한액', value: `${formatKRW(MAX_DAILY_BENEFIT)}/일 (고용부 고시)` },
+              { label: '2026년 8시간 하한 예시', value: `최저시급 × 8시간 × 80% = ${formatKRW(MIN_DAILY_BENEFIT)}/일` },
+              { label: '상한액', value: `${formatKRW(MAX_DAILY_BENEFIT)}/일 (2026년 시행령)` },
               { label: '총 수급액', value: '1일 실업급여 × 소정급여일수' },
               { label: '신청 기한', value: '이직 후 12개월 이내' },
             ],
@@ -440,7 +450,7 @@ export default function UnemploymentBenefitCalculatorPage() {
           ]}
           disclaimer={
             <>
-              본 계산기는 {TAX_YEAR}년 기준 근사값을 제공합니다. 실제 실업급여는 고용보험
+              본 계산기는 2026년 기준 근사값을 제공합니다. 실제 실업급여는 고용보험
               가입 이력, 이직 사유 인정 여부, 구직활동 이행 여부에 따라 달라집니다.
               정확한 수급 자격과 금액은 고용복지+센터(1350)에 문의하거나 가까운
               고용센터에서 상담받으세요.

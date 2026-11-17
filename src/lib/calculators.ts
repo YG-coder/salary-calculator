@@ -2,7 +2,7 @@
 // 퇴직금, 연차수당, 주휴수당, 실업급여, 4대보험, 급여세금 계산 로직
 
 import { TAX_YEAR_AS_OF, assertCalculationDate } from './policyYear'
-import { MIN_HOURLY_WAGE_2026 } from './constants'
+import { getUnemploymentLimits } from './policy/unemployment'
 import { calculateNationalPension } from './pension'
 import { calculateEmployeeEmploymentInsurance, calculateEmployeeHealthInsurance, calculateLongTermCare } from './insurancePremiums'
 import { applyRateFloor10 } from './rateMath'
@@ -575,6 +575,8 @@ export function calculateWeeklyHolidayPay(input: WeeklyHolidayPayInput): WeeklyH
 
 // ── 실업급여 계산 ─────────────────────────────────────────────
 export interface UnemploymentBenefitInput {
+  separationDate: string      // 이직확인서의 이직일 (상실일 아님)
+  dailyHours: number          // 시행규칙에 따라 산정한 1일 평균 소정근로시간
   dailyWage: number            // 퇴직 전 1일 평균임금 (원)
   employmentMonths: number     // 고용보험 가입 기간 (개월)
   age: number                  // 나이
@@ -582,10 +584,11 @@ export interface UnemploymentBenefitInput {
 }
 
 export interface UnemploymentBenefitResult {
+  appliedHours: number
+  hourlyMinimum: number
   dailyBenefit: number      // 1일 실업급여
   totalDays: number         // 수급 일수
   totalBenefit: number      // 총 예상 수급액
-  isEligible: boolean       // 수급 요건 충족 여부 (6개월 이상)
   minDailyBenefit: number   // 하한액
   maxDailyBenefit: number   // 상한액
 }
@@ -593,34 +596,28 @@ export interface UnemploymentBenefitResult {
 export function calculateUnemploymentBenefit(input: UnemploymentBenefitInput): UnemploymentBenefitResult {
   const { dailyWage, employmentMonths, age, isDisabled = false } = input
 
-  /**
-   * 2026년 실업급여(구직급여) 상·하한 (1일 기준)
-   *
-   * ▸ 상한액: 68,100원/일
-   *   - 2019년 이후 66,000원으로 동결되어 있었으나, 2026년 최저임금 인상으로
-   *     하한액(66,048원)이 기존 상한액(66,000원)을 넘는 역전현상이 발생하여
-   *     고용노동부가 상한액을 68,100원으로 인상 (2026.1.1 이후 이직자부터 적용)
-   *
-   * ▸ 하한액: 최저임금 × 8시간 × 80%
-   *   - 2026년 최저시급 10,320원 기준
-   *   - 10,320원 × 8시간 × 80% = 66,048원
-   *
-   * 적용 로직: min(상한, max(하한, 평균임금×60%))
-   */
-  const MIN_DAILY = Math.floor(MIN_HOURLY_WAGE_2026 * 8 * 0.8)  // 66,048원
-  const MAX_DAILY = Math.max(68_100, MIN_DAILY)                  // 68,100원 (2026년 고시)
+  const limits = getUnemploymentLimits(input.separationDate, input.dailyHours)
+  const MIN_DAILY = limits.minDailyBenefit
+  const MAX_DAILY = limits.maxDailyBenefit
+  if (!Number.isSafeInteger(dailyWage) || dailyWage <= 0 ||
+      !Number.isSafeInteger(employmentMonths) || employmentMonths <= 0 ||
+      !Number.isInteger(age) || age < 15 || age > 120) {
+    throw new RangeError('임금·가입 기간·나이를 올바르게 입력해 주세요.')
+  }
+  if (employmentMonths < 6) {
+    throw new RangeError('가입 기간이 6개월 미만입니다. 피보험단위기간과 수급 요건을 고용센터에서 확인해 주세요.')
+  }
 
-  // 수급 요건: 이직 전 18개월 내 피보험단위기간 180일(약 6개월) 이상
-  const isEligible = employmentMonths >= 6
+  // 수급 자격 판정은 하지 않는다. 자격 충족 가정의 예상 지급일수만 산정한다.
 
   // 1일 실업급여 = 1일 평균임금 × 60%, 상·하한 적용
-  const rawDaily   = Math.floor(dailyWage * 0.6)
+  const rawDaily = Number(BigInt(dailyWage) * BigInt(3) / BigInt(5))
   const dailyBenefit = Math.min(Math.max(rawDaily, MIN_DAILY), MAX_DAILY)
 
   // 수급 일수: 고용보험법 [별표 1] 기준 (연령·가입기간별)
   // ─────────────────────────────────────────────────────
   // 50세 미만 / 장애인 아님
-  //   6개월 미만   → 수급 불가
+  //   6개월 미만   → 계산 보류
   //   6개월~1년    → 120일
   //   1년~3년      → 150일
   //   3년~5년      → 180일
@@ -634,7 +631,7 @@ export function calculateUnemploymentBenefit(input: UnemploymentBenefitInput): U
   //   10년 이상    → 270일
   // ─────────────────────────────────────────────────────
   let totalDays = 0
-  if (isEligible) {
+  {
     if (age < 50 && !isDisabled) {
       if      (employmentMonths <  12) totalDays = 120
       else if (employmentMonths <  36) totalDays = 150
@@ -651,10 +648,11 @@ export function calculateUnemploymentBenefit(input: UnemploymentBenefitInput): U
   }
 
   return {
+    appliedHours: limits.appliedHours,
+    hourlyMinimum: limits.hourlyMinimum,
     dailyBenefit,
     totalDays,
     totalBenefit: dailyBenefit * totalDays,
-    isEligible,
     minDailyBenefit: MIN_DAILY,
     maxDailyBenefit: MAX_DAILY,
   }
