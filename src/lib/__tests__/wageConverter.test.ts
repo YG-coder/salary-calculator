@@ -11,6 +11,8 @@ import {
 } from '../wageConverter'
 import {
   MINIMUM_WAGE_COMPARISON_YEARS,
+  MINIMUM_WAGE_HELD_YEARS,
+  OFFICIAL_MONTHLY_EQUIVALENT,
   STANDARD_MONTHLY_HOURS,
   assertMinimumWageComparisonPolicy,
   getComparisonMinimumWage,
@@ -105,13 +107,46 @@ describe('최저임금 비교 (2026년, 사용자가 확인한 조건에 한정)
     expect(result.comparison).toEqual({ status: 'held', reason: expect.any(String) })
   })
   it('적용 최저시급은 정책 자료에서 가져온다', () => {
-    expect(MINIMUM_WAGE_COMPARISON_YEARS).toEqual([2026])
+    expect(MINIMUM_WAGE_COMPARISON_YEARS).toEqual([2026, 2027])
     expect(getComparisonMinimumWage(2026)).toBe(10_320)
     expect(getComparisonMinimumWage(2026)).toBe(getMinimumHourlyWage(new Date('2026-01-01T00:00:00+09:00')))
     expect(getComparisonMinimumWage(2026)).toBe(getMinimumHourlyWage(new Date('2026-12-31T23:59:59+09:00')))
-    expect(() => getComparisonMinimumWage(2027)).toThrow(RangeError)
+    expect(getComparisonMinimumWage(2027)).toBe(10_700)
+    expect(getComparisonMinimumWage(2027)).toBe(getMinimumHourlyWage(new Date('2027-01-01T00:00:00+09:00')))
+    expect(getComparisonMinimumWage(2027)).toBe(getMinimumHourlyWage(new Date('2027-12-31T23:59:59+09:00')))
+    expect(() => getComparisonMinimumWage(2028)).toThrow(RangeError)
     expect(() => getComparisonMinimumWage(2025)).toThrow(RangeError)
     expect(() => assertMinimumWageComparisonPolicy()).not.toThrow()
+  })
+  it('지원 연도마다 정책 자료가 있고 시급 × 209시간이 고시의 월 환산액과 같다', () => {
+    // 최저임금위원회 결정현황: 2026년 2,156,880원, 2027년 2,236,300원 (209시간 기준, 고시 기준)
+    expect(OFFICIAL_MONTHLY_EQUIVALENT).toEqual({ 2026: 2_156_880, 2027: 2_236_300 })
+    for (const year of MINIMUM_WAGE_COMPARISON_YEARS) {
+      expect(getComparisonMinimumWage(year) * STANDARD_MONTHLY_HOURS).toBe(OFFICIAL_MONTHLY_EQUIVALENT[year])
+    }
+    expect(MINIMUM_WAGE_HELD_YEARS).toEqual([])
+  })
+  it('2027년: 고시 월 환산액과 같은 금액, 그 전후 1원, 시급 직접 비교, 소수 월 기준시간', () => {
+    const in2027 = (patch: Partial<WageConverterInput>) => comparison({ compareYear: 2027, ...patch })
+    // 10,700 × 209 = 2,236,300 (고시 월 환산액)
+    expect(in2027({ includedAmount: 2_236_300 })).toMatchObject({ status: 'calculated', year: 2027, minimumHourly: 10_700, comparedHourly: 10_700, meetsMinimum: true, hourlyGap: 0, gapUnderOneWon: false })
+    expect(in2027({ includedAmount: 2_236_299 })).toMatchObject({ comparedHourly: 10_699, meetsMinimum: false, hourlyGap: 0, gapUnderOneWon: true })
+    expect(in2027({ includedAmount: 2_236_301 })).toMatchObject({ comparedHourly: 10_700, meetsMinimum: true, hourlyGap: 0, gapUnderOneWon: true })
+    // 2026년 기준을 딱 맞춘 2,156,880원은 2027년에는 미만: (2,236,300 − 2,156,880) ÷ 209 = 380
+    expect(in2027({ includedAmount: 2_156_880 })).toMatchObject({ comparedHourly: 10_320, meetsMinimum: false, hourlyGap: 380, gapUnderOneWon: false })
+    // 2,300,000 ÷ 209 = 11,004.78… / (2,300,000 − 2,236,300) ÷ 209 = 304.78…
+    expect(in2027({ includedAmount: 2_300_000 })).toMatchObject({ comparedHourly: 11_004, meetsMinimum: true, hourlyGap: 304 })
+    // 시급 직접 비교
+    expect(in2027({ basis: 'hourly', amount: 10_700, hoursMode: '', includedAmount: 10_699 })).toMatchObject({ meetsMinimum: false, hourlyGap: 1 })
+    expect(in2027({ basis: 'hourly', amount: 10_700, hoursMode: '', includedAmount: 10_700 })).toMatchObject({ meetsMinimum: true, hourlyGap: 0 })
+    // 소수 월 기준시간: 10,700 × 174.5 = 1,867,150
+    expect(in2027({ hoursMode: 'custom', customHours: '174.5', includedAmount: 1_867_150 })).toMatchObject({ meetsMinimum: true, comparedHourly: 10_700, hourlyGap: 0 })
+    expect(in2027({ hoursMode: 'custom', customHours: '174.5', includedAmount: 1_867_149 })).toMatchObject({ meetsMinimum: false, gapUnderOneWon: true })
+  })
+  it('2027년에도 예외 조건·빈칸은 보류한다', () => {
+    expect(comparison({ compareYear: 2027, profile: 'special', includedAmount: 2_300_000 }).status).toBe('held')
+    expect(comparison({ compareYear: 2027, includedAmount: Number.NaN }).status).toBe('held')
+    expect(comparison({ compareYear: 2027, hoursMode: 'none', includedAmount: 2_300_000 }).status).toBe('held')
   })
   it('정확히 최저임금과 같은 경우와 그 전후 1원', () => {
     // 10,320 × 209 = 2,156,880
@@ -140,8 +175,8 @@ describe('최저임금 비교 (2026년, 사용자가 확인한 조건에 한정)
   it.each<[string, Partial<WageConverterInput>]>([
     ['비교 여부 미선택', { compare: '' }],
     ['연도 미선택', { compareYear: null }],
-    ['2027년 (규정 적용 여부 미확인)', { compareYear: 2027 }],
-    ['미지원 연도', { compareYear: 2025 }],
+    ['미지원 연도 2028', { compareYear: 2028 }],
+    ['미지원 연도 2025', { compareYear: 2025 }],
     ['근무 조건 미선택', { profile: '' }],
     ['수습·적용 제외·변동 근무 등', { profile: 'special' }],
     ['산입 대상 금액 빈칸', { includedAmount: Number.NaN }],
@@ -227,12 +262,23 @@ describe('화면', () => {
     expect(view.html()).toContain('입력 조건상 기준 미만')
     expect(view.html()).toContain('1원 미만')
 
+    // 연도를 바꾸면 이전 결과와 비교 내역이 사라지고, 다시 계산하면 그 연도의 최저시급으로 비교한다.
     click(view, '2027년')
+    expect(view.props('ResultHighlight')).toBeUndefined()
     expect(view.html()).not.toContain('입력 조건상 기준')
+    expect(view.nodes().filter((n) => n.type === 'button' && n.props['aria-pressed'] === true).map((n) => text(n.props.children).trim())).toContain('2027년')
+    expect(view.nodes().filter((n) => n.type === 'button' && n.props['aria-pressed'] === true).map((n) => text(n.props.children).trim())).not.toContain('2026년')
+    view.change('includedAmount', '2156880')
     click(view, '환산하기')
     expect(view.props('ResultHighlight')).toMatchObject({ value: '연봉 25,882,560원' })
-    expect(view.html()).toContain('최저임금 비교 보류')
-    expect(view.html()).not.toContain('입력 조건상 기준')
+    expect(view.html()).toContain('입력 조건상 기준 미만')
+    expect(view.html()).toContain('10,700원')
+    expect(view.html()).toContain('380원')
+    expect(view.html()).not.toContain('최저임금 비교 보류')
+    view.change('includedAmount', '2236300')
+    click(view, '환산하기')
+    expect(view.html()).toContain('입력 조건상 기준 이상')
+    expect(identifiers(visibleCopy(view.html()))).toEqual([])
   })
 
   it('급여 단위를 바꾸면 의미가 달라지는 금액만 비우고 같은 단위는 유지한다', () => {

@@ -185,6 +185,7 @@ export default function WageConverterPage() {
                     </button>
                   ))}
                 </div>
+                <p className="hint">일한 시기가 속한 연도를 고르세요. 최저임금은 매년 1월 1일부터 12월 31일까지 적용됩니다.</p>
               </fieldset>
 
               <fieldset aria-describedby="profile-hint">

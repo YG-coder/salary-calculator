@@ -178,7 +178,7 @@ function compare(input: WageConverterInput, hours: Hours): MinimumWageComparison
   if (input.basis === '') return held('입력할 금액이 시급·월급·연봉 중 무엇인지 선택해 주세요.')
   if (input.compareYear === null) return held('적용 연도를 선택해 주세요.')
   if (!isSupportedComparisonYear(input.compareYear)) {
-    return held(`${input.compareYear}년은 임금 환산·산입 규정의 적용 여부를 확인하지 못해 최저임금 비교를 보류합니다.`)
+    return held(`${input.compareYear}년은 최저임금과 적용 규정을 확인한 연도가 아니어서 비교를 보류합니다.`)
   }
   if (input.profile === '') return held('근무 조건을 확인하고 선택해 주세요.')
   if (input.profile !== 'ordinary') {
