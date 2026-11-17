@@ -1,7 +1,7 @@
 // src/app/sitemap.ts
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/constants'
-import { CALCULATOR_ROUTES, STATIC_ROUTES } from '@/lib/routes'
+import { CALCULATOR_ROUTES, REFERENCE_ROUTES, STATIC_ROUTES } from '@/lib/routes'
 
 /**
  * sitemap.xml 생성
@@ -27,6 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'monthly' as const,
       priority: 0.9,
+    })),
+    ...REFERENCE_ROUTES.map((path) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
     })),
     ...STATIC_ROUTES.map((path) => ({
       url: `${SITE_URL}${path}`,

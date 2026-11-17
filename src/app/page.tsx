@@ -186,6 +186,10 @@ export default function Home() {
           className="mt-3 inline-flex rounded-xl bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors">
           내 연봉으로 계산하기 →
         </Link>
+        <Link href={ROUTES.SALARY_TABLE}
+          className="mt-3 ml-0 sm:ml-3 inline-flex rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-800 transition-colors">
+          연봉 실수령액 표 전체 보기
+        </Link>
       </section>
 
       {/* ── 5. 상황별 계산기 ─────────────────────────────── */}

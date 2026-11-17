@@ -36,6 +36,17 @@ export const SALARY_AMOUNTS_MAN: number[] = Array.from(
   (_, i) => SALARY_MIN_MAN + i * SALARY_STEP_MAN,
 )
 
+/**
+ * 연봉별 상세 페이지와 연봉 실수령액 표가 함께 쓰는 고정 계산 조건.
+ * 화면의 조건 안내 문구도 이 값에서 만든다 (문구와 계산이 따로 낡지 않게).
+ */
+export const SALARY_PAGE_CONDITIONS = {
+  nonTaxable: 0,
+  dependents: 1,
+  childCount8to20: 0,
+  withholdingPercentage: 100,
+} as const
+
 export function isValidSalaryMan(amountMan: number): boolean {
   return (
     Number.isInteger(amountMan) &&
@@ -124,7 +135,7 @@ export function buildSalaryPageData(
 ): SalaryPageData {
   const annualSalary = amountMan * 10_000
 
-  const result = calculateSalary({ annualSalary, nonTaxable: 0, dependents: 1 }, asOfDate)
+  const result = calculateSalary({ annualSalary, ...SALARY_PAGE_CONDITIONS }, asOfDate)
 
   // 표시용 월 과세소득: 이 페이지들은 비과세 0이므로 월 세전과 같다.
   const monthlyTaxable = result.monthlyGross

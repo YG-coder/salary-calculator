@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ROUTES } from '@/lib/routes'
 
 export const REPRESENTATIVE_SALARY_AMOUNTS_MAN = Array.from(
   { length: 20 },
@@ -16,7 +17,10 @@ export default function SalaryAmountLinks({ currentAmountMan }: SalaryAmountLink
         대표 연봉 실수령액
       </h2>
       <p className="mt-1 text-sm text-slate-500">
-        자주 찾는 연봉의 세후 월급과 공제 내역을 바로 확인하세요.
+        자주 찾는 연봉의 세후 월급과 공제 내역을 바로 확인하세요.{' '}
+        <Link href={ROUTES.SALARY_TABLE} className="font-semibold text-brand-700 underline underline-offset-4 hover:text-brand-800">
+          연봉 실수령액 표로 한눈에 비교하기
+        </Link>
       </p>
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {REPRESENTATIVE_SALARY_AMOUNTS_MAN.map((amount) => {
