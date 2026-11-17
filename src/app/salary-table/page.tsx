@@ -8,7 +8,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { withPageMetadata } from '@/lib/metadata'
 import { ROUTES } from '@/lib/routes'
-import { SITE_NAME, TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/constants'
+import { TAX_YEAR, TAX_YEAR_AS_OF_LABEL } from '@/lib/constants'
 import {
   SALARY_TABLE_CONDITION_ITEMS,
   buildSalaryTableRows,
@@ -19,7 +19,7 @@ import { SALARY_MAX_MAN, SALARY_MIN_MAN, SALARY_STEP_MAN } from '@/lib/salaryPag
 const RANGE_TEXT = `연봉 ${salaryTableLabel(SALARY_MIN_MAN)}부터 ${salaryTableLabel(SALARY_MAX_MAN)}까지 ${salaryTableLabel(SALARY_STEP_MAN)} 간격`
 
 export const metadata: Metadata = withPageMetadata({
-  title: `${TAX_YEAR}년 연봉 실수령액 표 | ${SITE_NAME}`,
+  title: `${TAX_YEAR}년 연봉 실수령액 표`,
   description: `${RANGE_TEXT}으로 월 세전 급여, 월 총 공제액, 월 실수령액을 한눈에 비교하는 ${TAX_YEAR}년 기준 참고표입니다.`,
 }, ROUTES.SALARY_TABLE)
 
@@ -29,7 +29,7 @@ export default function SalaryTablePage() {
   const rows = buildSalaryTableRows()
 
   return (
-    <main className="flex-1 max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-3xl mx-auto px-4 py-10">
       <nav aria-label="현재 위치" className="mb-6 text-sm text-slate-500">
         <Link href={ROUTES.HOME} className="hover:text-brand-800">홈</Link>
         <span className="mx-2" aria-hidden="true">›</span>
@@ -116,6 +116,6 @@ export default function SalaryTablePage() {
           <li>· 실제 급여는 회사의 급여 규정과 개인별 조건에 따라 달라집니다.</li>
         </ul>
       </section>
-    </main>
+    </div>
   )
 }

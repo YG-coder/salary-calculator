@@ -111,6 +111,8 @@ describe('화면', () => {
   })
 
   it('표 제목·열 머리글·행 머리글을 제공한다', () => {
+    // 공통 layout이 main을 제공하므로 페이지에서 중첩된 본문 랜드마크를 만들지 않는다.
+    expect(html).not.toMatch(/<main\b/)
     expect(html).toContain('<caption')
     for (const heading of ['연봉', '월 실수령액', '월 세전 급여', '월 총 공제액']) {
       expect(html).toMatch(new RegExp(`<th scope="col"[^>]*>${heading}</th>`))
@@ -148,6 +150,8 @@ describe('사이트맵·진입 경로·공유 메타데이터', () => {
 
   it('canonical·공유 주소가 기준 주소이고 공유 이미지와 큰 카드가 있다', () => {
     const expected = `${SITE.url}${ROUTES.SALARY_TABLE}`
+    // 사이트명은 공통 layout의 title template에서 한 번만 붙인다.
+    expect(metadata.title).toBe('2026년 연봉 실수령액 표')
     expect(/^[\x00-\x7f]+$/.test(expected)).toBe(true)
     expect(metadata.alternates?.canonical).toBe(expected)
     const openGraph = metadata.openGraph as { url?: string; images?: unknown[] }
