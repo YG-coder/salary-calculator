@@ -1,6 +1,7 @@
 // next.config.ts
 import type { NextConfig } from 'next'
 import { PHASE_PRODUCTION_BUILD } from 'next/constants'
+import { assertMinimumWageComparisonPolicy } from './src/lib/policy/minimumWageComparison'
 import { assertUnemploymentPolicyYear } from './src/lib/policy/unemployment'
 import { assertRetirementTaxPolicyYear } from './src/lib/policy/retirementTax'
 import { TAX_YEAR, assertPolicyFresh } from './src/lib/policyYear'
@@ -27,6 +28,7 @@ export default function config(phase: string): NextConfig {
   if (phase === PHASE_PRODUCTION_BUILD) {
     assertPolicyFresh()
     assertUnemploymentPolicyYear(TAX_YEAR)
+    assertMinimumWageComparisonPolicy()
     assertRetirementTaxPolicyYear(TAX_YEAR)
   }
   return nextConfig

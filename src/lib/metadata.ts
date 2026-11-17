@@ -75,6 +75,14 @@ export const PAGE_META = {
         keywords: ['실업급여 계산기', '구직급여 계산기', '고용보험 실업급여'],
     },
 
+    wageConverter: {
+        title: '시급·월급·연봉 환산 계산기 | 최저임금 비교',
+        description:
+            '세전 시급·월급·연봉을 서로 환산하고, 직접 확인한 산입 대상 임금과 월 기준시간으로 최저임금과 비교합니다.',
+        path: ROUTES.WAGE_CONVERTER,
+        keywords: ['시급 계산기', '월급 시급 환산', '연봉 시급 환산', '최저임금 계산기'],
+    },
+
     about: {
         title: '소개 | 연봉계산기',
         description:

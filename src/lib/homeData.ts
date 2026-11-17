@@ -104,6 +104,14 @@ export const CALCULATORS = [
     badge: null,
     highlight: false,
   },
+  {
+    href: '/wage-converter',
+    emoji: '🔁',
+    title: '시급·월급·연봉 환산 계산기',
+    description: '세전 시급·월급·연봉 환산과 최저임금 비교',
+    badge: null,
+    highlight: false,
+  },
 ]
 
 // ── 연봉별 실수령액 빠른 표 ─────────────────────────────────
@@ -343,6 +351,7 @@ export const SITUATION_GROUPS: SituationGroup[] = [
       { href: ROUTES.PAYROLL_TAX_CALCULATOR, label: '급여 세금 간편 계산' },
       { href: ROUTES.SOCIAL_INSURANCE_CALCULATOR, label: '4대보험' },
       { href: ROUTES.WEEKLY_HOLIDAY_PAY_CALCULATOR, label: '주휴수당' },
+      { href: ROUTES.WAGE_CONVERTER, label: '시급·월급·연봉 환산' },
     ],
   },
   {

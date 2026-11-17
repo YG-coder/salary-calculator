@@ -21,6 +21,7 @@ export const MENU_GROUPS = [
       { href: '/salary-calculator', label: '연봉 실수령액' },
       { href: '/payroll-tax-calculator', label: '급여 세금 간편 계산' },
       { href: '/social-insurance-calculator', label: '4대보험' },
+      { href: '/wage-converter', label: '시급·월급·연봉 환산' },
     ],
   },
   {

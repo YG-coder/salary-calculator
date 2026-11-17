@@ -14,6 +14,7 @@ export const CALC_LINKS = [
   { href: '/annual-leave-pay-calculator', label: '연차수당 계산기' },
   { href: '/weekly-holiday-pay-calculator', label: '주휴수당 계산기' },
   { href: '/unemployment-benefit-calculator', label: '실업급여 계산기' },
+  { href: '/wage-converter', label: '시급·월급·연봉 환산 계산기' },
 ]
 
 export default function Footer() {

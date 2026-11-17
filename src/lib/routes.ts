@@ -14,6 +14,7 @@ export const ROUTES = {
     ANNUAL_LEAVE_PAY_CALCULATOR: '/annual-leave-pay-calculator',
     WEEKLY_HOLIDAY_PAY_CALCULATOR: '/weekly-holiday-pay-calculator',
     UNEMPLOYMENT_BENEFIT_CALCULATOR: '/unemployment-benefit-calculator',
+    WAGE_CONVERTER: '/wage-converter',
 
     ABOUT: '/about',
     PRIVACY: '/privacy',
@@ -32,6 +33,7 @@ export const CALCULATOR_ROUTES = [
     ROUTES.ANNUAL_LEAVE_PAY_CALCULATOR,
     ROUTES.WEEKLY_HOLIDAY_PAY_CALCULATOR,
     ROUTES.UNEMPLOYMENT_BENEFIT_CALCULATOR,
+    ROUTES.WAGE_CONVERTER,
 ] as const
 
 /** 입력 없이 읽는 참고 페이지. 사이트맵에는 넣지만 계산기 메뉴(헤더·푸터·홈 카드) 강제 대상은 아니다. */
