@@ -85,6 +85,7 @@ export interface WageConverterResult {
 const ZERO = BigInt(0)
 const HUNDRED = BigInt(100)
 const TWELVE = BigInt(12)
+const MAX_OUTPUT = BigInt(Number.MAX_SAFE_INTEGER)
 const MAX_AMOUNT = Math.floor(Number.MAX_SAFE_INTEGER / 12)
 
 const held = (reason: string): Held => ({ status: 'held', reason })
@@ -151,6 +152,7 @@ function convert(input: WageConverterInput, hours: Hours): WageConversion | Held
     // 월급 = 시급 × 월 기준시간, 연봉 = 월급 × 12. 각각 정확한 값에서 원 미만만 버린다.
     const monthlyTimes100 = amount * h
     const annualTimes100 = monthlyTimes100 * TWELVE
+    if (annualTimes100 / HUNDRED > MAX_OUTPUT) return held('환산 금액이 정확하게 표시할 수 있는 범위를 넘습니다. 금액과 월 기준시간을 확인해 주세요.')
     return {
       status: 'calculated', basis: input.basis, amount: input.amount, monthlyHoursText: hoursText(h),
       hourly: input.amount, monthly: Number(monthlyTimes100 / HUNDRED), annual: Number(annualTimes100 / HUNDRED),
@@ -162,6 +164,7 @@ function convert(input: WageConverterInput, hours: Hours): WageConversion | Held
   // 시급 = 연봉 ÷ 12 ÷ 월 기준시간 = 연봉 × 100 ÷ (12 × h)
   const hourlyNumerator = annual * HUNDRED
   const hourlyDenominator = TWELVE * h
+  if (hourlyNumerator / hourlyDenominator > MAX_OUTPUT) return held('환산 시급이 정확하게 표시할 수 있는 범위를 넘습니다. 금액과 월 기준시간을 확인해 주세요.')
   return {
     status: 'calculated', basis: input.basis, amount: input.amount, monthlyHoursText: hoursText(h),
     hourly: Number(hourlyNumerator / hourlyDenominator), monthly: Number(annual / TWELVE), annual: Number(annual),
@@ -207,6 +210,7 @@ function compare(input: WageConverterInput, hours: Hours): MinimumWageComparison
   const right = minimum * h       // 최저시급 × 월 기준시간 × 100
   const gapNumerator = left >= right ? left - right : right - left
   const hourlyGap = gapNumerator / h
+  if (left / h > MAX_OUTPUT || hourlyGap > MAX_OUTPUT) return held('비교 금액이 정확하게 표시할 수 있는 범위를 넘습니다. 산입 임금과 월 기준시간을 확인해 주세요.')
   return {
     status: 'calculated', year: input.compareYear, minimumHourly, includedAmount: input.includedAmount,
     includedUnit: 'monthly', comparedHourly: Number(left / h), meetsMinimum: left >= right,

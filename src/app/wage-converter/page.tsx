@@ -84,7 +84,14 @@ export default function WageConverterPage() {
             <div className="flex flex-wrap gap-2">
               {BASIS_OPTIONS.map(([value, label]) => (
                 <button key={value} type="button" aria-pressed={basis === value}
-                  onClick={() => setBasis(value)} className={toggleClass(basis === value)}>
+                  onClick={() => {
+                    if (basis !== value) {
+                      setAmount('')
+                      if ((basis === 'hourly') !== (value === 'hourly')) setIncludedAmount('')
+                      setAnnualComposition('')
+                      setBasis(value)
+                    }
+                  }} className={toggleClass(basis === value)}>
                   {label}
                 </button>
               ))}

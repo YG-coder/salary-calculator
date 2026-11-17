@@ -59,6 +59,17 @@ describe('세전 환산', () => {
     expect(conversion({ amount: 3_000_000, hoursMode: 'none' })).toMatchObject({ status: 'calculated', hourly: null, monthly: 3_000_000, annual: 36_000_000, monthlyHoursText: null, truncated: false })
     expect(conversion({ basis: 'annual', amount: 36_000_000, annualComposition: 'equal12', hoursMode: 'none' })).toMatchObject({ hourly: null, monthly: 3_000_000, annual: 36_000_000 })
   })
+  it.each<Partial<WageConverterInput>>([
+    { basis: 'hourly', amount: 750_599_937_895_081, hoursMode: 'custom', customHours: '744' },
+    { amount: 100_000_000_000_000, hoursMode: 'custom', customHours: '0.01' },
+  ])('입력은 안전한 정수여도 환산 결과가 표시 범위를 넘으면 금액 없이 보류한다', (patch) => {
+    expect(conversion(patch)).toEqual({ status: 'held', reason: expect.any(String) })
+  })
+  it('안전한 출력 경계 바로 아래는 계산한다', () => {
+    // 90,071,992,547,409 ÷ 0.01 = 9,007,199,254,740,900 < 2^53 - 1
+    expect(conversion({ amount: 90_071_992_547_409, hoursMode: 'custom', customHours: '0.01' }))
+      .toMatchObject({ status: 'calculated', hourly: 9_007_199_254_740_900 })
+  })
   it.each<[string, Partial<WageConverterInput>]>([
     ['기준 미선택', { basis: '' }],
     ['빈 금액', { amount: Number.NaN }],
@@ -87,6 +98,12 @@ describe('세전 환산', () => {
 })
 
 describe('최저임금 비교 (2026년, 사용자가 확인한 조건에 한정)', () => {
+  it('비교 시급이 표시 범위를 넘으면 비교만 금액 없이 보류한다', () => {
+    const result = run({ compare: 'yes', compareYear: 2026, profile: 'ordinary',
+      hoursMode: 'custom', customHours: '0.01', includedAmount: 100_000_000_000_000 })
+    expect(result.conversion.status).toBe('calculated')
+    expect(result.comparison).toEqual({ status: 'held', reason: expect.any(String) })
+  })
   it('적용 최저시급은 정책 자료에서 가져온다', () => {
     expect(MINIMUM_WAGE_COMPARISON_YEARS).toEqual([2026])
     expect(getComparisonMinimumWage(2026)).toBe(10_320)
@@ -218,6 +235,19 @@ describe('화면', () => {
     expect(view.html()).not.toContain('입력 조건상 기준')
   })
 
+  it('급여 단위를 바꾸면 의미가 달라지는 금액만 비우고 같은 단위는 유지한다', () => {
+    const view = uiHarness(Page)
+    click(view, '월급'); view.change('wageAmount', '2156880')
+    click(view, '비교함'); view.change('includedAmount', '2100000')
+    const inputValue = (id: string) => view.nodes().find((n) => n.props.id === id)?.props.value
+    click(view, '월급')
+    expect(inputValue('wageAmount')).toBe('2,156,880')
+    click(view, '연봉')
+    expect(inputValue('wageAmount')).toBe('')
+    expect(inputValue('includedAmount')).toBe('2,100,000') // 월 산입 임금은 단위가 같다.
+    click(view, '시급')
+    expect(inputValue('includedAmount')).toBe('')
+  })
   it('보류는 0원 결과가 아니라 이유만 표시한다', () => {
     const view = uiHarness(Page)
     click(view, '연봉'); view.change('wageAmount', '40000000')
