@@ -2,6 +2,7 @@
 import type { NextConfig } from 'next'
 import { PHASE_PRODUCTION_BUILD } from 'next/constants'
 import { assertUnemploymentPolicyYear } from './src/lib/policy/unemployment'
+import { assertRetirementTaxPolicyYear } from './src/lib/policy/retirementTax'
 import { TAX_YEAR, assertPolicyFresh } from './src/lib/policyYear'
 
 const nextConfig: NextConfig = {
@@ -26,6 +27,7 @@ export default function config(phase: string): NextConfig {
   if (phase === PHASE_PRODUCTION_BUILD) {
     assertPolicyFresh()
     assertUnemploymentPolicyYear(TAX_YEAR)
+    assertRetirementTaxPolicyYear(TAX_YEAR)
   }
   return nextConfig
 }

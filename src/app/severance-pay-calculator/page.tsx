@@ -16,6 +16,7 @@ import { InputCard, ResultHighlight, BreakdownCard, Disclaimer } from '@/compone
 import RelatedCalculators from '@/components/calculator/RelatedCalculators'
 import GuideSection from '@/components/calculator/GuideSection'
 import FaqAccordion from '@/components/calculator/FaqAccordion'
+import RetirementTaxForm from '@/components/calculator/RetirementTaxForm'
 
 function formatNum(value: string) { return formatAmountInput(value) }
 function parseNum(value: string) { return parseAmountInput(value) }
@@ -202,7 +203,7 @@ export default function SeverancePayCalculatorPage() {
           <div className="space-y-4 animate-slide-up">
             {result.isEligible ? (
               <ResultHighlight
-                label="퇴직금 예상액"
+                label="세전 퇴직금 예상액"
                 value={formatKRW(result.severancePay)}
                 subtitle={`재직일수 ${result.workingDays.toLocaleString()}일 기준`}
                 color="#0369a1"
@@ -236,6 +237,14 @@ export default function SeverancePayCalculatorPage() {
               />
             )}
 
+            {result.isEligible && submittedInput && (
+              <RetirementTaxForm
+                key={JSON.stringify(submittedInput)}
+                grossPay={result.severancePay}
+                startDate={submittedInput.startDate}
+                lastWorkingDate={submittedInput.lastWorkingDate}
+              />
+            )}
             <Disclaimer year={TAX_YEAR} extra="상여금·연차수당 포함 여부, 특수 근로형태 등에 따라 실제 금액이 달라질 수 있습니다." />
           </div>
         )}
@@ -316,9 +325,11 @@ export default function SeverancePayCalculatorPage() {
               body: (
                 <p>
                   퇴직소득세는 퇴직급여액과 근속연수, 근속연수공제·환산급여공제 등에
-                  따라 달라집니다. 이 계산기는 세전 퇴직금을 계산하며 퇴직소득세와
-                  지방소득세를 차감하지 않습니다. 거주자가 퇴직급여를 IRP(개인형 퇴직연금)
-                  계좌로 지급받는 등 법정 요건을 충족하면 퇴직소득세 납부를 이연할 수 있습니다.
+                  따라 달라집니다. 세전 퇴직금을 계산한 뒤 대상 조건과 수령 방식을 선택하면
+                  일반 근로자의 단일 퇴직에 대한 세금과 현금 실수령 예상액을 확인할 수 있습니다.
+                  중간정산·합산 정산 등 특례는 지원하지 않습니다. IRP(개인형 퇴직연금) 전액 직접
+                  이전은 비과세 퇴직소득이 없는 경우에 한해 계좌 입금액과 이연 세액을 따로 안내합니다.
+                  납부 이연은 세금 면제와 다릅니다.
                   실제 세액은 회사가 발급한 퇴직소득 원천징수영수증에서 확인하세요.
                 </p>
               ),
@@ -412,7 +423,7 @@ export default function SeverancePayCalculatorPage() {
             },
             {
               q: '퇴직소득세는 얼마나 떼이나요?',
-              a: '퇴직소득세는 퇴직급여액과 근속연수, 근속연수공제·환산급여공제 등에 따라 달라져 일정 비율로 안내하기 어렵습니다. 이 계산기는 세전 퇴직금을 계산하며 퇴직소득세와 지방소득세를 차감하지 않습니다. 실제 세액은 회사가 발급한 퇴직소득 원천징수영수증에서 확인하세요.',
+              a: '퇴직소득세는 퇴직급여액과 근속연수, 근속연수공제·환산급여공제 등에 따라 달라져 일정 비율로 안내하기 어렵습니다. 세전 퇴직금을 계산한 뒤 세금·실수령액 계산을 선택하면 일반 근로자의 단일 퇴직에 대한 예상 세액을 확인할 수 있습니다. 중간정산·합산·임원 등 특례는 계산을 보류합니다. IRP 전액 직접 이전은 비과세 퇴직소득이 없는 경우에 한해 입금액과 이연 세액을 구분하며, 세금 면제가 아닙니다. 실제 세액은 회사가 발급한 퇴직소득 원천징수영수증에서 확인하세요.',
             },
           ]}
         />
