@@ -18,6 +18,7 @@ import {
   getComparisonMinimumWage,
 } from '../policy/minimumWageComparison'
 import { getMinimumHourlyWage } from '../policy/annualRates'
+import * as annualRates from '../policy/annualRates'
 import { calculateWeeklyHolidayPay } from '../calculators'
 import { CALCULATOR_ROUTES, ROUTES } from '../routes'
 import { PAGE_META, buildMetadata } from '../metadata'
@@ -126,6 +127,26 @@ describe('최저임금 비교 (2026년, 사용자가 확인한 조건에 한정)
     }
     expect(MINIMUM_WAGE_HELD_YEARS).toEqual([])
   })
+  it.each(['자료 누락', '연초 불일치', '연말 불일치', '고시 금액 불일치'])(
+    '정책 검사는 잘못된 자료를 거부한다: %s', (scenario) => {
+      const original = annualRates.getMinimumHourlyWage
+      const mock = vi.spyOn(annualRates, 'getMinimumHourlyWage').mockImplementation((date) => {
+        const time = date?.getTime()
+        if (time !== undefined && time >= Date.parse('2027-01-01T00:00:00+09:00')) {
+          if (scenario === '자료 누락') throw new RangeError('test: missing policy')
+          if (scenario === '고시 금액 불일치') return 10_701
+          if (scenario === '연초 불일치' && time === Date.parse('2027-01-01T00:00:00+09:00')) return 10_699
+          if (scenario === '연말 불일치' && time === Date.parse('2027-12-31T23:59:59+09:00')) return 10_699
+        }
+        return original(date)
+      })
+      try {
+        expect(() => assertMinimumWageComparisonPolicy()).toThrow(RangeError)
+      } finally {
+        mock.mockRestore()
+      }
+    },
+  )
   it('2027년: 고시 월 환산액과 같은 금액, 그 전후 1원, 시급 직접 비교, 소수 월 기준시간', () => {
     const in2027 = (patch: Partial<WageConverterInput>) => comparison({ compareYear: 2027, ...patch })
     // 10,700 × 209 = 2,236,300 (고시 월 환산액)
