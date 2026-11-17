@@ -1,0 +1,331 @@
+{
+  "source": {
+    "filename": "(하반기)2026년 귀속 퇴직소득 세액계산 프로그램_D260813.xlsx",
+    "sha256": "d208c961a6695c5461885aae5a8e6f9831acfb80dfd216deba5ae9a2eceb862b",
+    "providedBy": "사용자 제공, 홈택스 자료실 1247번에서 확인한 첨부명과 일치",
+    "verifiedAt": "2026-11-17",
+    "method": "AI가 XLSX 원문 수식을 읽고 Artifact Tool 메모리 사본에서 입력별 재계산. Microsoft Excel 실행 결과가 아님. 구현 함수 호출로 기대값을 만들지 않음.",
+    "sheet": "퇴직소득원천징수영수증",
+    "cells": {
+      "serviceMonths": "T25",
+      "serviceYears": "AE26",
+      "taxableIncome": "S28",
+      "serviceDeduction": "S29",
+      "annualizedIncome": "S30",
+      "annualizedDeduction": "S31",
+      "taxBase": "S32",
+      "annualizedTax": "S34",
+      "assessedIncomeTax": "S35",
+      "deferredIncomeTax": "J46",
+      "deferredLocalTax": "R46",
+      "incomeTax": "J48",
+      "localTax": "R48"
+    },
+    "conditions": "이전 퇴직소득·기납부세액·제외/가산월수·세액공제 없음. IRP는 비과세 없는 전액 직접 이전. tenureOnly 사례는 하반기 적용기간 밖이므로 날짜 산식만 확인.",
+    "difference": "엑셀 J48/R48은 소액부징수를 적용하지 않는다. 999원 산출세액의 엑셀 결과 990/90을 보존하고 사이트의 0/0은 별도로 검사."
+  },
+  "cases": [
+    {
+      "name": "10년 현금",
+      "input": {
+        "grossPay": 50000000,
+        "nonTaxablePay": 0,
+        "startDate": "2017-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 120,
+        "serviceYears": 10,
+        "taxableIncome": 50000000,
+        "serviceDeduction": 15000000,
+        "annualizedIncome": 42000000,
+        "annualizedDeduction": 28400000,
+        "taxBase": 13600000,
+        "annualizedTax": 816000,
+        "assessedIncomeTax": 680000,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 680000,
+        "localTax": 68000
+      }
+    },
+    {
+      "name": "20년 현금",
+      "input": {
+        "grossPay": 100000000,
+        "nonTaxablePay": 0,
+        "startDate": "2007-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 240,
+        "serviceYears": 20,
+        "taxableIncome": 100000000,
+        "serviceDeduction": 40000000,
+        "annualizedIncome": 36000000,
+        "annualizedDeduction": 24800000,
+        "taxBase": 11200000,
+        "annualizedTax": 672000,
+        "assessedIncomeTax": 1120000,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 1120000,
+        "localTax": 112000
+      }
+    },
+    {
+      "name": "7년 현금",
+      "input": {
+        "grossPay": 50000123,
+        "nonTaxablePay": 0,
+        "startDate": "2020-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 84,
+        "serviceYears": 7,
+        "taxableIncome": 50000123,
+        "serviceDeduction": 9000000,
+        "annualizedIncome": 70285925,
+        "annualizedDeduction": 45357258,
+        "taxBase": 24928667,
+        "annualizedTax": 2479300,
+        "assessedIncomeTax": 1446258,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 1446250,
+        "localTax": 144620
+      }
+    },
+    {
+      "name": "7년 IRP",
+      "input": {
+        "grossPay": 50000123,
+        "nonTaxablePay": 0,
+        "startDate": "2020-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "irp"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 84,
+        "serviceYears": 7,
+        "taxableIncome": 50000123,
+        "serviceDeduction": 9000000,
+        "annualizedIncome": 70285925,
+        "annualizedDeduction": 45357258,
+        "taxBase": 24928667,
+        "annualizedTax": 2479300,
+        "assessedIncomeTax": 1446258,
+        "deferredIncomeTax": 1446258,
+        "deferredLocalTax": 144625,
+        "incomeTax": 0,
+        "localTax": 0
+      }
+    },
+    {
+      "name": "운영 현금",
+      "input": {
+        "grossPay": 30016438,
+        "nonTaxablePay": 0,
+        "startDate": "2017-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 120,
+        "serviceYears": 10,
+        "taxableIncome": 30016438,
+        "serviceDeduction": 15000000,
+        "annualizedIncome": 18019725,
+        "annualizedDeduction": 14011835,
+        "taxBase": 4007890,
+        "annualizedTax": 240473,
+        "assessedIncomeTax": 200394,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 200390,
+        "localTax": 20030
+      }
+    },
+    {
+      "name": "999원 산출세액",
+      "input": {
+        "grossPay": 28041665,
+        "nonTaxablePay": 0,
+        "startDate": "2015-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 144,
+        "serviceYears": 12,
+        "taxableIncome": 28041665,
+        "serviceDeduction": 20000000,
+        "annualizedIncome": 8041665,
+        "annualizedDeduction": 8024999,
+        "taxBase": 16666,
+        "annualizedTax": 999,
+        "assessedIncomeTax": 999,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 990,
+        "localTax": 90
+      }
+    },
+    {
+      "name": "1000원 산출세액",
+      "input": {
+        "grossPay": 28041666,
+        "nonTaxablePay": 0,
+        "startDate": "2015-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 144,
+        "serviceYears": 12,
+        "taxableIncome": 28041666,
+        "serviceDeduction": 20000000,
+        "annualizedIncome": 8041666,
+        "annualizedDeduction": 8024999,
+        "taxBase": 16667,
+        "annualizedTax": 1000,
+        "assessedIncomeTax": 1000,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 1000,
+        "localTax": 100
+      }
+    },
+    {
+      "name": "비과세",
+      "input": {
+        "grossPay": 55000000,
+        "nonTaxablePay": 5000000,
+        "startDate": "2017-01-01",
+        "lastWorkingDate": "2026-12-31",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 120,
+        "serviceYears": 10,
+        "taxableIncome": 50000000,
+        "serviceDeduction": 15000000,
+        "annualizedIncome": 42000000,
+        "annualizedDeduction": 28400000,
+        "taxBase": 13600000,
+        "annualizedTax": 816000,
+        "assessedIncomeTax": 680000,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 680000,
+        "localTax": 68000
+      }
+    },
+    {
+      "name": "1년 직전 마지막 근무일",
+      "input": {
+        "grossPay": 50000000,
+        "nonTaxablePay": 0,
+        "startDate": "2025-10-14",
+        "lastWorkingDate": "2026-10-13",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 12,
+        "serviceYears": 1,
+        "taxableIncome": 50000000,
+        "serviceDeduction": 1000000,
+        "annualizedIncome": 588000000,
+        "annualizedDeduction": 252500000,
+        "taxBase": 335500000,
+        "annualizedTax": 108260000,
+        "assessedIncomeTax": 9021666,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 9021660,
+        "localTax": 902160
+      }
+    },
+    {
+      "name": "1년 다음 구간",
+      "input": {
+        "grossPay": 50000000,
+        "nonTaxablePay": 0,
+        "startDate": "2025-10-14",
+        "lastWorkingDate": "2026-10-14",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": false,
+      "workbook": {
+        "serviceMonths": 13,
+        "serviceYears": 2,
+        "taxableIncome": 50000000,
+        "serviceDeduction": 2000000,
+        "annualizedIncome": 288000000,
+        "annualizedDeduction": 146300000,
+        "taxBase": 141700000,
+        "annualizedTax": 34155000,
+        "assessedIncomeTax": 5692500,
+        "deferredIncomeTax": 0,
+        "deferredLocalTax": 0,
+        "incomeTax": 5692500,
+        "localTax": 569250
+      }
+    },
+    {
+      "name": "월말 근속",
+      "input": {
+        "grossPay": 50000000,
+        "nonTaxablePay": 0,
+        "startDate": "2025-01-31",
+        "lastWorkingDate": "2026-01-30",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": true,
+      "workbook": {
+        "serviceMonths": 12,
+        "serviceYears": 1
+      }
+    },
+    {
+      "name": "윤일 입사",
+      "input": {
+        "grossPay": 50000000,
+        "nonTaxablePay": 0,
+        "startDate": "2024-02-29",
+        "lastWorkingDate": "2026-02-28",
+        "profile": "ordinary",
+        "payment": "cash"
+      },
+      "tenureOnly": true,
+      "workbook": {
+        "serviceMonths": 24,
+        "serviceYears": 2
+      }
+    }
+  ]
+}
