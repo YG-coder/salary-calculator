@@ -9,7 +9,7 @@
       ]
     },
     {
-      "source": "/((?!og-image\\.png$|logo\\.svg$).*)\\.(js|css|png|jpg|svg|ico|woff2)",
+      "source": "/((?!og-image\\.png/?$|logo\\.svg/?$).*)\\.(js|css|png|jpg|svg|ico|woff2)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
